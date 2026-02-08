@@ -10,6 +10,7 @@
   --barFill: rgba(211,138,92,.92);
   --barEdge: rgba(255,255,255,.82);
 
+  /* glass vars (JS les ajuste par thème) */
   --glass: rgba(255,255,255,.58);
   --glass2: rgba(255,255,255,.40);
 
@@ -38,7 +39,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 .muted{ color: var(--muted); }
 .small{ font-size: 12px; }
 
-/* ---------- Topbar : vitré + discret ---------- */
+/* ---------- Topbar vitré ---------- */
 #topBar{
   position: fixed;
   top:0; left:0; right:0;
@@ -51,8 +52,8 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 
   padding: 0 12px;
   background: var(--glass);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--line);
 }
 
@@ -66,7 +67,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   align-items:center;
 }
 
-.tb-spacer{ width: 8px; }
+.tb-spacer{ width: 6px; }
 
 .tb-icon{
   border: 1px solid var(--line);
@@ -79,16 +80,6 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   color: var(--fg);
 }
 
-.tb-select{
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--glass2);
-  padding: 8px 12px;
-  color: var(--fg);
-  font-family: inherit;
-  cursor:pointer;
-}
-
 .tb-chip{
   border-radius: 999px;
   border: 1px solid var(--line);
@@ -97,15 +88,26 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   cursor:pointer;
   color: var(--fg);
   font-family: inherit;
-  font-weight: 800;
+  font-weight: 900;
 }
 .tb-chip.subtle{
-  font-weight: 700;
-  opacity: .90;
+  font-weight: 800;
+  opacity: .88;
 }
+
 .tb-chip.active{
   background: rgba(211,138,92,.18);
   border-color: rgba(211,138,92,.30);
+}
+
+.tb-chip.focus{
+  background: rgba(211,138,92,.20);
+  border-color: rgba(211,138,92,.36);
+  box-shadow: 0 10px 22px rgba(0,0,0,.10);
+}
+.tb-chip.focus.active{
+  background: rgba(211,138,92,.28);
+  border-color: rgba(211,138,92,.44);
 }
 
 /* ---------- Hub ---------- */
@@ -124,7 +126,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 
 #appTitle{
   font-family: "Baloo 2", cursive;
-  font-size: clamp(72px, 8vw, 112px);
+  font-size: clamp(80px, 9vw, 122px); /* un peu plus grand */
   font-weight: 900;
   letter-spacing: .06em;
 }
@@ -149,6 +151,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   overflow: hidden;
   background: var(--barEmpty);
   border: 1px solid var(--line);
+  box-shadow: 0 18px 30px rgba(0,0,0,.08); /* petit relief doux */
 }
 
 #progressFill{
@@ -191,8 +194,21 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 #pomoTime{
   font-size: 30px;
   letter-spacing: .02em;
-  font-weight: 800;
+  font-weight: 900;
 }
+
+.pomoBtn{
+  width: 36px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--glass2);
+  cursor:pointer;
+  font-family: inherit;
+  font-weight: 900;
+  color: var(--fg);
+}
+.pomoBtn:active{ transform: translateY(1px); }
 
 .iconLink{
   border:none;
@@ -205,7 +221,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   line-height: 1;
 }
 
-/* ---------- Mission Card : le grand cadre unique ---------- */
+/* ---------- Mission Card ---------- */
 .missionCard{
   margin: 10px auto 10px;
   width: 100%;
@@ -213,9 +229,32 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   border: 1px solid var(--line);
   border-radius: 22px;
   padding: 16px 16px 14px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* petit nuage doux (pas un halo) */
+.missionCard::before{
+  content:"";
+  position:absolute;
+  inset:-30px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255,255,255,.18), transparent 55%),
+    radial-gradient(circle at 80% 25%, rgba(255,255,255,.12), transparent 60%),
+    radial-gradient(circle at 40% 90%, rgba(255,255,255,.10), transparent 60%);
+  pointer-events:none;
+}
+
+.cornerHint{
+  position:absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: .78;
 }
 
 .missionKicker{
@@ -224,15 +263,15 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   align-items:center;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .chip{
   border-radius: 999px;
   padding: 2px 10px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.28);
-  font-weight: 800;
+  background: rgba(255,255,255,.24);
+  font-weight: 900;
   color: var(--fg);
 }
 
@@ -241,7 +280,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   height: 26px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.22);
   cursor:pointer;
   font-family: inherit;
   font-size: 13px;
@@ -249,16 +288,13 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 }
 
 .missionTitle{
-  font-size: clamp(34px, 3.6vw, 50px);
+  font-size: clamp(34px, 3.8vw, 54px);
   font-weight: 900;
   line-height: 1.10;
   margin: 6px 0 0;
-  text-shadow: 0 10px 18px rgba(0,0,0,.10);
+  text-shadow: 0 12px 18px rgba(0,0,0,.12);
 }
-
-.missionMeta{
-  margin-top: 10px;
-}
+.missionMeta{ margin-top: 10px; }
 
 .divider{
   height:1px;
@@ -282,10 +318,10 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 }
 .missionListMeta{
   opacity: .78;
-  font-weight: 800;
+  font-weight: 900;
 }
 
-/* Liste hub cliquable */
+/* Liste hub */
 .hubList{
   display:flex;
   flex-direction:column;
@@ -295,26 +331,27 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 }
 .hubTaskRow{
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.26);
+  background: rgba(255,255,255,.20);
   color: var(--fg);
   border-radius: 14px;
   padding: 10px 12px;
   cursor:pointer;
   text-align:left;
   font-family: inherit;
-  font-weight: 800;
+  font-weight: 900;
 }
 .hubTaskRow.active{
   background: rgba(211,138,92,.18);
   border-color: rgba(211,138,92,.28);
 }
 
-/* ---------- Actions dans le cadre ---------- */
-.missionActions{
-  display:grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items:start;
-  gap: 14px;
+/* ✅ Actions horizontales */
+.missionActionsRow{
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  gap: 22px;
+  flex-wrap: nowrap;
 }
 
 .actionCol{
@@ -328,7 +365,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 .actionLbl{
   font-size: 12px;
   color: var(--muted);
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .roundBtn{
@@ -336,7 +373,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   height: 72px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.22);
   cursor:pointer;
   font-family: inherit;
   font-size: 26px;
@@ -346,13 +383,13 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   transition: transform 160ms ease;
 }
 .roundBtn:active{ transform: translateY(1px) scale(.99); }
-.roundBtn.ghost{ background: rgba(255,255,255,.22); }
+.roundBtn.ghost{ background: rgba(255,255,255,.18); }
 .roundBtn.primary{
   background: rgba(211,138,92,.16);
   border-color: rgba(211,138,92,.30);
 }
 
-/* Roulette (dans le cadre) */
+/* Roulette */
 .rouletteBtn{
   width: 164px;
   height: 164px;
@@ -361,7 +398,6 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   padding: 0;
   cursor: pointer;
 }
-
 .rouletteWheel{
   width: 164px;
   height: 164px;
@@ -377,7 +413,6 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   transform: rotate(0deg);
   will-change: transform;
 }
-
 .rouletteCenterText{
   font-weight: 900;
   font-size: 18px;
@@ -386,20 +421,18 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   text-shadow: 0 2px 0 rgba(255,255,255,.55);
 }
 
-/* ---------- Quicklinks : sous le cadre, centrés ---------- */
+/* Quicklinks sous le cadre */
 .quickLinks{
   display:flex;
   gap:10px;
   flex-wrap: wrap;
   justify-content:center;
 }
-.quickLinks.below{
-  margin: 12px 0 0;
-}
+.quickLinks.below{ margin: 12px 0 0; }
 
 .ql{
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.18);
   color: var(--fg);
   padding: 8px 12px;
   border-radius: 999px;
@@ -407,25 +440,25 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   cursor:pointer;
   font-family: inherit;
 }
-.ql:hover{ background: rgba(255,255,255,.34); }
+.ql:hover{ background: rgba(255,255,255,.28); }
 
-/* ---------- Toast ---------- */
+/* Toast */
 .toast{
   margin: 16px auto 0;
   max-width: 560px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(255,255,255,.42);
+  background: rgba(255,255,255,.38);
   border: 1px solid var(--line);
   color: var(--fg);
 }
 
-/* ---------- Panels (lisibles en sombre aussi) ---------- */
+/* ---------- Panels ---------- */
 #panelBack{
   position: fixed;
   inset: 0;
   z-index: 5900;
-  background: rgba(0,0,0,.22);
+  background: rgba(0,0,0,.20);
   opacity: 0;
   pointer-events:none;
   transition: opacity .25s ease;
@@ -497,7 +530,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   height: 36px;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.18);
   cursor:pointer;
   font-size: 18px;
   font-family: inherit;
@@ -516,10 +549,10 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   background: transparent;
   padding: 6px 10px;
   color: var(--fg);
-  opacity: .82;
+  opacity: .84;
   cursor:pointer;
   font-family: inherit;
-  font-weight: 800;
+  font-weight: 900;
 }
 .tabBtn.active{
   background: rgba(211,138,92,.18);
@@ -540,7 +573,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   width: 100%;
   border-radius: 14px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.18);
   color: var(--fg);
   padding: 10px;
   font-family: inherit;
@@ -549,7 +582,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 .input, .select{
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.18);
   color: var(--fg);
   padding: 8px 10px;
   font-family: inherit;
@@ -566,7 +599,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 .btn{
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.18);
   color: var(--fg);
   padding: 8px 12px;
   cursor:pointer;
@@ -577,11 +610,9 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   background: rgba(211,138,92,.18);
   border-color: rgba(211,138,92,.28);
 }
-.btn.ghost{
-  background: rgba(255,255,255,.16);
-}
+.btn.ghost{ background: rgba(255,255,255,.12); }
 .btn.danger{
-  background: rgba(255,120,120,.16);
+  background: rgba(255,120,120,.14);
   border-color: rgba(255,120,120,.26);
 }
 
@@ -594,7 +625,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 
 .cardRow{
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.18);
+  background: rgba(255,255,255,.14);
   border-radius: 14px;
   padding: 10px 10px;
   display:flex;
@@ -620,16 +651,13 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   color: var(--muted);
 }
 
-.cardBtns{
-  display:flex;
-  gap: 8px;
-}
+.cardBtns{ display:flex; gap: 8px; }
 .iconBtn{
   width: 36px;
   height: 34px;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.16);
+  background: rgba(255,255,255,.12);
   cursor:pointer;
   font-family: inherit;
   color: var(--fg);
@@ -642,16 +670,10 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   gap: 10px;
 }
 
-/* ---------- Focus mode : cache juste ce qui doit l’être ---------- */
-body.focusMode .panel-left,
-body.focusMode .panel-right{
-  /* focus = tu peux décider plus tard, ici on garde l'ouverture possible */
-}
-
-/* mobile */
+/* Mobile : on garde horizontal (en réduisant), pas empilé */
 @media (max-width: 720px){
-  .missionActions{ grid-template-columns: 1fr; }
-  .actionCol{ min-width: 0; }
-  .rouletteBtn{ width: 150px; height: 150px; }
-  .rouletteWheel{ width: 150px; height: 150px; }
+  .actionCol{ min-width: 110px; }
+  .roundBtn{ width: 64px; height: 64px; }
+  .rouletteBtn, .rouletteWheel{ width: 142px; height: 142px; }
+  .missionActionsRow{ gap: 14px; }
 }
