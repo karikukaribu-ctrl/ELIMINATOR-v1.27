@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eliminator</title>
 
-  <!-- Polices Ghibli -->
+  <!-- Polices “Ghibli-ish” (choix plus tard dans l’UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Kurenaido&family=Kiwi+Maru&display=swap" rel="stylesheet">
@@ -15,24 +15,31 @@
 
 <body data-font="yomogi">
 
-  <!-- MENU SUPÉRIEUR -->
+  <!-- TOP BAR FIXE -->
   <header id="topBar">
-    <div class="top-left">Eliminator</div>
-    <div class="top-right">
-      <button id="btnLeft">Menu</button>
-      <button id="btnRight">Panneau</button>
+    <div class="tb-left">
+      <button id="btnLeft" class="tb-btn" title="Ouvrir le menu gauche" aria-label="Menu gauche">≡</button>
+    </div>
+
+    <div class="tb-center">
+      <div class="tb-brand">Eliminator</div>
+    </div>
+
+    <div class="tb-right">
+      <button id="btnRight" class="tb-btn" title="Ouvrir le panneau droit" aria-label="Panneau droit">▦</button>
     </div>
   </header>
 
-  <!-- BACKDROP -->
-  <div id="panelBack"></div>
+  <!-- BACKDROP PANELS -->
+  <div id="panelBack" aria-hidden="true"></div>
 
   <!-- PANNEAU GAUCHE -->
-  <aside id="leftPanel" class="panel">
-    <button class="closeBtn" id="leftClose">×</button>
+  <aside id="leftPanel" class="panel panel-left" aria-label="Panneau gauche">
+    <button class="closeBtn" id="leftClose" aria-label="Fermer le panneau gauche">×</button>
     <div class="panel-content">
       <h3>Menu gauche</h3>
-      <p>Inbox, tâches, préférences…</p>
+      <p>Inbox · Tâches/Catégories · Kiffance · Préférences · Export…</p>
+      <p class="muted">Étape 1 : contenu placeholder. Les onglets reviennent à l’étape 2.</p>
     </div>
   </aside>
 
@@ -43,49 +50,68 @@
       <h1 id="appTitle">ELIMINATOR</h1>
       <p id="subtitle">Une quête après l’autre.</p>
 
-      <!-- BARRE DE PROGRESSION -->
-      <div id="progressWrap">
-        <div id="progressBar">
+      <!-- PROGRESSION (PLEINE -> DÉCROÎT) -->
+      <section id="progressWrap" aria-label="Progression">
+        <div id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
           <div id="progressFill"></div>
+          <div id="progressPctIn">100%</div>
         </div>
-        <div id="progressPct">0%</div>
-      </div>
+        <div id="progressHint" class="muted">La jauge commence pleine et décroît à mesure que tu dégomme.</div>
+      </section>
 
-      <!-- POMODORO -->
-      <div id="pomodoro">
-        <span id="pomoTime">25:00</span>
-        <button id="pomoEdit">modifier</button>
-      </div>
+      <!-- POMODORO CENTRÉ -->
+      <section id="pomodoro" aria-label="Pomodoro">
+        <div id="pomoTime">25:00</div>
+        <button id="pomoEdit" class="linkBtn" type="button">modifier</button>
+      </section>
 
-      <!-- TÂCHE EN COURS -->
-      <div id="currentTask">
-        <span class="taskTitle">Aucune tâche sélectionnée</span>
-        <span class="taskFraction">–</span>
-      </div>
+      <!-- TÂCHE EN COURS (moins minimaliste) -->
+      <section id="currentTask" aria-label="Tâche en cours">
+        <div class="taskLine">
+          <span class="taskLabel">Tâche en cours</span>
+          <span class="taskFraction" id="taskFraction">0/0</span>
+        </div>
+        <div class="taskTitle" id="taskTitle">Aucune tâche sélectionnée</div>
+        <div class="taskMeta muted" id="taskMeta">Catégorie : — · Éthorions : —</div>
+      </section>
 
       <!-- ACTIONS CENTRALES -->
-      <div id="actions">
-        <button id="bombBtn">💣</button>
+      <section id="actions" aria-label="Actions">
 
-        <div id="rouletteWrap">
-          <div id="roulette">
-            <div class="wheel"></div>
-          </div>
-          <span class="rouletteLabel">roulette</span>
-        </div>
+        <!-- UNDO -->
+        <button id="undoBtn" class="actionBtn" type="button" title="Retour arrière">
+          <span class="ic">↶</span>
+          <span class="lbl">retour</span>
+        </button>
 
-        <button id="swordBtn">⚔︎</button>
+        <!-- ROULETTE -->
+        <button id="roulette" class="rouletteBtn" type="button" title="Roulette (choix surprise)">
+          <span class="rouletteText">roulette</span>
+          <span class="rouletteSub muted">tirage</span>
+        </button>
+
+        <!-- BOMB -->
+        <button id="bombBtn" class="actionBtn primary" type="button" title="Dégommer 1 Éthorion">
+          <span class="ic">💣</span>
+          <span class="lbl">dégommer</span>
+        </button>
+
+      </section>
+
+      <div class="muted" id="miniLegend">
+        Démo étape 1 : roulette ↓ progression · retour ↑ progression · dégommage ↓ progression
       </div>
 
     </div>
   </main>
 
   <!-- PANNEAU DROIT -->
-  <aside id="rightPanel" class="panel">
-    <button class="closeBtn" id="rightClose">×</button>
+  <aside id="rightPanel" class="panel panel-right" aria-label="Panneau droit">
+    <button class="closeBtn" id="rightClose" aria-label="Fermer le panneau droit">×</button>
     <div class="panel-content">
       <h3>Panneau droit</h3>
-      <p>Sets, habitudes, mood, calendrier…</p>
+      <p>Sets · Habitudes · Mood · Calendrier · Stats · Notes/Rappels…</p>
+      <p class="muted">Étape 1 : placeholder. Les modules reviennent ensuite.</p>
     </div>
   </aside>
 
