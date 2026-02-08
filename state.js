@@ -1,9 +1,5 @@
 /* ============================================================
-   ELIMINATOR — Étape 2.1 (layout + mode toggle doux)
-   - Mode clair/foncé : bouton toggle
-   - Saisons : select
-   - MissionCard : un seul cadre (tâche + liste + actions + roulette)
-   - Dark mode adouci + panels lisibles
+   ELIMINATOR — Étape 2.2 (dark pastel + season cycle + pomodoro controls)
 ============================================================ */
 
 const $ = (id)=>document.getElementById(id);
@@ -12,29 +8,35 @@ const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
 const uid = ()=>Math.random().toString(36).slice(2,10)+"_"+Date.now().toString(36);
 const nowISO = ()=>new Date().toISOString();
 
-const LS_KEY = "eliminator_step2_1";
+const LS_KEY = "eliminator_step2_2";
 
-/* ---------- Thèmes (darks adoucis) ---------- */
+const SEASONS = ["printemps","ete","automne","hiver","noirblanc"];
+const seasonLabel = (s)=>{
+  const map = { printemps:"Printemps", ete:"Été", automne:"Automne", hiver:"Hiver", noirblanc:"Noir & blanc" };
+  return map[s] || "Automne";
+};
+
+/* ---------- Thèmes : sombres pastel “crépuscule nuageux” ---------- */
 const THEMES = {
   printemps:{
-    clair:{ bg:"#FBF4E8", fg:"#15120F", muted:"#6A5D53", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 215, 175, .28)" },
-    fonce:{ bg:"#1A1B18", fg:"#F6F1E8", muted:"#D4CABB", barFill:"#D7B08E", panel:"rgba(28,28,26,.62)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
+    clair:{ bg:"#FBF4E8", fg:"#15120F", muted:"#6A5D53", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 215, 175, .28)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
+    fonce:{ bg:"#2B2B33", fg:"#F6F2EA", muted:"#D7D0C5", barFill:"#D7B08E", panel:"rgba(44,44,54,.62)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(60,60,76,.42)", glass2:"rgba(70,70,92,.30)" }
   },
   ete:{
-    clair:{ bg:"#FFF3DF", fg:"#16120F", muted:"#6C5E52", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 215, 175, .28)" },
-    fonce:{ bg:"#182026", fg:"#F0FAFF", muted:"#CFE0EA", barFill:"#D7B08E", panel:"rgba(26,34,42,.62)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
+    clair:{ bg:"#FFF3DF", fg:"#16120F", muted:"#6C5E52", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 215, 175, .28)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
+    fonce:{ bg:"#26313A", fg:"#F0FAFF", muted:"#D2E0E8", barFill:"#CBB6A0", panel:"rgba(40,52,62,.62)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(50,70,82,.40)", glass2:"rgba(60,86,100,.28)" }
   },
   automne:{
-    clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 210, 165, .28)" },
-    fonce:{ bg:"#1B1713", fg:"#FFF3E6", muted:"#E1CDB8", barFill:"#D7B08E", panel:"rgba(34,26,18,.62)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
+    clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 210, 165, .28)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
+    fonce:{ bg:"#2E2826", fg:"#FFF3E6", muted:"#E3D3C4", barFill:"#D7B08E", panel:"rgba(52,44,40,.62)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(70,58,54,.42)", glass2:"rgba(86,72,66,.30)" }
   },
   hiver:{
-    clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", empty:"rgba(210, 235, 255, .28)" },
-    fonce:{ bg:"#161D24", fg:"#F0FBFF", muted:"#C8DCE2", barFill:"#9DB8D5", panel:"rgba(22,30,38,.62)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
+    clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", empty:"rgba(210, 235, 255, .28)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
+    fonce:{ bg:"#252C38", fg:"#F0FBFF", muted:"#D0DFE5", barFill:"#9DB8D5", panel:"rgba(38,48,62,.62)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(56,70,90,.40)", glass2:"rgba(66,86,110,.28)" }
   },
   noirblanc:{
-    clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#444444", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", empty:"rgba(0,0,0,.10)" },
-    fonce:{ bg:"#191A1C", fg:"#F4F4F4", muted:"#D0D0D0", barFill:"#BEBEBE", panel:"rgba(28,28,30,.66)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
+    clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#444444", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", empty:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
+    fonce:{ bg:"#2A2A2E", fg:"#F4F4F4", muted:"#D5D5D8", barFill:"#BEBEBE", panel:"rgba(44,44,48,.66)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(60,60,66,.42)", glass2:"rgba(74,74,84,.30)" }
   }
 };
 
@@ -56,7 +58,10 @@ const defaultState = {
     "Range 10 objets comme un ninja du tri.",
     "Bois une gorgée d’eau : potion de clarté mentale.",
     "Étirement de dragon : 45 secondes."
-  ]
+  ],
+  pomodoro:{
+    minutes: 25
+  }
 };
 
 function deepAssign(t,s){
@@ -91,6 +96,8 @@ function applyTheme(){
   document.documentElement.style.setProperty("--barEmpty", t.empty);
   document.documentElement.style.setProperty("--panelBg", t.panel);
   document.documentElement.style.setProperty("--line", t.line);
+  document.documentElement.style.setProperty("--glass", t.glass);
+  document.documentElement.style.setProperty("--glass2", t.glass2);
 
   document.documentElement.style.setProperty("--baseSize", `${clamp(state.ui.baseSize, 14, 18)}px`);
   document.documentElement.style.setProperty("--leftW", `${clamp(state.ui.leftW, 320, 980)}px`);
@@ -98,11 +105,15 @@ function applyTheme(){
 
   document.body.setAttribute("data-font", state.ui.font);
 
-  // Sync UI top
-  $("quickSeason").value = state.ui.season;
-  $("modeToggle").textContent = (state.ui.mode === "fonce") ? "Foncé" : "Clair";
+  // top bar sync
+  const modeBtn = $("modeToggle");
+  modeBtn.textContent = (state.ui.mode === "fonce") ? "Foncé" : "Clair";
+  modeBtn.setAttribute("aria-pressed", state.ui.mode === "fonce" ? "true" : "false");
+  modeBtn.classList.toggle("active", state.ui.mode === "fonce");
 
-  // Sync prefs
+  $("seasonCycle").textContent = seasonLabel(state.ui.season);
+
+  // prefs sync
   $("modeSel").value = state.ui.mode;
   $("seasonSel").value = state.ui.season;
   $("fontSel").value = state.ui.font;
@@ -638,18 +649,56 @@ async function copyText(text){
   catch(_){ toast("Impossible de copier (clipboard)."); }
 }
 
-/* ---------- Pomodoro (démo simple) ---------- */
-let pomoMinutes = 25;
-function renderPomodoro(){
-  $("pomoTime").textContent = `${String(pomoMinutes).padStart(2,"0")}:00`;
+/* ---------- Pomodoro : play / pause / stop ---------- */
+let pomoTimer = null;
+let pomoRemainingMs = 0;
+let pomoRunning = false;
+
+function pad2(n){ return String(n).padStart(2,"0"); }
+function fmtMMSS(ms){
+  const s = Math.max(0, Math.floor(ms/1000));
+  return `${pad2(Math.floor(s/60))}:${pad2(s%60)}`;
 }
-function editPomodoro(){
-  const v = prompt("Durée pomodoro (minutes) :", String(pomoMinutes));
+function pomoSetToMinutes(){
+  const m = clamp(parseInt(state.pomodoro.minutes,10) || 25, 5, 90);
+  state.pomodoro.minutes = m;
+  pomoRemainingMs = m * 60 * 1000;
+  $("pomoTime").textContent = fmtMMSS(pomoRemainingMs);
+  saveState();
+}
+function pomoTick(){
+  if(!pomoRunning) return;
+  pomoRemainingMs -= 250;
+  if(pomoRemainingMs <= 0){
+    pomoRemainingMs = 0;
+    pomoPause();
+    toast("⏰ Pomodoro terminé. Victoire temporo-spatiale.");
+  }
+  $("pomoTime").textContent = fmtMMSS(pomoRemainingMs);
+}
+function pomoPlay(){
+  if(pomoRunning) return;
+  if(pomoRemainingMs <= 0) pomoSetToMinutes();
+  pomoRunning = true;
+  if(!pomoTimer) pomoTimer = setInterval(pomoTick, 250);
+  toast("▶ Pomodoro : en marche.");
+}
+function pomoPause(){
+  pomoRunning = false;
+  toast("⏸ Pause.");
+}
+function pomoStop(){
+  pomoRunning = false;
+  pomoSetToMinutes();
+  toast("■ Stop. Reset.");
+}
+function pomoEdit(){
+  const v = prompt("Durée pomodoro (minutes) :", String(state.pomodoro.minutes || 25));
   if(v === null) return;
   const n = parseInt(v,10);
   if(Number.isFinite(n) && n >= 5 && n <= 90){
-    pomoMinutes = n;
-    renderPomodoro();
+    state.pomodoro.minutes = n;
+    pomoSetToMinutes();
     toast("Pomodoro ajusté. Le temps obéit.");
   }
 }
@@ -695,7 +744,7 @@ function bindTopActions(){
   });
 }
 
-/* ---------- Mode toggle + season ---------- */
+/* ---------- Mode + Season cycle ---------- */
 function bindVisuals(){
   $("modeToggle").addEventListener("click", ()=>{
     state.ui.mode = (state.ui.mode === "clair") ? "fonce" : "clair";
@@ -704,13 +753,14 @@ function bindVisuals(){
     renderProgress();
   });
 
-  $("quickSeason").addEventListener("change", ()=>{
-    state.ui.season = $("quickSeason").value;
+  $("seasonCycle").addEventListener("click", ()=>{
+    const idx = Math.max(0, SEASONS.indexOf(state.ui.season));
+    state.ui.season = SEASONS[(idx + 1) % SEASONS.length];
     saveState();
     applyTheme();
   });
 
-  // prefs -> sync
+  // prefs
   $("modeSel").addEventListener("change", ()=>{
     state.ui.mode = $("modeSel").value;
     saveState();
@@ -766,8 +816,12 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   $("taskInfoBtn").onclick = toggleTaskMeta;
 
-  $("pomoEdit").onclick = editPomodoro;
-  renderPomodoro();
+  // Pomodoro controls
+  $("pomoPlay").onclick = pomoPlay;
+  $("pomoPause").onclick = pomoPause;
+  $("pomoStop").onclick = pomoStop;
+  $("pomoEdit").onclick = pomoEdit;
+  pomoSetToMinutes();
 
   bindTopActions();
   bindVisuals();
