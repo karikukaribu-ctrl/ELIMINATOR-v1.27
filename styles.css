@@ -242,11 +242,9 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 
 /* ---------- Actions + labels ---------- */
 #actions{
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  gap: 18px;
-  margin-top: 10px;
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items:start;
 }
 
 .actionCol{
@@ -300,7 +298,9 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   overflow: visible;
   transition: transform 180ms ease;
 }
-.rouletteBtn:active{ transform: translateY(1px) scale(.99); }
+.rouletteBtn.spinning .rouletteFace{
+  transition: transform 1.4s cubic-bezier(.1,.85,.2,1);
+}
 
 .rouletteFace{
   width: 152px;
@@ -394,7 +394,9 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   opacity: 1;
   pointer-events:auto;
 }
-
+.panel-content{
+  color: rgba(0,0,0,.78);
+}
 .panel{
   position: fixed;
   top: 0;
@@ -459,18 +461,16 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 }
 
 .tabBtn{
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,.30);
-  border-radius: 999px;
-  padding: 6px 10px;
-  cursor:pointer;
-  font-family: inherit;
-  font-size: 13px;
+  border:none;
+  background: transparent;
+  padding: 6px 8px;
   color: rgba(0,0,0,.72);
 }
+
 .tabBtn.active{
-  background: var(--accentSoft);
-  border-color: rgba(211,138,92,.35);
+  background: rgba(211,138,92,.22);
+  border-radius: 999px;
+  font-weight: 700;
 }
 
 .panel-content{
