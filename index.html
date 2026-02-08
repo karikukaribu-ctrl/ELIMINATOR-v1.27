@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eliminator</title>
 
-  <!-- Polices “Ghibli-ish” -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Zen+Maru+Gothic:wght@400;500;700&family=Yomogi&family=Kiwi+Maru:wght@400;500;700&family=Zen+Kurenaido&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css">
+  <!-- ✅ versionnée pour casser le cache -->
+  <link rel="stylesheet" href="styles.v5.css">
 </head>
 
 <body>
-  <!-- TOP BAR FIXE -->
   <header id="topBar">
     <div class="tb-left">
       <button id="btnLeft" class="tb-icon" title="Menu gauche" aria-label="Menu gauche">≡</button>
@@ -37,10 +36,8 @@
     </div>
   </header>
 
-  <!-- BACKDROP PANELS -->
   <div id="panelBack" aria-hidden="true"></div>
 
-  <!-- PANNEAU GAUCHE -->
   <aside id="leftPanel" class="panel panel-left" aria-label="Panneau gauche">
     <div class="panel-top">
       <div id="leftResizer" class="panelResizer left" title="Redimensionner"></div>
@@ -57,8 +54,7 @@
     </nav>
 
     <div class="panel-content">
-      <!-- INBOX -->
-      <section class="tabPage show" id="left-inbox" aria-label="Inbox">
+      <section class="tabPage show" id="left-inbox">
         <p class="muted small">
           Une ligne = une tâche. Ligne en MAJUSCULES = catégorie.
           “Titre - 6” ou “Titre 6” = 6 Éthorions.
@@ -82,8 +78,7 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <!-- TASKS -->
-      <section class="tabPage" id="left-tasks" aria-label="Tâches">
+      <section class="tabPage" id="left-tasks">
         <div class="row wrap">
           <label class="muted small">Catégorie</label>
           <select id="catFilter" class="select"></select>
@@ -99,10 +94,8 @@ Lire article - 2"></textarea>
         <div class="list" id="taskList"></div>
       </section>
 
-      <!-- KIFFANCE -->
-      <section class="tabPage" id="left-kiffance" aria-label="Kiffance">
+      <section class="tabPage" id="left-kiffance">
         <p class="muted small">Récompenses surprises (base éditable).</p>
-
         <div class="row wrap">
           <input id="kiffNew" class="input" placeholder="Ajouter une kiffance…" />
           <button id="kiffAdd" class="btn primary">+</button>
@@ -110,8 +103,7 @@ Lire article - 2"></textarea>
         <div class="list" id="kiffList"></div>
       </section>
 
-      <!-- PREFS -->
-      <section class="tabPage" id="left-prefs" aria-label="Préférences">
+      <section class="tabPage" id="left-prefs">
         <div class="grid2">
           <div>
             <label class="muted small">Mode</label>
@@ -167,8 +159,7 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <!-- EXPORT -->
-      <section class="tabPage" id="left-export" aria-label="Export">
+      <section class="tabPage" id="left-export">
         <p class="muted small">Export JSON simple.</p>
         <div class="row wrap">
           <button id="exportBtn" class="btn ghost">Copier JSON</button>
@@ -179,13 +170,11 @@ Lire article - 2"></textarea>
     </div>
   </aside>
 
-  <!-- HUB CENTRAL -->
   <main id="hub">
     <div id="hub-inner">
       <h1 id="appTitle">ELIMINATOR</h1>
       <p id="subtitle" class="subtitle">Une quête après l’autre.</p>
 
-      <!-- PROGRESSION -->
       <section id="progressWrap" aria-label="Progression">
         <div id="progressBar" class="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
           <div id="progressFill"></div>
@@ -193,10 +182,7 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <!-- CADRE MISSION -->
       <section id="missionCard" class="missionCard" aria-label="Mission">
-
-        <!-- Ligne compacte : texte à gauche + pomodoro+messages à droite -->
         <div class="missionTopRow">
           <div class="missionLine" id="missionLineLeft">Tâches en cours (0 finies · 0/0)</div>
 
@@ -209,14 +195,12 @@ Lire article - 2"></textarea>
           </div>
         </div>
 
-        <!-- Titre tâche -->
         <div class="missionTitle" id="taskTitle">Aucune tâche sélectionnée</div>
 
         <div class="missionMeta muted" id="taskMetaDetails" hidden>
           Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
         </div>
 
-        <!-- Actions HORIZONTALES (ordre strict) -->
         <div class="missionActionsRow">
           <button id="undoBtn" class="actionPill" type="button" title="Retour arrière">
             ↶ <span>Retour</span>
@@ -233,7 +217,6 @@ Lire article - 2"></textarea>
           </button>
         </div>
 
-        <!-- Liens bas : mots seuls -->
         <div class="miniLinks" role="navigation" aria-label="Accès rapides">
           <button class="miniLink" type="button" id="openNotes">Notes</button>
           <button class="miniLink" type="button" id="openTyphonse">Typhonse</button>
@@ -245,7 +228,6 @@ Lire article - 2"></textarea>
     </div>
   </main>
 
-  <!-- PANNEAU DROIT -->
   <aside id="rightPanel" class="panel panel-right" aria-label="Panneau droit">
     <div class="panel-top">
       <div class="panel-title">Panneau</div>
@@ -272,7 +254,6 @@ Lire article - 2"></textarea>
     </div>
   </aside>
 
-  <!-- MODAL Pomodoro -->
   <div id="modalBack" class="modalBack" hidden></div>
   <div id="pomoModal" class="modal" hidden role="dialog" aria-modal="true" aria-label="Paramètres pomodoro">
     <div class="modalHead">
@@ -306,6 +287,7 @@ Lire article - 2"></textarea>
     </div>
   </div>
 
-  <script src="state.js" defer></script>
+  <!-- ✅ versionné pour casser le cache -->
+  <script src="state.v5.js" defer></script>
 </body>
 </html>
