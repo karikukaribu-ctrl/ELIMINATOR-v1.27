@@ -1,130 +1,43 @@
-:root {
-  --bg: #fbf4e8;
-  --fg: #14120f;
-  --muted: #6a5d53;
+/* ================================
+   ELIMINATOR — ÉTAPE 0
+================================ */
 
-  --panel-bg: rgba(255,255,255,0.7);
-  --line: rgba(0,0,0,0.1);
-
-  --leftW: 360px;
-  --rightW: 420px;
+function $(id) {
+  return document.getElementById(id);
 }
 
-/* RESET */
-* { box-sizing: border-box; }
+function openPanel(side) {
+  $("panelBack").classList.add("show");
 
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: "Yomogi", cursive;
+  if (side === "left") {
+    $("leftPanel").classList.add("open");
+    $("rightPanel").classList.remove("open");
+  }
+
+  if (side === "right") {
+    $("rightPanel").classList.add("open");
+    $("leftPanel").classList.remove("open");
+  }
+
+  document.body.style.overflow = "hidden";
 }
 
-/* TOP BAR */
-#topBar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 56px;
-  padding: 0 16px;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  background: rgba(255,255,255,0.6);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
+function closePanels() {
+  $("panelBack").classList.remove("show");
+  $("leftPanel").classList.remove("open");
+  $("rightPanel").classList.remove("open");
+  document.body.style.overflow = "";
 }
 
-#topBar button {
-  background: none;
-  border: none;
-  font-family: inherit;
-  cursor: pointer;
-  font-size: 14px;
-}
+document.addEventListener("DOMContentLoaded", () => {
+  $("btnLeft").addEventListener("click", () => openPanel("left"));
+  $("btnRight").addEventListener("click", () => openPanel("right"));
 
-/* HUB */
-#hub {
-  padding-top: 56px;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-}
+  $("leftClose").addEventListener("click", closePanels);
+  $("rightClose").addEventListener("click", closePanels);
+  $("panelBack").addEventListener("click", closePanels);
 
-#hub-inner {
-  max-width: 700px;
-  padding: 48px 24px;
-  text-align: center;
-}
-
-#appTitle {
-  font-size: 48px;
-  margin-bottom: 8px;
-}
-
-#subtitle {
-  color: var(--muted);
-}
-
-/* BACKDROP */
-#panelBack {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.25);
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-  z-index: 900;
-}
-
-#panelBack.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* PANELS */
-.panel {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  background: var(--panel-bg);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--line);
-  z-index: 1000;
-  transition: transform 0.25s ease;
-  overflow-y: auto;
-}
-
-#leftPanel {
-  left: 0;
-  width: var(--leftW);
-  transform: translateX(-100%);
-}
-
-#rightPanel {
-  right: 0;
-  width: var(--rightW);
-  transform: translateX(100%);
-}
-
-.panel.open {
-  transform: translateX(0);
-}
-
-.panel-content {
-  padding: 24px;
-}
-
-.closeBtn {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-}
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePanels();
+  });
+});
