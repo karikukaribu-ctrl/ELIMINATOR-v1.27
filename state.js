@@ -4,7 +4,7 @@ const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
 const uid = ()=>Math.random().toString(36).slice(2,10)+"_"+Date.now().toString(36);
 const nowISO = ()=>new Date().toISOString();
 
-const LS_KEY = "eliminator_step2_polish";
+const LS_KEY = "eliminator_step2_fix";
 
 const SEASONS = ["printemps","ete","automne","hiver","noirblanc"];
 const seasonLabel = (s)=>{
@@ -17,119 +17,44 @@ const SUBLINES = [
   "Le chaos recule, toi tu avances.",
   "Mission : calmer le bazar. Avec panache.",
   "Le destin a peur de ta to-do.",
-  "Tes Éthorions n’ont qu’à bien se tenir.",
-  "Le tri. La gloire. Le thé.",
-  "Aujourd’hui : victoire par micro-coups."
+  "Tes Éthorions n’ont qu’à bien se tenir."
 ];
 
-function pickSubline(){
-  return SUBLINES[Math.floor(Math.random()*SUBLINES.length)];
-}
+function pickSubline(){ return SUBLINES[Math.floor(Math.random()*SUBLINES.length)]; }
 
-/* ✅ saisons : printemps plus floral, été plus soleil */
+/* Thèmes */
 const THEMES = {
   printemps:{
-    clair:{
-      bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54",
-      barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)",
-      accent:"rgba(255,162,190,.16)", accent2:"rgba(124,207,168,.32)", /* rose+vert */
-      panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)",
-      glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)",
-      decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)"
-    },
-    sombre:{
-      bg:"#2A3A3A", fg:"#F6F2EA", muted:"#DAD2C6",
-      barFill:"#8FE3BC", barEmpty:"rgba(143,227,188,.12)", barEdge:"rgba(255,255,255,.22)",
-      accent:"rgba(255,170,200,.10)", accent2:"rgba(143,227,188,.22)",
-      panel:"rgba(44,66,64,.62)", line:"rgba(255,255,255,.14)",
-      glass:"rgba(56,86,82,.40)", glass2:"rgba(72,110,104,.24)",
-      decoA:"rgba(255,170,200,.08)", decoB:"rgba(255,235,180,.06)"
-    }
+    clair:{ bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54", barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)", accent:"rgba(255,162,190,.14)", accent2:"rgba(124,207,168,.30)", panel:"rgba(255,255,255,.72)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)" },
+    sombre:{ bg:"#2A3A3A", fg:"#F6F2EA", muted:"#DAD2C6", barFill:"#8FE3BC", barEmpty:"rgba(143,227,188,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,170,200,.10)", accent2:"rgba(143,227,188,.20)", panel:"rgba(54,86,82,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(56,86,82,.40)", glass2:"rgba(72,110,104,.24)", decoA:"rgba(255,170,200,.08)", decoB:"rgba(255,235,180,.06)" }
   },
   ete:{
-    clair:{
-      bg:"#FFF6DF", fg:"#16120F", muted:"#6C5E52",
-      barFill:"#F2B24B", barEmpty:"rgba(242,178,75,.16)", barEdge:"rgba(255,255,255,.88)",
-      accent:"rgba(90,190,200,.12)", accent2:"rgba(242,178,75,.28)", /* soleil + eau */
-      panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)",
-      glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)",
-      decoA:"rgba(242,178,75,.14)", decoB:"rgba(90,190,200,.10)"
-    },
-    sombre:{
-      bg:"#263748", fg:"#F0FAFF", muted:"#D6E2EA",
-      barFill:"#FFD07A", barEmpty:"rgba(255,208,122,.12)", barEdge:"rgba(255,255,255,.22)",
-      accent:"rgba(255,208,122,.10)", accent2:"rgba(134,210,220,.20)",
-      panel:"rgba(40,60,80,.62)", line:"rgba(255,255,255,.14)",
-      glass:"rgba(54,86,108,.38)", glass2:"rgba(72,110,136,.24)",
-      decoA:"rgba(255,208,122,.08)", decoB:"rgba(134,210,220,.08)"
-    }
+    clair:{ bg:"#FFF6DF", fg:"#16120F", muted:"#6C5E52", barFill:"#F2B24B", barEmpty:"rgba(242,178,75,.16)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(90,190,200,.12)", accent2:"rgba(242,178,75,.28)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(242,178,75,.14)", decoB:"rgba(90,190,200,.10)" },
+    sombre:{ bg:"#263748", fg:"#F0FAFF", muted:"#D6E2EA", barFill:"#FFD07A", barEmpty:"rgba(255,208,122,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,208,122,.10)", accent2:"rgba(134,210,220,.18)", panel:"rgba(54,86,108,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,86,108,.38)", glass2:"rgba(72,110,136,.24)", decoA:"rgba(255,208,122,.08)", decoB:"rgba(134,210,220,.08)" }
   },
   automne:{
-    clair:{
-      bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53",
-      barFill:"#D38A5C", barEmpty:"rgba(211,138,92,.18)", barEdge:"rgba(255,255,255,.85)",
-      accent:"rgba(211,138,92,.18)", accent2:"rgba(211,138,92,.36)",
-      panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)",
-      glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)",
-      decoA:"rgba(211,138,92,.12)", decoB:"rgba(255,210,160,.12)"
-    },
-    sombre:{
-      bg:"#2E3A33", fg:"#FFF3E6", muted:"#E3D3C4",
-      barFill:"#E0A77D", barEmpty:"rgba(224,167,125,.12)", barEdge:"rgba(255,255,255,.22)",
-      accent:"rgba(224,167,125,.12)", accent2:"rgba(224,167,125,.26)",
-      panel:"rgba(50,64,56,.62)", line:"rgba(255,255,255,.14)",
-      glass:"rgba(62,82,70,.38)", glass2:"rgba(74,98,84,.24)",
-      decoA:"rgba(224,167,125,.10)", decoB:"rgba(255,245,210,.08)"
-    }
+    clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", barEmpty:"rgba(211,138,92,.18)", barEdge:"rgba(255,255,255,.85)", accent:"rgba(211,138,92,.18)", accent2:"rgba(211,138,92,.36)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(211,138,92,.12)", decoB:"rgba(255,210,160,.12)" },
+    sombre:{ bg:"#2E3A33", fg:"#FFF3E6", muted:"#E3D3C4", barFill:"#E0A77D", barEmpty:"rgba(224,167,125,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(224,167,125,.12)", accent2:"rgba(224,167,125,.22)", panel:"rgba(62,82,70,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(62,82,70,.38)", glass2:"rgba(74,98,84,.24)", decoA:"rgba(224,167,125,.10)", decoB:"rgba(255,245,210,.08)" }
   },
   hiver:{
-    clair:{
-      bg:"#F5F7FA", fg:"#141B22", muted:"#61707E",
-      barFill:"#78A0C8", barEmpty:"rgba(120,160,200,.18)", barEdge:"rgba(255,255,255,.88)",
-      accent:"rgba(120,160,200,.16)", accent2:"rgba(120,160,200,.34)",
-      panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)",
-      glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)",
-      decoA:"rgba(120,160,200,.12)", decoB:"rgba(220,240,255,.14)"
-    },
-    sombre:{
-      bg:"#273244", fg:"#F0FBFF", muted:"#D0DFE5",
-      barFill:"#9DB8D5", barEmpty:"rgba(157,184,213,.12)", barEdge:"rgba(255,255,255,.22)",
-      accent:"rgba(157,184,213,.12)", accent2:"rgba(157,184,213,.26)",
-      panel:"rgba(40,54,72,.62)", line:"rgba(255,255,255,.14)",
-      glass:"rgba(54,74,98,.38)", glass2:"rgba(66,92,120,.24)",
-      decoA:"rgba(157,184,213,.10)", decoB:"rgba(242,253,255,.08)"
-    }
+    clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", barEmpty:"rgba(120,160,200,.18)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(120,160,200,.16)", accent2:"rgba(120,160,200,.30)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(120,160,200,.12)", decoB:"rgba(220,240,255,.14)" },
+    sombre:{ bg:"#273244", fg:"#F0FBFF", muted:"#D0DFE5", barFill:"#9DB8D5", barEmpty:"rgba(157,184,213,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(157,184,213,.12)", accent2:"rgba(157,184,213,.22)", panel:"rgba(54,74,98,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,74,98,.38)", glass2:"rgba(66,92,120,.24)", decoA:"rgba(157,184,213,.10)", decoB:"rgba(242,253,255,.08)" }
   },
   noirblanc:{
-    clair:{
-      bg:"#F7F4EE", fg:"#121212", muted:"#595959",
-      barFill:"#4A4A4A", barEmpty:"rgba(0,0,0,.08)", barEdge:"rgba(255,255,255,.82)",
-      accent:"rgba(0,0,0,.07)", accent2:"rgba(0,0,0,.14)",
-      panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)",
-      glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)",
-      decoA:"rgba(0,0,0,.05)", decoB:"rgba(0,0,0,.03)"
-    },
-    sombre:{
-      bg:"#2B2F38", fg:"#F4F4F4", muted:"#D5D5D8",
-      barFill:"#BEBEBE", barEmpty:"rgba(255,255,255,.10)", barEdge:"rgba(255,255,255,.20)",
-      accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.14)",
-      panel:"rgba(44,48,58,.66)", line:"rgba(255,255,255,.14)",
-      glass:"rgba(58,64,78,.40)", glass2:"rgba(72,80,98,.26)",
-      decoA:"rgba(255,255,255,.06)", decoB:"rgba(255,255,255,.04)"
-    }
+    clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#4A4A4A", barEmpty:"rgba(0,0,0,.08)", barEdge:"rgba(255,255,255,.82)", accent:"rgba(0,0,0,.06)", accent2:"rgba(0,0,0,.12)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(0,0,0,.05)", decoB:"rgba(0,0,0,.03)" },
+    sombre:{ bg:"#2B2F38", fg:"#F4F4F4", muted:"#D5D5D8", barFill:"#BEBEBE", barEmpty:"rgba(255,255,255,.10)", barEdge:"rgba(255,255,255,.18)", accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.14)", panel:"rgba(58,64,78,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(58,64,78,.40)", glass2:"rgba(72,80,98,.26)", decoA:"rgba(255,255,255,.06)", decoB:"rgba(255,255,255,.04)" }
   }
 };
 
 const defaultState = {
   ui:{
-    mode:"clair",          // clair | sombre
+    mode:"clair",
     season:"automne",
     font:"yomogi",
-    baseSize: 16,
-    leftW: 360,
-    rightW: 420,
-    progressStyle: "float", // float | anchored
-    pomodoroVisible: "show" // show | hide
+    baseSize:16,
+    leftW:360,
+    rightW:420,
+    progressStyle:"float"
   },
   baseline:{ totalTasks: 0 },
   tasks:[],
@@ -138,10 +63,14 @@ const defaultState = {
   kiffances:[
     "Respire 30 secondes comme une créature légendaire.",
     "Range 10 objets comme un ninja du tri.",
-    "Bois une gorgée d’eau : potion de clarté mentale.",
-    "Étirement de dragon : 45 secondes."
+    "Bois une gorgée d’eau : potion de clarté mentale."
   ],
-  pomodoro:{ minutes: 25 }
+  pomodoro:{
+    workMin: 25,
+    breakMin: 5,
+    autoStart: "auto",     // auto | manual
+    phase: "work"          // work | break
+  }
 };
 
 function deepAssign(t,s){
@@ -158,10 +87,24 @@ function loadState(){
     const merged = structuredClone(defaultState);
     deepAssign(merged, parsed);
     return merged;
-  }catch(_){ return structuredClone(defaultState); }
+  }catch(_){
+    return structuredClone(defaultState);
+  }
 }
 let state = loadState();
 function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){} }
+
+/* ---------- Status spot (messages) ---------- */
+let statusTimer = null;
+function status(msg, ms=5000){
+  const el = $("statusSpot");
+  if(!el) return;
+  el.textContent = msg || "";
+  if(statusTimer) clearTimeout(statusTimer);
+  if(msg){
+    statusTimer = setTimeout(()=>{ el.textContent = ""; }, ms);
+  }
+}
 
 /* ---------- Theme apply ---------- */
 function applyTheme(){
@@ -194,9 +137,8 @@ function applyTheme(){
   setVar("--leftW", `${clamp(state.ui.leftW, 320, 980)}px`);
   setVar("--rightW", `${clamp(state.ui.rightW, 320, 980)}px`);
 
-  // Progress style option
   if(state.ui.progressStyle === "anchored"){
-    setVar("--progressShadow", "inset 0 10px 22px rgba(0,0,0,.10)");
+    setVar("--progressShadow", "inset 0 12px 22px rgba(0,0,0,.12)");
     setVar("--progressBorder", "1px solid rgba(0,0,0,.14)");
   }else{
     setVar("--progressShadow", "0 18px 30px rgba(0,0,0,.10)");
@@ -208,7 +150,12 @@ function applyTheme(){
 
   $("modeToggle").textContent = (state.ui.mode === "sombre") ? "Sombre" : "Clair";
   $("modeToggle").setAttribute("aria-pressed", state.ui.mode === "sombre" ? "true" : "false");
+
   $("seasonCycle").textContent = seasonLabel(state.ui.season);
+
+  // reflect focus/counters state visually
+  $("focusBtn").classList.toggle("active", document.body.classList.contains("focusMode"));
+  $("countersBtn").classList.toggle("active", !document.body.classList.contains("hideCounters"));
 }
 
 /* ---------- Panels ---------- */
@@ -274,6 +221,7 @@ function bindTabs(){
       if(key==="tasks") renderTasksPanel();
       if(key==="kiffance") renderKiffance();
       if(key==="export") renderExport();
+      if(key==="prefs") syncPrefsUI();
     });
   });
 
@@ -372,44 +320,21 @@ function pushUndo(label){
   state.undo.unshift({
     label,
     at: Date.now(),
-    payload: structuredClone({
-      tasks: state.tasks,
-      baseline: state.baseline,
-      currentTaskId: state.currentTaskId,
-      kiffances: state.kiffances,
-      ui: state.ui,
-      pomodoro: state.pomodoro
-    })
+    payload: structuredClone(state)
   });
   state.undo = state.undo.slice(0, 25);
   saveState();
 }
 function doUndo(){
   const snap = state.undo.shift();
-  if(!snap) return toast("Rien à annuler. Le passé résiste.");
-  const p = snap.payload;
-  state.tasks = p.tasks;
-  state.baseline = p.baseline;
-  state.currentTaskId = p.currentTaskId;
-  state.kiffances = p.kiffances;
-  state.ui = p.ui;
-  state.pomodoro = p.pomodoro;
+  if(!snap) return status("Rien à annuler. Le passé résiste.");
+  state = snap.payload;
   saveState();
   renderAll();
-  toast("Retour : timeline réécrite.");
+  status("Retour : timeline réécrite.");
 }
 
-/* ---------- Toast ---------- */
-let toastTimer = null;
-function toast(msg){
-  const el = $("toast");
-  el.textContent = msg;
-  el.hidden = false;
-  if(toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ el.hidden = true; }, 3200);
-}
-
-/* ---------- Hub rendering ---------- */
+/* ---------- Hub render ---------- */
 function renderHub(){
   const act = activeTasks();
   const done = doneTasks();
@@ -418,7 +343,6 @@ function renderHub(){
   $("statActive").textContent = String(act.length);
   $("statDone").textContent = String(done.length);
 
-  // ✅ une seule ligne à gauche avec tout dedans
   $("missionLineLeft").textContent = `Tâches en cours (${done.length} finies · ${act.length}/${base || act.length || 0})`;
 
   const cur = getTask(state.currentTaskId);
@@ -431,19 +355,10 @@ function renderHub(){
     $("metaCat").textContent = cur.cat || "Inbox";
     $("metaEt").textContent = `${cur.etorionsLeft}/${cur.etorionsTotal}`;
   }
-
-  // Status line : phrase “aucune tâche active…” déplacée hors cadre
-  const status = $("statusLine");
-  if(act.length===0){
-    status.textContent = "Aucune tâche active. Le chaos fait une sieste (mais il garde un œil).";
-  }else{
-    status.textContent = "";
-  }
 }
 
 function toggleTaskMeta(){
-  const meta = $("taskMetaDetails");
-  meta.hidden = !meta.hidden;
+  $("taskMetaDetails").hidden = !$("taskMetaDetails").hidden;
 }
 
 /* ---------- Actions ---------- */
@@ -465,21 +380,21 @@ function completeTask(id){
   ensureCurrentTask();
   saveState();
   renderAll();
-  toast("GLORIEUX. Une menace de moins.");
+  status("GLORIEUX. Une menace de moins.");
 }
 
 function degommerOne(){
   const t = getTask(state.currentTaskId);
-  if(!t || t.done) return toast("Aucune tâche à dég… euh… traiter.");
+  if(!t || t.done) return status("Aucune tâche à dég… euh… traiter.");
   pushUndo("degomme");
   t.etorionsLeft = clamp((t.etorionsLeft||1) - 1, 0, 99);
   if(t.etorionsLeft <= 0){
     t.done = true;
     t.doneAt = nowISO();
-    toast("CHAOS TERRASSÉ. Mission accomplie.");
     ensureCurrentTask();
+    status("CHAOS TERRASSÉ. Mission accomplie.");
   }else{
-    toast("💣 Éthorion dégommé. Encore un.");
+    status("💣 Éthorion dégommé. Encore un.");
   }
   saveState();
   renderAll();
@@ -493,30 +408,28 @@ function onRouletteStop(){
   const act = activeTasks();
   if(act.length===0){
     if(state.kiffances.length){
-      toast("🎁 Kiffance : " + state.kiffances[Math.floor(Math.random()*state.kiffances.length)]);
-    }else toast("Roulette : rien à tirer. Même le destin hésite.");
+      status("🎁 Kiffance : " + state.kiffances[Math.floor(Math.random()*state.kiffances.length)]);
+    }else status("Roulette : rien à tirer. Même le destin hésite.");
     return;
   }
-
   const roll = Math.random();
   if(roll < 0.20 && state.kiffances.length){
-    toast("🎁 Kiffance : " + state.kiffances[Math.floor(Math.random()*state.kiffances.length)]);
+    status("🎁 Kiffance : " + state.kiffances[Math.floor(Math.random()*state.kiffances.length)]);
     return;
   }
-
   const pick = act[Math.floor(Math.random()*act.length)];
   state.currentTaskId = pick.id;
   saveState();
   renderHub();
-  toast("🎡 Tirage : " + pick.title);
+  status("🎡 Tirage : " + pick.title);
 }
 
 function spinRoulette(){
   if(spinning) return;
   const wheel = $("rouletteWheel");
   if(!wheel) return;
-
   spinning = true;
+
   const turns = 4 + Math.random()*3;
   const extraDeg = Math.random()*360;
   const start = performance.now();
@@ -531,7 +444,6 @@ function spinRoulette(){
     const a = cur + (target - cur)*k;
     wheel.style.transform = `rotate(${a}deg)`;
     wheel._angle = a;
-
     if(t < 1) requestAnimationFrame(frame);
     else{ spinning = false; onRouletteStop(); }
   }
@@ -633,7 +545,7 @@ function renderTasksPanel(){
         ensureCurrentTask();
         saveState();
         renderAll();
-        toast("Ressuscitée. Pratique. Suspect. Efficace.");
+        status("Ressuscitée. Pratique. Suspect. Efficace.");
       };
       btns.appendChild(restore);
     }
@@ -649,7 +561,7 @@ function renderTasksPanel(){
       if(activeTasks().length===0) state.baseline.totalTasks = 0;
       saveState();
       renderAll();
-      toast("Évaporée. Pouf.");
+      status("Évaporée. Pouf.");
     };
     btns.appendChild(delBtn);
 
@@ -702,7 +614,7 @@ function renderKiffance(){
       state.kiffances.splice(idx,1);
       saveState();
       renderKiffance();
-      toast("Kiffance supprimée. Le destin est rude.");
+      status("Kiffance supprimée. Le destin est rude.");
     };
 
     btns.appendChild(del);
@@ -713,18 +625,16 @@ function renderKiffance(){
 }
 
 /* ---------- Export ---------- */
-function renderExport(){
-  $("exportOut").value = JSON.stringify(state, null, 2);
-}
+function renderExport(){ $("exportOut").value = JSON.stringify(state, null, 2); }
 async function copyText(text){
-  try{ await navigator.clipboard.writeText(text); toast("JSON copié."); }
-  catch(_){ toast("Impossible de copier (clipboard)."); }
+  try{ await navigator.clipboard.writeText(text); status("JSON copié."); }
+  catch(_){ status("Impossible de copier (clipboard)."); }
 }
 
-/* ---------- Pomodoro (masquable + click = play/pause) ---------- */
+/* ---------- Pomodoro (inline) ---------- */
 let pomoTimer = null;
-let pomoRemainingMs = 0;
 let pomoRunning = false;
+let remainingMs = 0;
 
 function pad2(n){ return String(n).padStart(2,"0"); }
 function fmtMMSS(ms){
@@ -732,65 +642,80 @@ function fmtMMSS(ms){
   return `${pad2(Math.floor(s/60))}:${pad2(s%60)}`;
 }
 
-function pomoSetToMinutes(){
-  const m = clamp(parseInt(state.pomodoro.minutes,10) || 25, 5, 90);
-  state.pomodoro.minutes = m;
-  pomoRemainingMs = m * 60 * 1000;
-  $("pomoTime").textContent = fmtMMSS(pomoRemainingMs);
-  saveState();
+function currentPhaseMinutes(){
+  return state.pomodoro.phase === "break" ? state.pomodoro.breakMin : state.pomodoro.workMin;
 }
-function pomoTick(){
-  if(!pomoRunning) return;
-  pomoRemainingMs -= 250;
-  if(pomoRemainingMs <= 0){
-    pomoRemainingMs = 0;
-    pomoPause();
-    toast("⏰ Pomodoro terminé. Victoire temporo-spatiale.");
-  }
-  $("pomoTime").textContent = fmtMMSS(pomoRemainingMs);
+function resetPhase(){
+  remainingMs = clamp(currentPhaseMinutes(), 1, 120) * 60 * 1000;
+  $("pomoTime").textContent = fmtMMSS(remainingMs);
 }
-function pomoPlay(){
+function startPomo(){
   if(pomoRunning) return;
-  if(pomoRemainingMs <= 0) pomoSetToMinutes();
   pomoRunning = true;
-  if(!pomoTimer) pomoTimer = setInterval(pomoTick, 250);
-}
-function pomoPause(){
-  pomoRunning = false;
-}
-function pomoToggle(){
-  if(pomoRunning) pomoPause();
-  else pomoPlay();
-}
-function pomoStop(){
-  pomoPause();
-  pomoSetToMinutes();
-  toast("■ Stop.");
-}
-function pomoReset(){
-  pomoPause();
-  pomoSetToMinutes();
-  toast("↺ Reset.");
-}
-function pomoEdit(){
-  const v = prompt("Durée pomodoro (minutes) :", String(state.pomodoro.minutes || 25));
-  if(v === null) return;
-  const n = parseInt(v,10);
-  if(Number.isFinite(n) && n >= 5 && n <= 90){
-    state.pomodoro.minutes = n;
-    pomoSetToMinutes();
-    toast("Pomodoro ajusté.");
+  if(!pomoTimer){
+    pomoTimer = setInterval(tick, 250);
   }
 }
+function pausePomo(){ pomoRunning = false; }
+function togglePomo(){
+  if(pomoRunning) pausePomo();
+  else startPomo();
+}
+function tick(){
+  if(!pomoRunning) return;
+  remainingMs -= 250;
+  if(remainingMs <= 0){
+    remainingMs = 0;
+    $("pomoTime").textContent = "00:00";
+    pausePomo();
 
-function renderPomodoroVisibility(){
-  const show = state.ui.pomodoroVisible !== "hide";
-  $("pomoBox").style.display = show ? "flex" : "none";
-  $("pomoTomato").style.display = show ? "none" : "inline-block";
+    // switch phase
+    state.pomodoro.phase = (state.pomodoro.phase === "work") ? "break" : "work";
+    saveState();
+
+    const phaseLabel = state.pomodoro.phase === "work" ? "Pomodoro" : "Pause";
+    status(`⏰ ${phaseLabel} : terminé.`);
+
+    resetPhase();
+    if(state.pomodoro.autoStart === "auto") startPomo();
+    return;
+  }
+  $("pomoTime").textContent = fmtMMSS(remainingMs);
 }
 
-/* ---------- Visuals (topbar) ---------- */
-function bindVisuals(){
+/* ---------- Modal Pomodoro ---------- */
+function openModal(){
+  $("modalBack").hidden = false;
+  $("pomoModal").hidden = false;
+  $("pomoMinutes").value = String(state.pomodoro.workMin);
+  $("breakMinutes").value = String(state.pomodoro.breakMin);
+  $("autoStartSel").value = state.pomodoro.autoStart;
+}
+function closeModal(){
+  $("modalBack").hidden = true;
+  $("pomoModal").hidden = true;
+}
+
+function applyPomoSettings(){
+  const w = clamp(parseInt($("pomoMinutes").value,10) || 25, 5, 90);
+  const b = clamp(parseInt($("breakMinutes").value,10) || 5, 1, 30);
+  const a = $("autoStartSel").value === "manual" ? "manual" : "auto";
+
+  state.pomodoro.workMin = w;
+  state.pomodoro.breakMin = b;
+  state.pomodoro.autoStart = a;
+
+  // quick input in prefs mirrors
+  if($("pomoQuick")) $("pomoQuick").value = String(w);
+
+  saveState();
+  resetPhase();
+  status("Pomodoro réglé.");
+  closeModal();
+}
+
+/* ---------- Visuals topbar ---------- */
+function bindTopbar(){
   $("modeToggle").addEventListener("click", ()=>{
     state.ui.mode = (state.ui.mode === "clair") ? "sombre" : "clair";
     saveState();
@@ -803,34 +728,26 @@ function bindVisuals(){
     saveState();
     renderAll();
   });
-}
 
-/* ---------- Focus + counters ---------- */
-let focusMode = false;
-let showCounters = true;
-
-function bindTopActions(){
   $("focusBtn").addEventListener("click", ()=>{
-    focusMode = !focusMode;
-    document.body.classList.toggle("focusMode", focusMode);
-    $("focusBtn").classList.toggle("active", focusMode);
+    document.body.classList.toggle("focusMode");
+    applyTheme();
   });
 
   $("countersBtn").addEventListener("click", ()=>{
-    showCounters = !showCounters;
-    document.body.classList.toggle("hideCounters", !showCounters);
-    $("countersBtn").classList.toggle("active", showCounters);
+    document.body.classList.toggle("hideCounters");
+    applyTheme();
   });
 }
 
-/* ---------- Prefs apply ---------- */
+/* ---------- Prefs ---------- */
 function syncPrefsUI(){
   $("modeSel").value = state.ui.mode;
   $("seasonSel").value = state.ui.season;
   $("fontSel").value = state.ui.font;
   $("uiScale").value = String(clamp(state.ui.baseSize,14,18));
   $("progressStyleSel").value = state.ui.progressStyle;
-  $("pomoVisibleSel").value = state.ui.pomodoroVisible;
+  $("pomoQuick").value = String(clamp(state.pomodoro.workMin, 5, 90));
 }
 
 function bindPrefs(){
@@ -840,27 +757,33 @@ function bindPrefs(){
     state.ui.font = $("fontSel").value;
     state.ui.baseSize = parseInt($("uiScale").value, 10) || 16;
     state.ui.progressStyle = $("progressStyleSel").value;
-    state.ui.pomodoroVisible = $("pomoVisibleSel").value;
+
+    // update pomo work minutes from prefs quick
+    const quick = clamp(parseInt($("pomoQuick").value,10) || state.pomodoro.workMin, 5, 90);
+    state.pomodoro.workMin = quick;
+
     saveState();
     renderAll();
-    toast("Préférences appliquées.");
+    status("Préférences appliquées.");
   });
 
   $("prefsReset").addEventListener("click", ()=>{
     state.ui = structuredClone(defaultState.ui);
+    state.pomodoro.workMin = defaultState.pomodoro.workMin;
+    state.pomodoro.breakMin = defaultState.pomodoro.breakMin;
+    state.pomodoro.autoStart = defaultState.pomodoro.autoStart;
+    state.pomodoro.phase = "work";
     saveState();
     renderAll();
-    toast("Préférences reset.");
+    status("Préférences reset.");
   });
-
-  syncPrefsUI();
 }
 
 /* ---------- Inbox add ---------- */
 function inboxAdd(){
   const text = $("inboxText").value || "";
   const parsed = importFromInbox(text);
-  if(parsed.length===0) return toast("Rien à ajouter.");
+  if(parsed.length===0) return status("Rien à ajouter.");
 
   pushUndo("inboxAdd");
   state.tasks.push(...parsed);
@@ -872,9 +795,9 @@ function inboxAdd(){
 
   saveState();
   renderAll();
-  toast(`Ajout : ${parsed.length} tâche(s).`);
+  status(`Ajout : ${parsed.length} tâche(s).`);
 }
-function inboxClear(){ $("inboxText").value = ""; toast("Champ effacé."); }
+function inboxClear(){ $("inboxText").value = ""; status("Champ effacé."); }
 
 /* ---------- Render all ---------- */
 function renderAll(){
@@ -885,16 +808,16 @@ function renderAll(){
   renderTasksPanel();
   renderKiffance();
   renderExport();
-  renderPomodoroVisibility();
   syncPrefsUI();
 }
 
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", ()=>{
-  // Subline dynamique
+  // punchline
   $("subtitle").textContent = pickSubline();
   setInterval(()=>{ $("subtitle").textContent = pickSubline(); }, 45000);
 
+  // panels
   $("btnLeft").onclick = ()=>openPanel("left");
   $("btnRight").onclick = ()=>openPanel("right");
   $("leftClose").onclick = closePanels;
@@ -905,34 +828,24 @@ document.addEventListener("DOMContentLoaded", ()=>{
   initResizer("rightResizer","right");
 
   bindTabs();
-  bindTopActions();
-  bindVisuals();
+  bindTopbar();
   bindPrefs();
 
+  // inbox
   $("inboxAdd").onclick = inboxAdd;
   $("inboxClear").onclick = inboxClear;
 
+  // actions
   $("rouletteBtn").onclick = spinRoulette;
   $("bombBtn").onclick = degommerOne;
   $("undoBtn").onclick = doUndo;
-
   $("taskInfoBtn").onclick = toggleTaskMeta;
 
-  $("pomoTime").onclick = pomoToggle;
-  $("pomoStop").onclick = pomoStop;
-  $("pomoReset").onclick = pomoReset;
-  $("pomoEdit").onclick = pomoEdit;
-  $("pomoTomato").onclick = ()=>{
-    state.ui.pomodoroVisible = "show";
-    saveState();
-    renderAll();
-  };
-
-  pomoSetToMinutes();
-
+  // filters
   $("catFilter").addEventListener("change", renderTasksPanel);
   $("viewFilter").addEventListener("change", renderTasksPanel);
 
+  // export
   $("exportBtn").onclick = ()=>copyText(JSON.stringify(state, null, 2));
   $("wipeBtn").onclick = ()=>{
     if(!confirm("Reset total ? (tout effacer)")) return;
@@ -940,9 +853,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
     state = structuredClone(defaultState);
     saveState();
     renderAll();
-    toast("Reset complet. Le monde repart à zéro.");
+    status("Reset complet. Le monde repart à zéro.");
   };
 
+  // kiff
   $("kiffAdd").onclick = ()=>{
     const v = ($("kiffNew").value||"").trim();
     if(!v) return;
@@ -951,8 +865,29 @@ document.addEventListener("DOMContentLoaded", ()=>{
     $("kiffNew").value = "";
     saveState();
     renderKiffance();
-    toast("Kiffance ajoutée.");
+    status("Kiffance ajoutée.");
   };
+
+  // pomodoro inline
+  $("pomoTime").onclick = ()=>{
+    if(remainingMs <= 0) resetPhase();
+    togglePomo();
+  };
+  $("pomoEdit").onclick = openModal;
+
+  // modal
+  $("modalBack").onclick = closeModal;
+  $("modalClose").onclick = closeModal;
+  $("pomoApply").onclick = applyPomoSettings;
+  $("pomoReset").onclick = ()=>{
+    pausePomo();
+    resetPhase();
+    status("Timer reset.");
+  };
+
+  // initialize pomo
+  if(!state.pomodoro.phase) state.pomodoro.phase = "work";
+  resetPhase();
 
   renderAll();
 });
