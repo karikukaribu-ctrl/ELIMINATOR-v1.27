@@ -3,20 +3,21 @@
   --fg:#14120f;
   --muted:#6a5d53;
 
-  --accent:#d38a5c;
   --accentSoft: rgba(211,138,92,.22);
 
-  --barEmpty: rgba(0,0,0,.10);
+  /* barre : pas grise, plus chaude */
+  --barEmpty: rgba(255, 210, 165, .28);
   --barFill: rgba(211,138,92,.92);
   --barEdge: rgba(255,255,255,.82);
-  --line: rgba(0,0,0,.10);
 
+  --line: rgba(0,0,0,.10);
   --panelBg: rgba(255,255,255,.70);
 
   --leftW:360px;
   --rightW:420px;
 
-  --intensity: 1.00;
+  /* taille globale (au lieu de transform scale sur body) */
+  --baseSize: 16px;
 }
 
 /* ---------- Base ---------- */
@@ -24,13 +25,13 @@
 
 html, body{ height:100%; }
 
+html{ font-size: var(--baseSize); }
+
 body{
   margin:0;
   background: var(--bg);
   color: var(--fg);
   font-family: "Yomogi", cursive;
-  transform: scale(var(--intensity));
-  transform-origin: top center;
 }
 
 body[data-font="yomogi"]{ font-family: "Yomogi", cursive; }
@@ -45,7 +46,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   position: fixed;
   top:0; left:0; right:0;
   height:56px;
-  z-index: 3000;
+  z-index: 5000;
 
   display:grid;
   grid-template-columns: 1fr auto 1fr;
@@ -93,11 +94,13 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   text-align:center;
 }
 
-/* Titre */
+/* Titre : plus gras */
 #appTitle{
-  font-size: clamp(60px, 7vw, 92px);
+  font-size: clamp(66px, 7.2vw, 100px);
   margin: 10px 0 4px;
   letter-spacing: .08em;
+  font-weight: 900;
+  text-shadow: 0 10px 24px rgba(0,0,0,.10);
 }
 
 #subtitle{
@@ -106,7 +109,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   font-size: 15px;
 }
 
-/* ---------- Progression (épaisse, contrastée, pas trop noire) ---------- */
+/* ---------- Progression (encore plus haute) ---------- */
 #progressWrap{
   margin: 0 auto 18px;
   width: 100%;
@@ -115,8 +118,8 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 #progressBar{
   position: relative;
   width: 100%;
-  height: 78px;
-  border-radius: 22px;
+  height: 104px; /* ↑ plus haut */
+  border-radius: 26px;
   overflow: hidden;
   background: var(--barEmpty);
   border: 1px solid var(--line);
@@ -127,9 +130,9 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   top:0; left:0; bottom:0;
   width: 100%;
   background:
-    linear-gradient(180deg, rgba(255,255,255,.22), transparent 52%),
-    linear-gradient(90deg, var(--barFill), rgba(255,255,255,.12));
-  box-shadow: inset -4px 0 0 var(--barEdge);
+    linear-gradient(180deg, rgba(255,255,255,.26), transparent 55%),
+    linear-gradient(90deg, var(--barFill), rgba(255,255,255,.14));
+  box-shadow: inset -5px 0 0 var(--barEdge);
   transition: width .55s cubic-bezier(.2,.8,.2,1);
 }
 
@@ -139,10 +142,10 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   display:flex;
   justify-content:center;
   align-items:center;
-  font-size: 18px;
-  font-weight: 800;
-  color: rgba(0,0,0,.68);
-  text-shadow: 0 1px 0 rgba(255,255,255,.55);
+  font-size: 16px; /* plus discret */
+  font-weight: 700;
+  color: rgba(255,255,255,.92);
+  text-shadow: 0 2px 10px rgba(0,0,0,.22);
   pointer-events:none;
 }
 
@@ -150,14 +153,19 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 #pomodoro{
   margin: 12px 0 22px;
   display:flex;
-  flex-direction:column;
+  justify-content:center;
+}
+
+.pomoRow{
+  display:flex;
   align-items:center;
-  gap: 8px;
+  gap: 10px;
 }
 
 #pomoTime{
   font-size: 30px;
   letter-spacing: .02em;
+  font-weight: 700;
 }
 
 .iconLink{
@@ -167,7 +175,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   font-family: inherit;
   font-size: 18px;
   color: var(--muted);
-  padding: 0 6px;
+  padding: 2px 6px;
   line-height: 1;
 }
 
@@ -210,30 +218,45 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   color: var(--muted);
 }
 
+/* tâche sélectionnée : plus gras */
 .taskTitle{
-  font-size: clamp(32px, 3.3vw, 46px);
-  font-weight: 800;
+  font-size: clamp(34px, 3.6vw, 50px);
+  font-weight: 900;
   line-height: 1.10;
   margin: 6px 0 0;
-  text-shadow: 0 10px 18px rgba(0,0,0,.10);
+  text-shadow: 0 12px 20px rgba(0,0,0,.11);
 }
 
 .taskMeta{
   margin-top: 10px;
 }
 
-/* ---------- Actions ---------- */
+/* ---------- Actions + labels ---------- */
 #actions{
   display:flex;
   justify-content:center;
-  align-items:center;
+  align-items:flex-start;
   gap: 18px;
   margin-top: 10px;
 }
 
+.actionCol{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.actionLbl{
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Boutons ronds */
 .roundBtn{
-  width: 64px;
-  height: 64px;
+  width: 70px;
+  height: 70px;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: rgba(255,255,255,.45);
@@ -253,10 +276,10 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   border-color: rgba(211,138,92,.30);
 }
 
-/* ---------- Roulette ---------- */
+/* ---------- Roulette (texte centré, plus stable) ---------- */
 .rouletteBtn{
-  width: 160px;
-  height: 160px;
+  width: 172px;
+  height: 172px;
   border-radius: 999px;
   border: 2px solid rgba(211,138,92,.55);
   background: rgba(255,255,255,.35);
@@ -271,16 +294,16 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 .rouletteBtn:active{ transform: translateY(1px) scale(.99); }
 
 .rouletteFace{
-  width: 142px;
-  height: 142px;
+  width: 152px;
+  height: 152px;
   border-radius: 999px;
   display:block;
   border: 1px solid rgba(0,0,0,.08);
   background:
     conic-gradient(
       from 0deg,
-      rgba(211,138,92,.35) 0 20deg,
-      rgba(255,255,255,.55) 20deg 40deg,
+      rgba(211,138,92,.34) 0 20deg,
+      rgba(255,255,255,.56) 20deg 40deg,
       rgba(211,138,92,.26) 40deg 60deg,
       rgba(255,255,255,.48) 60deg 80deg,
       rgba(211,138,92,.30) 80deg 100deg,
@@ -301,24 +324,29 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   box-shadow:
     inset 0 10px 18px rgba(255,255,255,.35),
     inset 0 -12px 20px rgba(0,0,0,.06);
+  transform: rotate(0deg);
+  will-change: transform;
 }
 
 .rouletteCenter{
   position:absolute;
-  width: 88px;
-  height: 88px;
+  width: 92px;
+  height: 92px;
   border-radius: 999px;
-  background: rgba(255,255,255,.66);
+  background: rgba(255,255,255,.70);
   border: 1px solid rgba(0,0,0,.08);
-  display:grid;
-  place-items:center;
-  box-shadow: 0 10px 20px rgba(0,0,0,.06);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 12px 24px rgba(0,0,0,.07);
 }
 
 .rouletteWord{
   font-size: 14px;
   letter-spacing: .10em;
   color: rgba(0,0,0,.72);
+  text-transform: lowercase;
+  transform: translateY(1px);
 }
 
 .rouletteNeedle{
@@ -335,7 +363,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 /* ---------- Toast ---------- */
 .toast{
   margin: 16px auto 0;
-  max-width: 520px;
+  max-width: 560px;
   padding: 10px 12px;
   border-radius: 14px;
   background: rgba(255,255,255,.55);
@@ -343,11 +371,11 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   color: rgba(0,0,0,.70);
 }
 
-/* ---------- Panels ---------- */
+/* ---------- Panels (FIXÉS + z-index correct) ---------- */
 #panelBack{
   position: fixed;
   inset: 0;
-  z-index: 2500;
+  z-index: 4000;
   background: rgba(0,0,0,.22);
   opacity: 0;
   pointer-events:none;
@@ -360,8 +388,9 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 
 .panel{
   position: fixed;
-  top:0; bottom:0;
-  z-index: 2600;
+  top: 0;
+  bottom: 0;
+  z-index: 4500;
   background: var(--panelBg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -375,14 +404,14 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 .panel-left{
   left:0;
   width: var(--leftW);
-  transform: translateX(-100%);
+  transform: translateX(-110%);
   border-right: 1px solid var(--line);
 }
 
 .panel-right{
   right:0;
   width: var(--rightW);
-  transform: translateX(100%);
+  transform: translateX(110%);
   border-left: 1px solid var(--line);
 }
 
@@ -525,7 +554,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   min-width: 0;
 }
 .cardTitle{
-  font-weight: 800;
+  font-weight: 900;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
