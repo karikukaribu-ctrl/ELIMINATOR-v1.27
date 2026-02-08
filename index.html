@@ -9,7 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">700;800;900&display=swap" rel="stylesheet">
+  <!-- ✅ FIX: lien propre (plus de texte parasite) -->
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Zen+Maru+Gothic:wght@400;500;700&family=Yomogi&family=Kiwi+Maru:wght@400;500;700&family=Zen+Kurenaido&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -24,22 +25,24 @@
 
     <div class="tb-center">
       <div class="tb-visuals">
-  <select id="quickMode">
-    <option value="clair">Clair</option>
-    <option value="fonce">Foncé</option>
-  </select>
+        <select id="quickMode" class="select topSel" aria-label="Mode">
+          <option value="clair">Clair</option>
+          <option value="fonce">Foncé</option>
+        </select>
 
-  <select id="quickSeason">
-    <option value="printemps">Printemps</option>
-    <option value="ete">Été</option>
-    <option value="automne">Automne</option>
-    <option value="hiver">Hiver</option>
-    <option value="noirblanc">Noir & blanc</option>
-  </select>
+        <select id="quickSeason" class="select topSel" aria-label="Saison">
+          <option value="printemps">Printemps</option>
+          <option value="ete">Été</option>
+          <option value="automne">Automne</option>
+          <option value="hiver">Hiver</option>
+          <option value="noirblanc">Noir & blanc</option>
+        </select>
       </div>
+
       <div class="topActions">
-       <button id="focusBtn" class="topBtn" type="button">Mode focus</button>
-       <button id="countersBtn" class="topBtn" type="button">Compteurs</button>
+        <button id="focusBtn" class="topBtn" type="button">Mode focus</button>
+        <button id="countersBtn" class="topBtn" type="button">Compteurs</button>
+      </div>
     </div>
 
     <div class="tb-right">
@@ -52,8 +55,8 @@
 
   <!-- PANNEAU GAUCHE -->
   <aside id="leftPanel" class="panel panel-left" aria-label="Panneau gauche">
-    <div class="panel-top"> 
-      <div id="leftResizer" class="panelResizer left"></div>
+    <div class="panel-top">
+      <div id="leftResizer" class="panelResizer left" title="Redimensionner"></div>
       <div class="panel-title">Menu</div>
       <button class="closeBtn" id="leftClose" aria-label="Fermer le panneau gauche">×</button>
     </div>
@@ -67,7 +70,6 @@
     </nav>
 
     <div class="panel-content">
-
       <!-- INBOX -->
       <section class="tabPage show" id="left-inbox">
         <h3>Inbox</h3>
@@ -164,9 +166,7 @@ Lire article - 2"></textarea>
           </div>
         </div>
 
-        <p class="muted small">
-          Objectif : chaud en clair, doux en foncé, lisible sans forcer.
-        </p>
+        <p class="muted small">Chaud en clair, doux en foncé, lisible sans forcer.</p>
       </section>
 
       <!-- EXPORT -->
@@ -179,7 +179,6 @@ Lire article - 2"></textarea>
         </div>
         <textarea id="exportOut" class="area" rows="8" readonly></textarea>
       </section>
-
     </div>
   </aside>
 
@@ -202,49 +201,51 @@ Lire article - 2"></textarea>
       <section id="pomodoro" aria-label="Pomodoro">
         <div class="pomoRow">
           <div id="pomoTime">25:00</div>
-          <button id="pomoEdit" class="iconLink" type="button" title="Modifier le pomodoro" aria-label="Modifier le pomodoro">
-            ✎
-          </button>
+          <button id="pomoEdit" class="iconLink" type="button" title="Modifier le pomodoro" aria-label="Modifier le pomodoro">✎</button>
         </div>
-      </section> 
-      
-       <div class="rouletteWrap">
+      </section>
+
+      <!-- ✅ UNE SEULE ROULETTE (dessinée) -->
+      <div class="rouletteWrap">
         <button id="rouletteBtn" class="rouletteBtn" type="button" aria-label="Roulette">
-         <div class="rouletteWheel" id="rouletteWheel">
-        <div class="rouletteCenterText">Roulette</div>
+          <div class="rouletteWheel" id="rouletteWheel">
+            <div class="rouletteCenterText">Roulette</div>
+          </div>
+        </button>
+        <div class="rouletteLegend">Tirage</div>
       </div>
-    </button>
-    <div class="rouletteLegend">Tirage</div>
-   </div>
-      <!-- TÂCHE EN COURS -->
+
+      <!-- BOTTOM CARD -->
       <section class="bottomCard" id="bottomCard">
-       <div class="bottomHeader">
-        <div class="bottomTitle">Tâches en cours</div>
-       <div class="bottomMeta" id="taskMeta"></div>
-      </div>
+        <div class="bottomHeader">
+          <div class="bottomTitle">Tâches en cours</div>
+          <!-- ✅ ID unique -->
+          <div class="bottomMeta" id="taskMetaHud"></div>
+        </div>
 
-     <div id="tasksList"></div>
+        <div id="tasksList"></div>
 
-     <div class="quickLinks">
-      <button class="ql" type="button" id="openNotes">Notes</button>
-      <button class="ql" type="button" id="openTyphonse">Typhonse</button>
-      <button class="ql" type="button" id="openKiffance">Kiffance</button>
-      <button class="ql" type="button" id="openStats">Stats</button>
-    </div>
-   </section>
+        <div class="quickLinks">
+          <button class="ql" type="button" id="openNotes">Notes</button>
+          <button class="ql" type="button" id="openTyphonse">Typhonse</button>
+          <button class="ql" type="button" id="openKiffance">Kiffance</button>
+          <button class="ql" type="button" id="openStats">Stats</button>
+        </div>
+      </section>
+
+      <!-- TÂCHE EN COURS -->
       <section id="currentTask" aria-label="Tâche en cours">
         <div class="taskLine">
           <span class="taskLabel">Tâche en cours</span>
           <span class="taskFraction" id="taskFraction">0/0</span>
 
-          <button id="taskInfoBtn" class="tinyBtn" type="button" title="Afficher/masquer les détails" aria-label="Afficher/masquer les détails">
-            i
-          </button>
+          <button id="taskInfoBtn" class="tinyBtn" type="button" title="Afficher/masquer les détails" aria-label="Afficher/masquer les détails">i</button>
         </div>
 
         <div class="taskTitle" id="taskTitle">Aucune tâche sélectionnée</div>
 
-        <div class="taskMeta muted" id="taskMeta" hidden>
+        <!-- ✅ ID unique -->
+        <div class="taskMeta muted" id="taskMetaDetails" hidden>
           Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
         </div>
       </section>
@@ -252,28 +253,18 @@ Lire article - 2"></textarea>
       <!-- ACTIONS -->
       <section id="actions" aria-label="Actions">
         <div class="actionCol">
-          <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">
-            ↶
-          </button>
+          <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">↶</button>
           <div class="actionLbl">Retour</div>
         </div>
 
         <div class="actionCol">
-          <button id="roulette" class="rouletteBtn" type="button" title="Roulette" aria-label="Roulette">
-            <span class="rouletteFace" aria-hidden="true"></span>
-            <span class="rouletteCenter" aria-hidden="true">
-              <span class="rouletteWord">roulette</span>
-            </span>
-            <span class="rouletteNeedle" aria-hidden="true"></span>
-          </button>
-          <div class="actionLbl">Roulette</div>
+          <button id="bombBtn" class="roundBtn primary" type="button" title="Dégommer 1 Éthorion" aria-label="Dégommer 1 Éthorion">💣</button>
+          <div class="actionLbl">Dégommer 1 Éthorion</div>
         </div>
 
         <div class="actionCol">
-          <button id="bombBtn" class="roundBtn primary" type="button" title="Dégommer 1 Éthorion" aria-label="Dégommer 1 Éthorion">
-            💣
-          </button>
-          <div class="actionLbl">Dégommer 1 Éthorion</div>
+          <button id="rouletteQuick" class="roundBtn" type="button" title="Tirage roulette" aria-label="Tirage roulette">🎡</button>
+          <div class="actionLbl">Roulette</div>
         </div>
       </section>
 
@@ -286,8 +277,8 @@ Lire article - 2"></textarea>
   <!-- PANNEAU DROIT -->
   <aside id="rightPanel" class="panel panel-right" aria-label="Panneau droit">
     <div class="panel-top">
-      <div class="panel-title">Panneau</div> 
-      <div id="rightResizer" class="panelResizer right"></div>
+      <div class="panel-title">Panneau</div>
+      <div id="rightResizer" class="panelResizer right" title="Redimensionner"></div>
       <button class="closeBtn" id="rightClose" aria-label="Fermer le panneau droit">×</button>
     </div>
 
