@@ -22,13 +22,13 @@
     </div>
 
     <div class="tb-center">
-      <div class="tb-visuals">
-        <button id="modeToggle" class="tb-chip" type="button" aria-pressed="false" aria-label="Basculer clair/foncé">Clair</button>
-        <button id="seasonCycle" class="tb-chip" type="button" aria-label="Changer de saison">Automne</button>
-        <span class="tb-dot" aria-hidden="true"></span>
-        <button id="focusBtn" class="tb-chip subtle" type="button">Focus</button>
-        <button id="countersBtn" class="tb-chip subtle" type="button">Compteurs</button>
-      </div>
+      <nav class="tb-nav" aria-label="Contrôles">
+        <button id="modeToggle" class="tb-link" type="button" aria-pressed="false">Clair</button>
+        <button id="seasonCycle" class="tb-link" type="button">Automne</button>
+        <span class="tb-sep" aria-hidden="true">•</span>
+        <button id="focusBtn" class="tb-link tb-focus" type="button">Focus</button>
+        <button id="countersBtn" class="tb-link" type="button">Compteurs</button>
+      </nav>
     </div>
 
     <div class="tb-right">
@@ -116,7 +116,7 @@ Lire article - 2"></textarea>
             <label class="muted small">Mode</label>
             <select id="modeSel" class="select">
               <option value="clair">Clair</option>
-              <option value="fonce">Foncé</option>
+              <option value="sombre">Sombre</option>
             </select>
           </div>
 
@@ -145,14 +145,28 @@ Lire article - 2"></textarea>
             <label class="muted small">Taille (UI)</label>
             <input id="uiScale" type="range" min="14" max="18" step="1" />
           </div>
+
+          <div class="span2">
+            <label class="muted small">Barre progression</label>
+            <select id="progressStyleSel" class="select">
+              <option value="float">Flotte</option>
+              <option value="anchored">Ancrée</option>
+            </select>
+          </div>
+
+          <div class="span2">
+            <label class="muted small">Pomodoro</label>
+            <select id="pomoVisibleSel" class="select">
+              <option value="show">Afficher</option>
+              <option value="hide">Masquer (🍅)</option>
+            </select>
+          </div>
         </div>
 
         <div class="row">
           <button id="prefsApply" class="btn primary">Appliquer</button>
           <button id="prefsReset" class="btn ghost">Reset prefs</button>
         </div>
-
-        <p class="muted small">Tu changes ici, puis “Appliquer”.</p>
       </section>
 
       <!-- EXPORT -->
@@ -172,46 +186,42 @@ Lire article - 2"></textarea>
     <div id="hub-inner">
 
       <h1 id="appTitle">ELIMINATOR</h1>
-      <p id="subtitle">Une quête après l’autre.</p>
+      <p id="subtitle" class="subtitle">Une quête après l’autre.</p>
+      <p id="statusLine" class="statusLine muted"></p>
 
       <!-- PROGRESSION -->
       <section id="progressWrap" aria-label="Progression">
-        <div id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+        <div id="progressBar" class="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
           <div id="progressFill"></div>
           <div id="progressPctIn">100%</div>
         </div>
       </section>
 
-      <!-- POMODORO (discret) -->
+      <!-- POMODORO -->
       <section id="pomodoro" aria-label="Pomodoro">
-        <div class="pomoRow">
+        <button id="pomoTomato" class="pomoTomato" type="button" aria-label="Afficher le pomodoro" title="Pomodoro">🍅</button>
+
+        <div id="pomoBox" class="pomoBox">
           <div id="pomoTime" class="pomoTime" title="Cliquer = play/pause">25:00</div>
-          <button id="pomoToggle" class="pomoIcon" type="button" aria-label="Play/Pause" title="Play/Pause">▶</button>
-          <button id="pomoStop" class="pomoIcon subtle" type="button" aria-label="Stop" title="Stop">■</button>
-          <button id="pomoEdit" class="pomoIcon pencil" type="button" aria-label="Modifier" title="Modifier">✎</button>
+          <div class="pomoMiniRow">
+            <button id="pomoReset" class="pomoMini" type="button" title="Retour à zéro" aria-label="Retour à zéro">↺</button>
+            <button id="pomoEdit" class="pomoMini" type="button" title="Modifier" aria-label="Modifier">✎</button>
+            <button id="pomoStop" class="pomoMini" type="button" title="Stop" aria-label="Stop">■</button>
+          </div>
         </div>
       </section>
 
-      <!-- CADRE COMMUN -->
+      <!-- CADRE MISSION -->
       <section id="missionCard" class="missionCard" aria-label="Mission">
-        <!-- ligne info discrète -->
-        <div class="missionLine">
-          <div class="missionLeft" id="missionLineLeft">Tâches en cours (0)</div>
-          <div class="missionRight" id="missionLineRight">0 finies · 0/0</div>
-        </div>
+        <div class="missionLine" id="missionLineLeft">Tâches en cours (0 finies · 0/0)</div>
 
         <div class="missionTitle" id="taskTitle">Aucune tâche sélectionnée</div>
         <div class="missionMeta muted" id="taskMetaDetails" hidden>
           Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
         </div>
 
-        <div class="divider soft"></div>
+        <!-- ✅ RIEN ICI entre le nom de tâche et les boutons -->
 
-        <div id="tasksList" class="hubList"></div>
-
-        <div class="divider soft"></div>
-
-        <!-- actions -->
         <div class="missionActionsRow">
           <button id="undoBtn" class="actionPill" type="button" title="Retour arrière">↶ <span>Retour</span></button>
 
@@ -224,7 +234,6 @@ Lire article - 2"></textarea>
           <button id="bombBtn" class="actionPill bomb" type="button" title="Dégommer 1 Éthorion">💣 <span>Dégommer 1 Éthorion</span></button>
         </div>
 
-        <!-- liens internes DANS le cadre, sans contour -->
         <div class="miniLinks" role="navigation" aria-label="Accès rapides">
           <button class="miniLink" type="button" id="openNotes">Notes</button>
           <button class="miniLink" type="button" id="openTyphonse">Typhonse</button>
@@ -256,29 +265,12 @@ Lire article - 2"></textarea>
     </nav>
 
     <div class="panel-content">
-      <section class="tabPage show" id="right-sets" aria-label="Sets">
-        <p class="muted small">Structure prête (édition + play au module suivant).</p>
-      </section>
-
-      <section class="tabPage" id="right-habits" aria-label="Habitudes">
-        <p class="muted small">Structure prête (lignes compactes au module suivant).</p>
-      </section>
-
-      <section class="tabPage" id="right-mood" aria-label="Mood">
-        <p class="muted small">Module expert émotions TCC (fenêtres contextuelles) au module suivant.</p>
-      </section>
-
-      <section class="tabPage" id="right-calendar" aria-label="Calendrier">
-        <p class="muted small">Calendrier + timeline au module suivant.</p>
-      </section>
-
-      <section class="tabPage" id="right-notes" aria-label="Notes">
-        <p class="muted small">Notes + aide-mémoire + rappels au module suivant.</p>
-      </section>
-
-      <section class="tabPage" id="right-stats" aria-label="Stats">
-        <p class="muted small">Infographies au module suivant.</p>
-      </section>
+      <section class="tabPage show" id="right-sets"><p class="muted small">Structure prête (édition + play au module suivant).</p></section>
+      <section class="tabPage" id="right-habits"><p class="muted small">Structure prête (lignes compactes au module suivant).</p></section>
+      <section class="tabPage" id="right-mood"><p class="muted small">Module expert émotions TCC (fenêtres contextuelles) au module suivant.</p></section>
+      <section class="tabPage" id="right-calendar"><p class="muted small">Calendrier + timeline au module suivant.</p></section>
+      <section class="tabPage" id="right-notes"><p class="muted small">Notes + aide-mémoire + rappels au module suivant.</p></section>
+      <section class="tabPage" id="right-stats"><p class="muted small">Infographies au module suivant.</p></section>
     </div>
   </aside>
 
