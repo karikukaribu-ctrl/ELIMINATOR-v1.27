@@ -5,73 +5,51 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>ELIMINATOR</title>
 
-  <!-- Polices proches du rendu de ta capture :
-       - Titre : Fredoka (rond, massif, lisible)
-       - Sous-titre : Nunito Sans (fin, propre, “calme”)
-  -->
+  <!-- Manuscrit minimal + texte lisible -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:opsz,wght@6..12,200;300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Nunito+Sans:opsz,wght@6..12,200;300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* ============================================================
-      ELIMINATOR v1.25-stable VISUAL+LAYOUT (single-file)
-      Objectifs:
-      - plein écran (largeur complète)
-      - clair beige/ivoire (comme capture)
-      - halo énorme remplacé par surbrillance + ombrage
-      - séparation fill/empty plus nette
-      - task title avec relief (ombre sous texte)
-      - panneaux latéraux robustes
-      - 4 saisons + mode monochrome (clair/foncé)
-    ============================================================ */
-
     :root{
       --font: "Nunito Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
-      --titleFont: "Fredoka", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --hand: "Caveat", "Nunito Sans", system-ui;
 
-      /* FULL WIDTH */
-      --appW: 100vw;
-
-      /* Shape (plus proche capture: arrondi doux, pas bubble) */
-      --radius: 12px;
-      --radius2: 10px;
+      --radius: 14px;
+      --radius2: 12px;
       --lineW: 1px;
 
-      /* Panels */
+      --blur: 12px;
+
+      /* contrôle ombres (réduit) */
+      --shadowStrength: 0.55; /* 0..1 */
+      --shadowA: 0 18px 60px rgba(0,0,0, calc(.10 * var(--shadowStrength)));
+      --shadowB: 0 10px 24px rgba(0,0,0, calc(.08 * var(--shadowStrength)));
+
       --leftW: 420px;
       --rightW: 560px;
 
-      /* Big progress */
       --progressH: clamp(120px, 18vh, 220px);
 
-      /* Glass */
-      --blur: 14px;
-      --shadowA: 0 18px 70px rgba(0,0,0,.10);
-      --shadowB: 0 10px 28px rgba(0,0,0,.08);
+      /* variables thèmes (JS) */
+      --bg: #FBF4E8;
+      --fg: #14120F;
+      --muted: rgba(20,18,15,.62);
+      --card: rgba(255,255,255,.72);
+      --card2: rgba(255,255,255,.46);
+      --line: rgba(20,18,15,.14);
 
-      /* Theme vars (set by JS applyTheme) */
-      --bg: #FBF4E8;     /* ivoire chaud */
-      --fg: #1A1815;
-      --muted: rgba(26,24,21,.70);
+      --accent: rgba(205,120,60,.22);
+      --accent2: rgba(205,120,60,.60);
 
-      --card: rgba(255,255,255,.68);
-      --card2: rgba(255,255,255,.42);
-      --line: rgba(26,24,21,.14);
+      --barA: rgba(205,120,60,.16);
+      --barB: rgba(56,50,46,.72);
 
-      --accent: rgba(205,120,60,.26);
-      --accent2: rgba(205,120,60,.70);
+      --barEdge: rgba(255,255,255,.92);
 
-      --barA: rgba(205,120,60,.22);
-      --barB: rgba(60,50,45,.70); /* sombre “chic” */
-      --barEdge: rgba(255,255,255,.88); /* séparation nette */
-
-      --grain: .08;
-
-      /* UI knobs */
-      --density: 1;
-      --wobble: 0; /* titre plutôt stable dans ce style */
+      /* contraste ajustable */
+      --contrastBoost: 1; /* 0.9..1.2 */
+      --grain: .06;
     }
 
     *{ box-sizing:border-box; }
@@ -82,17 +60,37 @@
       color: var(--fg);
       background: var(--bg);
       overflow-x:hidden;
+      filter: contrast(var(--contrastBoost));
     }
 
-    /* ===== Background doux (papier + lumière) ===== */
+    /* Focus mode : on masque accessoires, pas de popup */
+    body[data-focus="on"] .topbar,
+    body[data-focus="on"] #btnLeft,
+    body[data-focus="on"] #btnRight,
+    body[data-focus="on"] #btnExport,
+    body[data-focus="on"] #btnTheme,
+    body[data-focus="on"] #btnSeason,
+    body[data-focus="on"] #hudPill,
+    body[data-focus="on"] #belowList,
+    body[data-focus="on"] #btnList,
+    body[data-focus="on"] #btnEdit,
+    body[data-focus="on"] #btnNotes,
+    body[data-focus="on"] #btnKiff{
+      display:none !important;
+    }
+    body[data-focus="on"] .wrap{ padding-top: 12px; }
+    body[data-focus="on"] .stage{ min-height: 100vh; }
+    body[data-focus="on"] .hero{ padding-top: 10px; }
+
+    /* Fond doux chaud */
     .bgSky{
       position:fixed; inset:0;
       z-index:-10;
       background:
-        radial-gradient(1200px 700px at 18% 10%, rgba(255,255,255,.72), transparent 62%),
+        radial-gradient(1200px 700px at 20% 10%, rgba(255,255,255,.70), transparent 62%),
         radial-gradient(900px 520px at 78% 12%, rgba(0,0,0,.05), transparent 62%),
-        radial-gradient(1200px 700px at 60% 80%, rgba(255,255,255,.40), transparent 64%),
-        linear-gradient(180deg, rgba(255,255,255,.18), transparent 55%),
+        radial-gradient(1200px 700px at 60% 85%, rgba(255,255,255,.38), transparent 64%),
+        linear-gradient(180deg, rgba(255,255,255,.14), transparent 55%),
         var(--bg);
       overflow:hidden;
     }
@@ -102,20 +100,20 @@
       pointer-events:none;
       opacity: var(--grain);
       background-image:
-        repeating-linear-gradient(0deg, rgba(0,0,0,.07) 0, rgba(0,0,0,.07) 1px, transparent 1px, transparent 3px),
-        repeating-linear-gradient(90deg, rgba(0,0,0,.03) 0, rgba(0,0,0,.03) 1px, transparent 1px, transparent 4px);
+        repeating-linear-gradient(0deg, rgba(0,0,0,.06) 0, rgba(0,0,0,.06) 1px, transparent 1px, transparent 4px),
+        repeating-linear-gradient(90deg, rgba(0,0,0,.03) 0, rgba(0,0,0,.03) 1px, transparent 1px, transparent 5px);
       mix-blend-mode: soft-light;
       filter: blur(.2px);
     }
 
-    canvas#confettiCanvas{
+    canvas#fxCanvas{
       position:fixed; inset:0; pointer-events:none; z-index:200;
     }
     canvas#pollenCanvas{
       position:fixed; inset:0; pointer-events:none; z-index:5; opacity:.55;
     }
 
-    /* ===== Layout FULL WIDTH ===== */
+    /* Layout full width */
     .wrap{
       min-height:100%;
       display:flex;
@@ -126,7 +124,6 @@
       width:100%;
     }
 
-    /* Topbar sticky full width */
     .topbar{
       width: 100%;
       position: sticky;
@@ -138,7 +135,7 @@
       justify-content:space-between;
       gap:10px;
 
-      padding: calc(10px * var(--density)) calc(14px * var(--density));
+      padding: 10px 14px;
       border: var(--lineW) solid var(--line);
       border-radius: var(--radius);
       background: var(--card);
@@ -153,40 +150,33 @@
       background: transparent;
       color: var(--fg);
       border-radius: var(--radius2);
-      padding: calc(8px * var(--density)) calc(11px * var(--density));
+      padding: 8px 11px;
       font-size: 13px;
       cursor:pointer;
       user-select:none;
       transition: transform 140ms ease, background 140ms ease, opacity 140ms ease;
     }
-    .btn:hover{ background: rgba(0,0,0,.035); }
+    .btn:hover{ background: rgba(0,0,0,.03); }
     .btn:active{ transform: translateY(1px); }
-    .btn.icon{ width:40px; height:36px; display:grid; place-items:center; padding:0; font-family: var(--mono); }
+    .btn.icon{
+      width:40px; height:36px;
+      display:grid; place-items:center;
+      padding:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
     .pill{
       padding: 6px 10px;
       border-radius: 999px;
       border: var(--lineW) solid var(--line);
-      background: rgba(0,0,0,.025);
+      background: rgba(0,0,0,.02);
       color: var(--muted);
       font-size: 12px;
-      font-family: var(--mono);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
       white-space:nowrap;
     }
 
-    /* Stage full width */
-    .stage{
-      width: 100%;
-      flex:1;
-      min-height: calc(100vh - 110px);
-      position:relative;
-    }
-
-    /* Hub becomes "page width container" instead of centered narrow column */
-    .hub{
-      width: 100%;
-      margin: 0;
-      padding: 0 0 24px;
-    }
+    .stage{ width: 100%; flex:1; min-height: calc(100vh - 110px); }
+    .hub{ width: 100%; padding-bottom: 24px; }
 
     .card{
       border: var(--lineW) solid var(--line);
@@ -199,59 +189,56 @@
       width:100%;
     }
 
-    /* Halo global: fortement réduit (on garde juste un soupçon) */
+    /* halo ultra discret */
     .halo{
       position:absolute; inset:-80% -60%;
       pointer-events:none;
-      opacity:.14;
+      opacity:.10;
       background:
         radial-gradient(circle at 20% 32%, var(--accent2), transparent 62%),
-        radial-gradient(circle at 74% 30%, rgba(255,255,255,.28), transparent 68%);
-      filter: blur(10px);
+        radial-gradient(circle at 74% 30%, rgba(255,255,255,.24), transparent 68%);
+      filter: blur(12px);
       transform: rotate(6deg);
     }
 
-    /* Title + tagline (typo capture) */
+    /* HERO */
     .hero{
-      padding: 22px 14px 8px;
+      padding: 18px 14px 6px;
       text-align:center;
     }
     .title{
-      font-family: var(--titleFont);
+      font-family: var(--hand);
       font-weight: 700;
-      letter-spacing:.10em;
-      font-size: clamp(48px, 5.2vw, 86px);
-      margin: 0 0 6px;
-      color: rgba(16,22,34,.92);
-      text-shadow: 0 10px 30px rgba(0,0,0,.10);
+      letter-spacing:.04em;
+      font-size: clamp(52px, 6.0vw, 92px);
+      margin: 0 0 4px;
+      color: color-mix(in oklab, var(--fg) 92%, black 8%);
+      text-shadow: 0 8px 20px rgba(0,0,0, calc(.10 * var(--shadowStrength)));
     }
     .tagline{
-      font-family: var(--font);
-      font-weight: 300;                 /* <- comme sous "ELIMINATOR" sur ta capture */
-      font-size: 14px;
-      color: rgba(26,24,21,.58);
+      font-family: var(--hand);
+      font-weight: 500;
+      font-size: clamp(16px, 1.7vw, 22px);
+      color: color-mix(in oklab, var(--fg) 55%, transparent 45%);
       margin: 0 0 6px;
       letter-spacing:.02em;
     }
 
-    /* Progress block (big) */
-    .progressWrap{ padding: 12px 14px 14px; }
+    .progressWrap{ padding: 12px 14px 10px; }
 
-    /* Track = fond clair + ombrage interne discret (pas halo) */
+    /* BARRE : surbrillance + ombre interne, pas de halo énorme */
     .bar{
       height: var(--progressH);
       border-radius: calc(var(--radius) - 2px);
-      border: var(--lineW) solid rgba(0,0,0,.18);
+      border: var(--lineW) solid color-mix(in oklab, var(--line) 75%, black 25%);
       background:
-        linear-gradient(180deg, rgba(255,255,255,.72), rgba(0,0,0,.02));
+        linear-gradient(180deg, rgba(255,255,255,.70), rgba(0,0,0,.02));
       position:relative;
       overflow:hidden;
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,.45),
-        inset 0 -10px 24px rgba(0,0,0,.06); /* <- côté ombré comme la capture */
+        inset 0 -10px 22px rgba(0,0,0, calc(.06 * var(--shadowStrength)));
     }
-
-    /* Surbrillance localisée en haut (effet “verre” discret) */
     .bar::before{
       content:"";
       position:absolute; left:0; right:0; top:0; height:38%;
@@ -260,24 +247,19 @@
       opacity:.9;
     }
 
-    /* Fill = sombre chic + gradient chaud très doux */
     .barFill{
       position:absolute; inset:0;
       width:100%;
       background:
         radial-gradient(700px 220px at 18% 45%, var(--barA), transparent 62%),
-        linear-gradient(90deg, var(--barB), rgba(0,0,0,.08));
+        linear-gradient(90deg, var(--barB), rgba(0,0,0,.06));
       transition: width 260ms ease;
-      filter: saturate(1.02);
     }
-
-    /* Séparation nette remplissage/vide :
-       on dessine un liseré blanc/ivoire au bord du remplissage */
     .barFill::after{
       content:"";
       position:absolute; top:0; bottom:0; right:0;
-      width: 3px;
-      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.55));
+      width: 4px;
+      background: linear-gradient(180deg, var(--barEdge), rgba(255,255,255,.55));
       box-shadow: 0 0 0 1px rgba(0,0,0,.06);
       opacity:.95;
     }
@@ -285,86 +267,89 @@
     .barPct{
       position:absolute; inset:0;
       display:grid; place-items:center;
-      font-family: var(--titleFont);
+      font-family: var(--hand);
       font-weight: 700;
-      font-size: clamp(18px, 2.4vw, 28px);
-      color: rgba(16,22,34,.86);
-      text-shadow: 0 8px 22px rgba(0,0,0,.10);
+      font-size: clamp(22px, 3.0vw, 34px);
+      color: color-mix(in oklab, var(--fg) 90%, black 10%);
+      text-shadow: 0 8px 18px rgba(0,0,0, calc(.10 * var(--shadowStrength)));
       pointer-events:none;
     }
 
+    /* Pomodoro : CENTRÉ sous la barre */
     .pomoRow{
-      margin-top: 10px;
+      margin-top: 12px;
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap:10px;
+      justify-content:center;
+      gap: 10px;
       flex-wrap:wrap;
+      text-align:center;
     }
     .pomoClock{
       display:flex; align-items:baseline; gap:10px;
       user-select:none; cursor:pointer;
+      padding: 8px 12px;
+      border: var(--lineW) solid var(--line);
+      border-radius: 999px;
+      background: rgba(0,0,0,.02);
     }
-    .pomoTime{ font-family: var(--mono); font-size: 20px; letter-spacing:.04em; }
-    .pomoHint{ font-family: var(--mono); font-size: 12px; color: var(--muted); }
-    .pomoBtns{ display:flex; gap:8px; flex-wrap:wrap; }
+    .pomoTime{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 20px; letter-spacing:.04em; }
+    .pomoHint{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 12px; color: var(--muted); }
 
     .underLine{
       margin-top: 8px;
       text-align:center;
-      color: rgba(26,24,21,.56);
-      font-family: var(--mono);
+      color: color-mix(in oklab, var(--fg) 55%, transparent 45%);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
       font-size: 12px;
     }
 
-    /* Task area */
-    .taskCard{ padding: 14px; border-top: var(--lineW) solid var(--line); }
-
-    /* Titre tâche en relief (ombre dessous) */
+    .taskCard{ padding: 12px 14px 16px; border-top: var(--lineW) solid var(--line); }
     .taskName{
-      font-family: var(--titleFont);
+      font-family: var(--hand);
       font-weight: 700;
-      font-size: clamp(30px, 4.0vw, 64px);
+      font-size: clamp(34px, 4.6vw, 72px);
       text-align:center;
-      margin: 10px 0 10px;
-      line-height:1.06;
+      margin: 10px 0 6px;
+      line-height:1.02;
       word-break: break-word;
-      color: rgba(16,22,34,.90);
-      text-shadow:
-        0 10px 24px rgba(0,0,0,.12),
-        0 2px 0 rgba(255,255,255,.25);
+      color: color-mix(in oklab, var(--fg) 94%, black 6%);
+      text-shadow: 0 8px 16px rgba(0,0,0, calc(.09 * var(--shadowStrength)));
     }
 
+    /* Étorions : chips plus propres */
     .chips{
-      display:flex; flex-wrap:wrap;
+      display:flex;
+      flex-wrap:wrap;
       justify-content:center;
       gap:6px;
-      margin-bottom: 12px;
+      margin: 8px 0 12px;
     }
     .chip{
       width: 18px; height: 18px;
       border-radius: 6px;
       border: var(--lineW) solid var(--line);
       background: rgba(0,0,0,.03);
-      transition: transform 140ms ease, background 140ms ease;
+      box-shadow: 0 6px 12px rgba(0,0,0, calc(.05 * var(--shadowStrength)));
     }
-    .chip.on{ background: rgba(0,0,0,.65); } /* en mono ça marche aussi */
-    body[data-chroma="color"] .chip.on{ background: var(--accent2); }
+    .chip.on{
+      background: color-mix(in oklab, var(--accent2) 72%, var(--fg) 28%);
+    }
 
     .actions{
       display:flex;
       align-items:center;
       justify-content:center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap:wrap;
-      margin: 8px 0 12px;
+      margin: 10px 0 10px;
     }
     .mini{
       border: var(--lineW) solid var(--line);
-      border-radius: var(--radius2);
-      background: transparent;
+      border-radius: 999px;
+      background: rgba(0,0,0,.015);
       box-shadow: var(--shadowB);
-      padding: 10px 10px;
+      padding: 9px 12px;
       cursor:pointer;
       user-select:none;
       display:flex; gap:8px; align-items:center;
@@ -373,95 +358,49 @@
     }
     .mini:hover{ background: rgba(0,0,0,.03); }
     .mini:active{ transform: translateY(1px) scale(.99); }
-    .mini .ic{ font-family: var(--mono); font-size: 14px; }
-    .mini small{ color: var(--muted); font-family: var(--mono); font-size: 12px; }
-
-    .roulette{
-      width: clamp(120px, 14vw, 180px);
-      height: clamp(120px, 14vw, 180px);
-      border-radius: 999px;
-      border: var(--lineW) solid var(--line);
-      background:
-        radial-gradient(circle at 30% 30%, var(--card2), transparent 60%),
-        linear-gradient(180deg, rgba(255,255,255,.50), rgba(0,0,0,.02));
-      box-shadow: var(--shadowA);
-      backdrop-filter: blur(var(--blur));
-      display:grid;
-      place-items:center;
-      cursor:pointer;
-      position:relative;
-      overflow:hidden;
-      transition: transform 140ms ease;
-    }
-    .roulette:active{ transform: translateY(1px) scale(.99); }
-    .roulette::after{
-      content:"";
-      position:absolute; inset:10px;
-      border-radius:999px;
-      border: 1px dashed rgba(0,0,0,.18);
-      opacity:.75;
-    }
-    .rouletteText{
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing:.10em;
-      opacity:.92;
-    }
-    .spin{ animation: spin 860ms cubic-bezier(.08,.92,.20,1) 1; }
-    @keyframes spin{ 0%{ transform: rotate(0deg);} 100%{ transform: rotate(1080deg);} }
+    .mini .ic{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; }
+    .mini small{ color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 12px; }
 
     .bigAction{
-      min-width: clamp(220px, 26vw, 340px);
-      padding: 14px 16px;
-      border-radius: var(--radius2);
+      min-width: clamp(220px, 26vw, 360px);
+      padding: 12px 16px;
+      border-radius: 999px;
       border: var(--lineW) solid var(--line);
-      background: linear-gradient(180deg, var(--card2), transparent);
+      background: linear-gradient(180deg, rgba(255,255,255,.36), rgba(0,0,0,.01));
       box-shadow: var(--shadowA);
       cursor:pointer;
       user-select:none;
       display:flex; align-items:center; justify-content:center; gap:12px;
       transition: transform 140ms ease, background 140ms ease;
     }
-    .bigAction:hover{ background: rgba(0,0,0,.03); }
+    .bigAction:hover{ background: rgba(0,0,0,.02); }
     .bigAction:active{ transform: translateY(1px) scale(.99); }
-    .bigAction .em{ font-family: var(--mono); font-size: 18px; }
+    .bigAction .em{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 18px; }
     .bigAction .label{ display:flex; flex-direction:column; line-height:1.12; align-items:center; }
-    .bigAction .label b{ font-size: 14px; font-weight: 700; }
-    .bigAction .label span{ font-size: 12px; color: var(--muted); font-family: var(--mono); }
+    .bigAction .label b{ font-size: 14px; font-weight: 800; }
+    .bigAction .label span{ font-size: 12px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
 
     .belowList{
-      margin-top: 12px;
+      margin-top: 10px;
       display:none;
       padding: 10px 12px;
       border-top: var(--lineW) solid var(--line);
     }
     .belowList.show{ display:block; }
-
     .listHead{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       margin-bottom:8px;
     }
-    .rows{
-      display:flex; flex-direction:column; gap:8px;
-    }
+    .rows{ display:flex; flex-direction:column; gap:8px; }
     .rowTask{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding: 10px 10px;
       border: var(--lineW) solid var(--line);
       border-radius: var(--radius2);
-      background: rgba(0,0,0,.02);
+      background: rgba(0,0,0,.015);
     }
-    .rowTask .t{
-      flex:1; min-width:0;
-      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-      font-size: 13px;
-    }
-    .rowTask .m{
-      font-family: var(--mono);
-      color: var(--muted);
-      font-size: 12px;
-      white-space:nowrap;
-    }
+    .rowTask .t{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 13px; }
+    .rowTask .m{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; color: var(--muted); font-size: 12px; white-space:nowrap; }
     .rowTask .tools{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
     .toolBtn{
       border: var(--lineW) solid var(--line);
@@ -471,11 +410,11 @@
       padding: 6px 10px;
       font-size: 12px;
       cursor:pointer;
-      font-family: var(--mono);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     }
-    .toolBtn:hover{ background: rgba(0,0,0,.03); }
+    .toolBtn:hover{ background: rgba(0,0,0,.02); }
 
-    /* ===== Panels (robustes) ===== */
+    /* PANELS */
     .backdrop{
       position:fixed; inset:0;
       background: rgba(0,0,0,.18);
@@ -511,18 +450,13 @@
       border-bottom: var(--lineW) solid var(--line);
     }
     .panelTop .ttl{
-      font-family: var(--mono);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
       color: var(--muted);
       font-size: 12px;
       letter-spacing:.04em;
     }
     .panelBody{ padding: 12px; overflow:auto; }
-    .resizer{
-      position:absolute; top:0; bottom:0;
-      width:12px;
-      cursor: ew-resize;
-      opacity:0;
-    }
+    .resizer{ position:absolute; top:0; bottom:0; width:12px; cursor: ew-resize; opacity:0; }
     .panel.left .resizer{ right:-6px; }
     .panel.right .resizer{ left:-6px; }
     .panel:hover .resizer{ opacity:1; }
@@ -530,7 +464,7 @@
     .tabs{ display:flex; gap:8px; flex-wrap:wrap; padding: 10px 12px 0; }
     .tab{
       padding: 7px 9px;
-      border-radius: var(--radius2);
+      border-radius: 999px;
       border: var(--lineW) solid var(--line);
       cursor:pointer;
       font-size: 13px;
@@ -538,10 +472,10 @@
       background: transparent;
       user-select:none;
     }
-    .tab:hover{ background: rgba(0,0,0,.03); }
+    .tab:hover{ background: rgba(0,0,0,.02); }
     .tab.active{
       color: var(--fg);
-      background: linear-gradient(180deg, var(--card2), transparent);
+      background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(0,0,0,.01));
       box-shadow: inset 0 0 0 1px var(--line);
     }
 
@@ -549,15 +483,15 @@
       border: var(--lineW) solid var(--line);
       border-radius: var(--radius);
       padding: 10px;
-      background: rgba(0,0,0,.02);
+      background: rgba(0,0,0,.01);
       margin-top: 10px;
     }
     .section h3{
       margin:0 0 8px;
       font-size: 12px;
       color: var(--muted);
-      font-family: var(--mono);
-      font-weight: 800;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-weight: 900;
     }
     textarea,input,select{
       width:100%;
@@ -570,12 +504,15 @@
       outline:none;
       font-family: var(--font);
     }
-    textarea{ min-height: 140px; resize:vertical; }
+    textarea{ min-height: 120px; resize:vertical; }
 
     .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
     .row > *{ flex:1; min-width: 160px; }
-    .muted{ color: var(--muted); font-family: var(--mono); font-size: 12px; }
-    .small{ color: var(--muted); font-family: var(--mono); font-size: 12px; }
+    .small{
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
 
     .opt{
       display:flex; align-items:center; gap:8px;
@@ -586,7 +523,7 @@
       user-select:none;
       background: transparent;
       font-size: 13px;
-      font-family: var(--mono);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     }
     .dot{
       width:10px; height:10px;
@@ -599,10 +536,10 @@
       content:"";
       position:absolute; inset:2px;
       border-radius:999px;
-      background: rgba(0,0,0,.80);
+      background: color-mix(in oklab, var(--accent2) 70%, var(--fg) 30%);
     }
 
-    /* ===== Modals ===== */
+    /* MODALS */
     .modalBack{
       position:fixed; inset:0;
       background: rgba(0,0,0,.22);
@@ -638,48 +575,10 @@
       border-bottom: var(--lineW) solid var(--line);
       margin-bottom: 10px;
     }
-    .modalHead .mh{ font-family: var(--mono); color: var(--muted); font-size: 12px; }
-
-    /* ===== Focus overlay ===== */
-    .focusOverlay{
-      position:fixed; inset:0;
-      display:none;
-      z-index:160;
-      background: rgba(0,0,0,.34);
-      backdrop-filter: blur(8px);
-      padding: 16px;
-      overflow:auto;
-    }
-    .focusOverlay.show{ display:block; }
-    .focusCard{
-      width: min(1100px, 96vw);
-      margin: 4vh auto;
-      border: var(--lineW) solid var(--line);
-      border-radius: var(--radius);
-      background: var(--card);
-      backdrop-filter: blur(var(--blur));
-      box-shadow: var(--shadowA);
-      overflow:hidden;
-      position:relative;
-    }
-    .focusTop{
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      padding: 10px 12px;
-      border-bottom: var(--lineW) solid var(--line);
-    }
-    .focusBody{ padding: 14px; }
-    .focusBigTask{
-      font-family: var(--titleFont);
-      font-weight: 700;
-      font-size: clamp(34px, 4.2vw, 70px);
-      line-height: 1.04;
-      text-align:center;
-      margin: 12px 0 8px;
-      text-shadow: 0 10px 24px rgba(0,0,0,.12);
-    }
-    .focusMini{
-      display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
-      margin-top: 12px;
+    .modalHead .mh{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      color: var(--muted);
+      font-size: 12px;
     }
 
     @media (max-width: 560px){
@@ -689,20 +588,19 @@
   </style>
 </head>
 
-<body data-chroma="color">
+<body data-focus="off">
   <div class="bgSky" aria-hidden="true"></div>
 
   <canvas id="pollenCanvas"></canvas>
-  <canvas id="confettiCanvas"></canvas>
+  <canvas id="fxCanvas"></canvas>
 
-  <!-- SINGLE BACKDROP for panels (fix bugs) -->
   <div class="backdrop" id="panelBack"></div>
 
   <!-- LEFT PANEL -->
   <aside class="panel left" id="leftPanel" aria-label="Menu gauche">
     <div class="resizer" id="leftResizer" title="Redimensionner"></div>
     <div class="panelTop">
-      <div class="ttl">Menu</div>
+      <div class="ttl">Menu gauche</div>
       <button class="btn" id="leftClose">fermer</button>
     </div>
     <div class="tabs" id="leftTabs"></div>
@@ -713,14 +611,13 @@
   <aside class="panel right" id="rightPanel" aria-label="Panneau droit">
     <div class="resizer" id="rightResizer" title="Redimensionner"></div>
     <div class="panelTop">
-      <div class="ttl">Panneau</div>
+      <div class="ttl">Paramétrages</div>
       <button class="btn" id="rightClose">fermer</button>
     </div>
     <div class="tabs" id="rightTabs"></div>
     <div class="panelBody" id="rightBody"></div>
   </aside>
 
-  <!-- MODAL BACKDROP -->
   <div class="modalBack" id="modalBack"></div>
 
   <!-- NOTES MODAL -->
@@ -732,7 +629,7 @@
       </div>
       <div class="section">
         <h3>Ajouter</h3>
-        <textarea id="noteInput" placeholder="Une note courte. Pas une thèse."></textarea>
+        <textarea id="noteInput" placeholder="Une note courte."></textarea>
         <div class="row" style="margin-top:8px">
           <button class="btn" id="noteAdd">ajouter</button>
           <button class="btn" id="noteClear">vider</button>
@@ -742,64 +639,6 @@
         <h3>Historique</h3>
         <div id="notesList" class="small"></div>
       </div>
-    </div>
-  </div>
-
-  <!-- KIFF MODAL -->
-  <div class="modal" id="kiffModal">
-    <div class="modalCard">
-      <div class="modalHead">
-        <div class="mh" id="kiffTitle">Kiffance</div>
-        <div class="small">Clique dehors pour fermer</div>
-      </div>
-      <div class="section">
-        <h3>Surprise</h3>
-        <div id="kiffMsg" style="font-size:16px; line-height:1.55;"></div>
-        <div id="kiffSub" class="small" style="margin-top:8px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VICTORY MODAL -->
-  <div class="modal" id="victoryModal">
-    <div class="modalCard" style="min-height:min(68vh,720px); display:flex; flex-direction:column; justify-content:center; overflow:hidden;">
-      <div class="halo" aria-hidden="true"></div>
-      <div id="victoryTitle" style="font-family:var(--titleFont);font-size:clamp(28px,4.2vw,62px); font-weight:700; text-align:center; letter-spacing:.04em;"></div>
-      <div id="victoryMsg" style="font-size:clamp(14px,1.8vw,22px); text-align:center; line-height:1.55; max-width:78ch; margin:12px auto;"></div>
-      <div class="small" style="text-align:center;">Clique dehors pour fermer</div>
-    </div>
-  </div>
-
-  <!-- TASK EDIT MODAL -->
-  <div class="modal" id="taskEditModal">
-    <div class="modalCard">
-      <div class="modalHead">
-        <div class="mh">Éditer tâche</div>
-        <div class="small">Clique dehors pour fermer</div>
-      </div>
-      <div id="taskEditBody"></div>
-    </div>
-  </div>
-
-  <!-- SET EDIT MODAL -->
-  <div class="modal" id="setEditModal">
-    <div class="modalCard">
-      <div class="modalHead">
-        <div class="mh">Éditer set</div>
-        <div class="small">Clique dehors pour fermer</div>
-      </div>
-      <div id="setEditBody"></div>
-    </div>
-  </div>
-
-  <!-- CALENDAR DAY MODAL -->
-  <div class="modal" id="calendarModal">
-    <div class="modalCard">
-      <div class="modalHead">
-        <div class="mh" id="calendarTitle">Jour</div>
-        <div class="small">Clique dehors pour fermer</div>
-      </div>
-      <div id="calendarBody"></div>
     </div>
   </div>
 
@@ -821,66 +660,40 @@
     </div>
   </div>
 
-  <!-- FOCUS OVERLAY -->
-  <div class="focusOverlay" id="focusOverlay">
-    <div class="focusCard">
-      <div class="focusTop">
-        <div class="small"><b>ELIMINATOR</b> · focus</div>
-        <button class="btn" id="btnExitFocus">quitter</button>
+  <!-- BIG FIESTA MODAL -->
+  <div class="modal" id="fiestaModal">
+    <div class="modalCard" style="min-height:min(68vh,720px); display:flex; flex-direction:column; justify-content:center; overflow:hidden;">
+      <div class="halo" aria-hidden="true"></div>
+      <div id="fiestaTitle" class="title" style="font-size:clamp(44px,5.2vw,88px); margin:0; text-align:center;">BIG FIESTA</div>
+      <div id="fiestaMsg" style="font-family:var(--hand); font-size:clamp(18px,2.2vw,28px); text-align:center; line-height:1.55; max-width:78ch; margin:10px auto;"></div>
+      <div class="row" style="justify-content:center; margin-top:10px">
+        <button class="btn" id="fiestaNew">nouvelle mission</button>
+        <button class="btn" id="fiestaReset">reset baseline</button>
+        <button class="btn" id="fiestaClose">fermer</button>
       </div>
-      <div class="focusBody">
-        <div class="bar" style="height: clamp(140px, 20vh, 240px);">
-          <div class="barFill" id="fBarFill" style="width:100%"></div>
-          <div class="barPct" id="fBarPct">100%</div>
-        </div>
-
-        <div class="pomoRow">
-          <div class="pomoClock" id="fPomoClick">
-            <div class="pomoTime" id="fPomoTime">25:00</div>
-            <div class="pomoHint" id="fPomoHint">pomodoro</div>
-          </div>
-          <div class="pomoBtns">
-            <button class="btn" id="fPomoStart">start</button>
-            <button class="btn" id="fPomoStop" style="display:none;">stop</button>
-          </div>
-        </div>
-
-        <div class="focusBigTask" id="fTaskName">Aucune tâche</div>
-        <div class="chips" id="fChips"></div>
-
-        <div class="focusMini">
-          <div class="mini" id="fUndo"><span class="ic">↶</span><small>retour</small></div>
-          <div class="mini" id="fNotes"><span class="ic">✎</span><small>notes</small></div>
-          <div class="mini" id="fPause"><span class="ic">⏸</span><small>pause</small></div>
-          <div class="mini" id="fKiff"><span class="ic">✶</span><small>kiff</small></div>
-          <div class="bigAction" id="fEto"><div class="em">/</div><div class="label"><b>dégommer</b><span>1 étorion</span></div></div>
-        </div>
-      </div>
+      <div class="small" style="text-align:center; margin-top:8px;">Oui, c’est volontairement dramatique.</div>
     </div>
   </div>
 
   <div class="wrap">
-    <!-- TOPBAR -->
     <header class="topbar">
       <div class="tb-left">
         <button class="btn icon" id="btnLeft" title="Menu">≡</button>
 
-        <button class="btn" id="btnTheme" title="Mode visuel">☼ <span id="themeLbl">clair</span></button>
-        <button class="btn" id="btnSeason" title="Palette saison">✿ <span id="seasonLbl">automne</span></button>
-        <button class="btn" id="btnChroma" title="Couleurs">◧ <span id="chromaLbl">couleur</span></button>
+        <button class="btn" id="btnTheme" title="Clair/Foncé">☼ <span id="themeLbl">clair</span></button>
+        <button class="btn" id="btnSeason" title="Saison">✿ <span id="seasonLbl">automne</span></button>
 
-        <button class="btn" id="btnFocus" title="Focus">◎ <span>focus</span></button>
+        <button class="btn" id="btnFocus" title="Focus">◎ <span id="focusLbl">focus</span></button>
 
         <span class="pill" id="hudPill">0/0 · 00:00</span>
       </div>
 
       <div class="tb-right">
         <button class="btn icon" id="btnExport" title="Export">⇩</button>
-        <button class="btn icon" id="btnRight" title="Panneau">▦</button>
+        <button class="btn icon" id="btnRight" title="Panneau droit">▦</button>
       </div>
     </header>
 
-    <!-- STAGE -->
     <main class="stage">
       <div class="hub">
         <div class="card" id="mainCard">
@@ -897,20 +710,18 @@
               <div class="barPct" id="barPct">100%</div>
             </div>
 
+            <!-- Pomodoro centré -->
             <div class="pomoRow" id="pomoWrap">
               <div class="pomoClock" id="pomoClickZone" title="Cliquer pour régler">
                 <div class="pomoTime" id="pomoTime">25:00</div>
-                <div class="pomoHint" id="pomoHint">pomodoro prêt</div>
+                <div class="pomoHint" id="pomoHint">travail</div>
               </div>
 
-              <div class="pomoBtns">
-                <button class="btn" id="btnPomoToggle">masquer</button>
-                <button class="btn" id="btnPomoStart">start</button>
-                <button class="btn" id="btnPomoStop" style="display:none;">stop</button>
-              </div>
+              <button class="btn" id="btnPomoStart">start</button>
+              <button class="btn" id="btnPomoStop" style="display:none;">stop</button>
             </div>
 
-            <div class="underLine" id="underBarLine">Un pas. Une coupe nette. Rien ne discute.</div>
+            <div class="underLine" id="underBarLine">Chaud, lisible, minimal. Pas besoin de brouillard.</div>
           </div>
 
           <div class="taskCard">
@@ -919,23 +730,17 @@
 
             <div class="actions">
               <div class="mini" id="btnUndo" title="Annuler"><span class="ic">↶</span><small>retour</small></div>
+              <div class="mini" id="btnList" title="Liste"><span class="ic">≣</span><small>liste</small></div>
+              <div class="mini" id="btnNotes" title="Notes"><span class="ic">✎</span><small>notes</small></div>
+              <div class="mini" id="btnKiff" title="Kiff"><span class="ic">✶</span><small>kiff</small></div>
+              <div class="mini" id="btnPause" title="Pause globale"><span class="ic">⏸</span><small>pause</small></div>
+            </div>
 
-              <div class="roulette" id="btnRoulette" title="Roulette">
-                <div class="rouletteText">roulette</div>
-              </div>
-
+            <div class="actions" style="margin-top:0">
               <div class="bigAction" id="btnEto" title="Dégommer 1 étorion">
                 <div class="em">/</div>
                 <div class="label"><b>dégommer</b><span>1 étorion</span></div>
               </div>
-            </div>
-
-            <div class="actions" style="margin-top:0">
-              <div class="mini" id="btnNotes"><span class="ic">✎</span><small>notes</small></div>
-              <div class="mini" id="btnList"><span class="ic">≣</span><small>liste</small></div>
-              <div class="mini" id="btnEdit"><span class="ic">⌁</span><small>éditer</small></div>
-              <div class="mini" id="btnPause"><span class="ic">⏸</span><small>pause</small></div>
-              <div class="mini" id="btnKiff"><span class="ic">✶</span><small>kiff</small></div>
             </div>
 
             <div class="belowList" id="belowList">
@@ -945,22 +750,18 @@
               </div>
               <div class="rows" id="belowRows"></div>
             </div>
+
           </div>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- PARTIE 2/2 JS à coller juste après -->
 <script>
 /* ============================================================
-   ELIMINATOR v1.25-stable — JS
-   - thèmes : 4 saisons + clair/foncé + chroma couleur/mono
-   - panels : backdrop unique, locks scroll, pas de conflits
-   - expose window.ELIMINATOR pour extensions futures
+   ELIMINATOR — JS complet panels + saisons + pomodoro cycles + FX
 ============================================================ */
 
-/* ===== Utils ===== */
 const $ = (id)=>document.getElementById(id);
 const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
 const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
@@ -971,69 +772,102 @@ const fmtMMSS = (ms)=>{
   const s = Math.max(0, Math.floor(ms/1000));
   return `${pad2(Math.floor(s/60))}:${pad2(s%60)}`;
 };
-const dayKey = (d=new Date())=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 const escapeHTML = (s)=>String(s??"").replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
 const prefersReduced = ()=>window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ===== Storage ===== */
-const LS_KEY = "eliminator_v125_stable_fullwidth";
+const LS_KEY = "eliminator_full_v1_ghibliish";
 
-/* ===== Themes ===== */
-const SEASONS = ["printemps","ete","automne","hiver"];
+/* ===== THEMES =====
+   4 saisons + "noirblanc" (5e).
+   Objectif: couleurs chaudes et différences nettes entre saisons.
+*/
+const SEASONS = ["printemps","ete","automne","hiver","noirblanc"];
 const THEMES = {
   printemps:{
-    clair:{ bg:"#FBF4E8", fg:"#1A1815", mutedAlpha:.64, card:"rgba(255,255,255,.68)", card2:"rgba(255,255,255,.42)", line:"rgba(26,24,21,.14)",
-            accent:"rgba(110,190,150,.24)", accent2:"rgba(110,190,150,.62)", barA:"rgba(205,120,60,.18)", barB:"rgba(60,50,45,.70)" },
-    fonce:{ bg:"#10110F", fg:"#F7F4EE", mutedAlpha:.70, card:"rgba(20,22,18,.62)", card2:"rgba(20,22,18,.40)", line:"rgba(247,244,238,.14)",
-            accent:"rgba(110,190,150,.16)", accent2:"rgba(110,190,150,.40)", barA:"rgba(205,120,60,.14)", barB:"rgba(247,244,238,.30)" }
+    clair:{ bg:"#FBF4E8", fg:"#15120F", muted:"#6A5D53", card:"rgba(255,255,255,.74)", card2:"rgba(255,255,255,.46)", line:"rgba(21,18,15,.14)",
+            accent:"rgba(110,190,150,.22)", accent2:"rgba(110,190,150,.62)", barA:"rgba(250,210,140,.22)", barB:"rgba(54,48,44,.72)", edge:"#FFFFFF" },
+    fonce:{ bg:"#111312", fg:"#FAF7F0", muted:"#CFC8BC", card:"rgba(20,22,20,.62)", card2:"rgba(20,22,20,.40)", line:"rgba(250,247,240,.14)",
+            accent:"rgba(110,190,150,.16)", accent2:"rgba(110,190,150,.40)", barA:"rgba(250,210,140,.14)", barB:"rgba(250,247,240,.26)", edge:"#FFFFFF" }
   },
   ete:{
-    clair:{ bg:"#FBF4E8", fg:"#1A1815", mutedAlpha:.64, card:"rgba(255,255,255,.68)", card2:"rgba(255,255,255,.42)", line:"rgba(26,24,21,.14)",
-            accent:"rgba(90,170,210,.20)", accent2:"rgba(90,170,210,.55)", barA:"rgba(205,120,60,.18)", barB:"rgba(60,50,45,.70)" },
-    fonce:{ bg:"#0D1218", fg:"#F6FBFF", mutedAlpha:.72, card:"rgba(18,24,34,.62)", card2:"rgba(18,24,34,.40)", line:"rgba(246,251,255,.14)",
-            accent:"rgba(90,170,210,.14)", accent2:"rgba(90,170,210,.38)", barA:"rgba(205,120,60,.14)", barB:"rgba(246,251,255,.28)" }
+    clair:{ bg:"#FFF3DF", fg:"#16120F", muted:"#6C5E52", card:"rgba(255,255,255,.74)", card2:"rgba(255,255,255,.46)", line:"rgba(22,18,15,.14)",
+            accent:"rgba(90,170,210,.20)", accent2:"rgba(90,170,210,.58)", barA:"rgba(255,215,120,.22)", barB:"rgba(50,46,44,.72)", edge:"#FFFFFF" },
+    fonce:{ bg:"#0E1217", fg:"#F6FBFF", muted:"#C8D2DA", card:"rgba(18,24,34,.62)", card2:"rgba(18,24,34,.40)", line:"rgba(246,251,255,.14)",
+            accent:"rgba(90,170,210,.14)", accent2:"rgba(90,170,210,.36)", barA:"rgba(255,215,120,.12)", barB:"rgba(246,251,255,.24)", edge:"#FFFFFF" }
   },
   automne:{
-    clair:{ bg:"#FBF4E8", fg:"#1A1815", mutedAlpha:.64, card:"rgba(255,255,255,.68)", card2:"rgba(255,255,255,.42)", line:"rgba(26,24,21,.14)",
-            accent:"rgba(205,120,60,.22)", accent2:"rgba(205,120,60,.62)", barA:"rgba(205,120,60,.18)", barB:"rgba(60,50,45,.70)" },
-    fonce:{ bg:"#14110D", fg:"#FFF5E8", mutedAlpha:.72, card:"rgba(26,20,14,.62)", card2:"rgba(26,20,14,.40)", line:"rgba(255,245,232,.14)",
-            accent:"rgba(205,120,60,.16)", accent2:"rgba(205,120,60,.42)", barA:"rgba(205,120,60,.14)", barB:"rgba(255,245,232,.28)" }
+    clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", card:"rgba(255,255,255,.72)", card2:"rgba(255,255,255,.46)", line:"rgba(20,18,15,.14)",
+            accent:"rgba(205,120,60,.22)", accent2:"rgba(205,120,60,.60)", barA:"rgba(255,210,160,.18)", barB:"rgba(56,50,46,.72)", edge:"#FFFFFF" },
+    fonce:{ bg:"#14110D", fg:"#FFF5E8", muted:"#D9C9B7", card:"rgba(26,20,14,.62)", card2:"rgba(26,20,14,.40)", line:"rgba(255,245,232,.14)",
+            accent:"rgba(205,120,60,.16)", accent2:"rgba(205,120,60,.40)", barA:"rgba(255,210,160,.12)", barB:"rgba(255,245,232,.24)", edge:"#FFFFFF" }
   },
   hiver:{
-    clair:{ bg:"#F5F7FA", fg:"#141B22", mutedAlpha:.64, card:"rgba(255,255,255,.70)", card2:"rgba(255,255,255,.44)", line:"rgba(20,27,34,.14)",
-            accent:"rgba(120,160,200,.18)", accent2:"rgba(120,160,200,.46)", barA:"rgba(150,70,60,.16)", barB:"rgba(50,55,62,.72)" },
-    fonce:{ bg:"#0D1116", fg:"#F2FDFF", mutedAlpha:.74, card:"rgba(16,22,28,.62)", card2:"rgba(16,22,28,.40)", line:"rgba(242,253,255,.14)",
-            accent:"rgba(120,160,200,.12)", accent2:"rgba(120,160,200,.34)", barA:"rgba(150,70,60,.12)", barB:"rgba(242,253,255,.26)" }
+    clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", card:"rgba(255,255,255,.74)", card2:"rgba(255,255,255,.46)", line:"rgba(20,27,34,.14)",
+            accent:"rgba(120,160,200,.18)", accent2:"rgba(120,160,200,.46)", barA:"rgba(220,240,255,.22)", barB:"rgba(52,58,66,.74)", edge:"#FFFFFF" },
+    fonce:{ bg:"#0D1116", fg:"#F2FDFF", muted:"#BFD2D6", card:"rgba(16,22,28,.62)", card2:"rgba(16,22,28,.40)", line:"rgba(242,253,255,.14)",
+            accent:"rgba(120,160,200,.12)", accent2:"rgba(120,160,200,.30)", barA:"rgba(220,240,255,.12)", barB:"rgba(242,253,255,.22)", edge:"#FFFFFF" }
+  },
+  noirblanc:{
+    clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", card:"rgba(255,255,255,.74)", card2:"rgba(255,255,255,.46)", line:"rgba(0,0,0,.12)",
+            accent:"rgba(0,0,0,.08)", accent2:"rgba(0,0,0,.18)", barA:"rgba(0,0,0,.06)", barB:"rgba(40,40,40,.78)", edge:"#FFFFFF" },
+    fonce:{ bg:"#0F0F10", fg:"#F7F7F7", muted:"#CFCFCF", card:"rgba(22,22,22,.66)", card2:"rgba(22,22,22,.40)", line:"rgba(255,255,255,.12)",
+            accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.18)", barA:"rgba(255,255,255,.10)", barB:"rgba(255,255,255,.24)", edge:"#FFFFFF" }
   }
 };
 
-/* ===== State ===== */
+/* ===== STATE ===== */
 const defaultState = {
   ui:{
     mode:"clair",
     season:"automne",
-    chroma:"color",        // "color" | "mono"
     leftW:420, rightW:560,
+
+    /* réglages lisibilité/ombre */
+    contrastBoost: 1.02,       // 0.90..1.20
+    shadowStrength: 0.50,      // 0..1
+    grain: 0.06,               // 0..0.12
+
     reduceMotion:false
   },
+
   timer:{ startedAt:null, pausedAt:null, pausedTotal:0 },
-  pomodoro:{ minutes:25, running:false, paused:false, endsAt:null, pausedLeftMs:null, visible:true },
+
+  /* Pomodoro cycles */
+  pomodoro:{
+    enabled:true,
+    running:false,
+    phase:"work",              // work | break
+    workMin:25,
+    breakMin:5,
+    longBreakMin:15,
+    every:4,                   // long break every N works
+    workCount:0,
+    auto:true,
+    sound:true,
+    endsAt:null,
+    paused:false,
+    pausedLeftMs:null
+  },
+
   baseline:{ totalTasks:0, totalEtorions:0 },
   stats:{ tasksDone:0, etorionsDone:0 },
+
   tasks:[],
   currentTaskId:null,
   undo:[],
+
   notes:[],
-  kiffance:{
-    enabledBuckets:["5","10","15","25"],
-    revealBank:false,
-    bank:{ "5":[], "10":[], "15":[], "25":[] }
+
+  /* Right panel data */
+  sets:{
+    list:[],
+    selectedId:null
   },
-  right:{ tab:"sets", calMonth:null, statsRange:"7d" },
-  sets:{ list:[], selectedId:null },
   habits:[],
   mood:{ entries:[] },
-  planner:{ items:[] },
+  planner:{ items:[] }, /* calendrier items */
+  right:{ tab:"sets", calMonth:null },
+
   filters:{ activeCats:[] }
 };
 
@@ -1056,79 +890,57 @@ const loadState=()=>{
 let state = loadState();
 const saveState=()=>{ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){} };
 
-/* ===== Theme apply (avec MONO override) ===== */
+/* ===== APPLY THEME + CONTRAST ===== */
 function applyTheme(){
   const season = THEMES[state.ui.season] ? state.ui.season : "automne";
-  const mode = state.ui.mode==="fonce" ? "fonce" : "clair";
+  const mode = (state.ui.mode==="fonce") ? "fonce" : "clair";
   const t = THEMES[season][mode];
 
-  // base
   document.documentElement.style.setProperty("--bg", t.bg);
   document.documentElement.style.setProperty("--fg", t.fg);
-  document.documentElement.style.setProperty("--muted", `rgba(${mode==="fonce" ? "247,244,238" : "26,24,21"}, ${t.mutedAlpha})`);
+  document.documentElement.style.setProperty("--muted", `rgba(${mode==="fonce" ? "247,247,247" : "20,18,15"}, ${mode==="fonce" ? 0.70 : 0.62})`);
   document.documentElement.style.setProperty("--card", t.card);
   document.documentElement.style.setProperty("--card2", t.card2);
   document.documentElement.style.setProperty("--line", t.line);
 
-  // chroma
-  const mono = (state.ui.chroma==="mono");
-  document.body.dataset.chroma = mono ? "mono" : "color";
+  document.documentElement.style.setProperty("--accent", t.accent);
+  document.documentElement.style.setProperty("--accent2", t.accent2);
+  document.documentElement.style.setProperty("--barA", t.barA);
+  document.documentElement.style.setProperty("--barB", t.barB);
+  document.documentElement.style.setProperty("--barEdge", t.edge);
 
-  if(mono){
-    // Palette monochrome : accents neutres, bar sombre + séparation claire
-    const accent = mode==="fonce" ? "rgba(255,255,255,.10)" : "rgba(0,0,0,.08)";
-    const accent2 = mode==="fonce" ? "rgba(255,255,255,.22)" : "rgba(0,0,0,.18)";
-    const barA = mode==="fonce" ? "rgba(255,255,255,.10)" : "rgba(0,0,0,.06)";
-    const barB = mode==="fonce" ? "rgba(255,255,255,.28)" : "rgba(60,50,45,.70)";
-
-    document.documentElement.style.setProperty("--accent", accent);
-    document.documentElement.style.setProperty("--accent2", accent2);
-    document.documentElement.style.setProperty("--barA", barA);
-    document.documentElement.style.setProperty("--barB", barB);
-  }else{
-    document.documentElement.style.setProperty("--accent", t.accent);
-    document.documentElement.style.setProperty("--accent2", t.accent2);
-    document.documentElement.style.setProperty("--barA", t.barA);
-    document.documentElement.style.setProperty("--barB", t.barB);
-  }
-
-  // panels width
+  /* largeur panneaux */
   document.documentElement.style.setProperty("--leftW", `${clamp(state.ui.leftW,320,980)}px`);
   document.documentElement.style.setProperty("--rightW", `${clamp(state.ui.rightW,320,980)}px`);
 
+  /* lisibilité/ombres */
+  document.documentElement.style.setProperty("--contrastBoost", String(clamp(state.ui.contrastBoost,0.90,1.20)));
+  document.documentElement.style.setProperty("--shadowStrength", String(clamp(state.ui.shadowStrength,0,1)));
+  document.documentElement.style.setProperty("--grain", String(clamp(state.ui.grain,0,0.12)));
+
   if($("themeLbl")) $("themeLbl").textContent = (mode==="clair" ? "clair" : "foncé");
   if($("seasonLbl")) $("seasonLbl").textContent = season;
-  if($("chromaLbl")) $("chromaLbl").textContent = (mono ? "mono" : "couleur");
 }
 
-/* ============================================================
-   PANELS — un seul backdrop, lock scroll, pas de conflit
-============================================================ */
+/* ===== PANELS ===== */
 const panel = {
   back: ()=>$("panelBack"),
   left: ()=>$("leftPanel"),
   right: ()=>$("rightPanel"),
   open(which){
-    // ferme l'autre proprement
     if(which==="left") this.right().classList.remove("open");
     if(which==="right") this.left().classList.remove("open");
-
     this.back().classList.add("show");
     document.body.style.overflow = "hidden";
-
     (which==="left" ? this.left() : this.right()).classList.add("open");
-
-    if(which==="right") renderRight();
     if(which==="left") renderLeft();
+    if(which==="right") renderRight();
   },
   closeAll(){
     this.left().classList.remove("open");
     this.right().classList.remove("open");
     this.back().classList.remove("show");
     document.body.style.overflow = "";
-  },
-  anyOpen(){
-    return this.left().classList.contains("open") || this.right().classList.contains("open");
   }
 };
 
@@ -1163,20 +975,17 @@ function initResizer(handleId, which){
   window.addEventListener("touchend", up);
 }
 
-/* ===== Modals ===== */
+/* ===== MODALS ===== */
 function openModal(id){
-  const back = $("modalBack"), m = $(id);
-  if(!back||!m) return;
-  back.classList.add("show");
-  m.classList.add("show");
+  $("modalBack").classList.add("show");
+  $(id).classList.add("show");
 }
 function closeAllModals(){
   $$(".modal").forEach(m=>m.classList.remove("show"));
-  const back = $("modalBack");
-  if(back) back.classList.remove("show");
+  $("modalBack").classList.remove("show");
 }
 
-/* ===== Timer global ===== */
+/* ===== GLOBAL TIMER ===== */
 function timerNowMs(){
   if(!state.timer.startedAt) return 0;
   const now = Date.now();
@@ -1196,121 +1005,7 @@ function toggleGlobalPause(){
   renderHUD();
 }
 
-/* ===== Confetti + Pollen ===== */
-const conf = { canvas:null, ctx:null, pieces:[], raf:null };
-const pollen = { canvas:null, ctx:null, seeds:[], raf:null };
-
-function setupCanvas(id){
-  const c = $(id);
-  if(!c) return null;
-  const ctx = c.getContext("2d");
-  const resize=()=>{
-    const dpr = window.devicePixelRatio||1;
-    c.width = Math.floor(innerWidth*dpr);
-    c.height = Math.floor(innerHeight*dpr);
-    c.style.width = innerWidth+"px";
-    c.style.height = innerHeight+"px";
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  };
-  addEventListener("resize", resize);
-  resize();
-  return {c,ctx};
-}
-function confettiBurst(power=1){
-  if(state.ui.reduceMotion || prefersReduced()) return;
-  if(!conf.ctx) return;
-  const n = Math.floor(140*power);
-  const cx = innerWidth/2, cy = innerHeight*0.24;
-  for(let i=0;i<n;i++){
-    conf.pieces.push({
-      x:cx,y:cy,
-      vx:(Math.random()-0.5)*10*power,
-      vy:(Math.random()-0.9)*16*power,
-      g:(0.28+Math.random()*0.22),
-      s:2+Math.random()*4*power,
-      life:80+Math.random()*70,
-      rot:Math.random()*Math.PI,
-      vr:(Math.random()-0.5)*0.35
-    });
-  }
-  animateConfetti();
-}
-function animateConfetti(){
-  if(conf.raf) return;
-  const step=()=>{
-    conf.ctx.clearRect(0,0,innerWidth,innerHeight);
-    conf.pieces = conf.pieces.filter(p=>p.life>0);
-    conf.ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--fg").trim() || "#000";
-    conf.ctx.globalAlpha = 0.82;
-
-    for(const p of conf.pieces){
-      p.vy += p.g;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.rot += p.vr;
-      p.life -= 1;
-
-      conf.ctx.save();
-      conf.ctx.translate(p.x,p.y);
-      conf.ctx.rotate(p.rot);
-      conf.ctx.fillRect(-p.s,-p.s,p.s*2,p.s*2);
-      conf.ctx.restore();
-    }
-    if(conf.pieces.length) conf.raf = requestAnimationFrame(step);
-    else{ cancelAnimationFrame(conf.raf); conf.raf=null; conf.ctx.clearRect(0,0,innerWidth,innerHeight); }
-  };
-  conf.raf = requestAnimationFrame(step);
-}
-function startPollen(){
-  if(state.ui.reduceMotion || prefersReduced()) return;
-  if(!pollen.ctx) return;
-  const target=64;
-  const make=()=>({
-    x:Math.random()*innerWidth,
-    y:Math.random()*innerHeight,
-    r:0.8+Math.random()*2.0,
-    a:0.06+Math.random()*0.14,
-    vx:(Math.random()*0.16+0.04)*(Math.random()<0.5?-1:1),
-    vy:(Math.random()*0.20+0.04),
-    wob:Math.random()*Math.PI*2,
-    wobv:0.006+Math.random()*0.010
-  });
-  while(pollen.seeds.length<target) pollen.seeds.push(make());
-
-  const loop=()=>{
-    if(state.ui.reduceMotion || prefersReduced()){
-      pollen.ctx.clearRect(0,0,innerWidth,innerHeight);
-      pollen.raf=null; return;
-    }
-    pollen.ctx.clearRect(0,0,innerWidth,innerHeight);
-
-    const halo = (state.ui.chroma==="mono")
-      ? (state.ui.mode==="fonce" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)")
-      : getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim();
-
-    pollen.ctx.fillStyle = halo || "rgba(200,160,80,.10)";
-
-    for(const s of pollen.seeds){
-      s.wob += s.wobv;
-      s.x += s.vx + Math.sin(s.wob)*0.25;
-      s.y += s.vy;
-
-      if(s.y > innerHeight+20){ s.y=-20; s.x=Math.random()*innerWidth; }
-      if(s.x < -20) s.x = innerWidth+20;
-      if(s.x > innerWidth+20) s.x = -20;
-
-      pollen.ctx.globalAlpha = s.a;
-      pollen.ctx.beginPath();
-      pollen.ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      pollen.ctx.fill();
-    }
-    pollen.ctx.globalAlpha = 1;
-    pollen.raf = requestAnimationFrame(loop);
-  };
-  if(!pollen.raf) pollen.raf = requestAnimationFrame(loop);
-}
-
-/* ===== Tasks import + model ===== */
+/* ===== TASKS ===== */
 function isAllCapsLine(line){
   const t = (line||"").trim();
   if(!t) return false;
@@ -1326,8 +1021,11 @@ function parseTaskLine(line){
 
   let et = null;
   let title = cleaned;
+
+  // "titre - 6" ou "titre 6"
   const m = cleaned.match(/^(.*?)(?:\s*[-–—]\s*|\s+)(\d+)\s*$/);
   if(m){ title=m[1].trim(); et=parseInt(m[2],10); }
+
   title = title.replace(/\s+/g," ").trim();
   if(!title) return null;
   if(et!==null) et = clamp(et,1,99);
@@ -1355,6 +1053,7 @@ function importFromInbox(text){
   }
   return out;
 }
+
 const activeTasks=()=>state.tasks.filter(t=>!t.done);
 const doneTasks=()=>state.tasks.filter(t=>t.done);
 const getTask=(id)=>state.tasks.find(t=>t.id===id)||null;
@@ -1390,7 +1089,7 @@ function computeProgress(){
   return { baseT, remT, pct };
 }
 
-/* ===== Undo ===== */
+/* ===== UNDO ===== */
 function pushUndo(label){
   state.undo.unshift({
     label, at: Date.now(),
@@ -1416,7 +1115,188 @@ function undo(){
   renderAll();
 }
 
-/* ===== Actions ===== */
+/* ===== FX CANVAS (floral fireworks) ===== */
+const fx = { canvas:null, ctx:null, parts:[], raf:null, running:false };
+
+function setupCanvas(id){
+  const c = $(id);
+  if(!c) return null;
+  const ctx = c.getContext("2d");
+  const resize=()=>{
+    const dpr = window.devicePixelRatio||1;
+    c.width = Math.floor(innerWidth*dpr);
+    c.height = Math.floor(innerHeight*dpr);
+    c.style.width = innerWidth+"px";
+    c.style.height = innerHeight+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  };
+  addEventListener("resize", resize);
+  resize();
+  return {c,ctx};
+}
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function colorFromTheme(){
+  // on prend accent2 + un peu de fg
+  const a = cssVar("--accent2") || "rgba(205,120,60,.60)";
+  const fg = cssVar("--fg") || "#111";
+  return { a, fg };
+}
+function spawnFloralBurst(intensity=1, durationMs=1400){
+  if(state.ui.reduceMotion || prefersReduced()) return;
+  if(!fx.ctx) return;
+
+  const { a } = colorFromTheme();
+  const cx = innerWidth/2;
+  const cy = innerHeight*0.36;
+
+  const bursts = Math.floor(6*intensity);
+  for(let b=0;b<bursts;b++){
+    const bx = cx + (Math.random()-0.5)*innerWidth*0.35;
+    const by = cy + (Math.random()-0.5)*innerHeight*0.20;
+    const petals = 42 + Math.floor(Math.random()*28*intensity);
+    for(let i=0;i<petals;i++){
+      const ang = (Math.PI*2)*(i/petals) + (Math.random()-0.5)*0.18;
+      const sp = (3.4+Math.random()*6.2)*intensity;
+      fx.parts.push({
+        x:bx, y:by,
+        vx:Math.cos(ang)*sp,
+        vy:Math.sin(ang)*sp - (2.0+Math.random()*2.2),
+        g:0.14+Math.random()*0.12,
+        life: 70+Math.random()*40,
+        s: 2.2+Math.random()*2.8,
+        rot: Math.random()*Math.PI*2,
+        vr:(Math.random()-0.5)*0.25,
+        kind: (Math.random()<0.7) ? "petal" : "spark",
+        col: a
+      });
+    }
+  }
+
+  runFX(durationMs);
+}
+function runFX(durationMs){
+  if(fx.running) return;
+  fx.running=true;
+  const start = Date.now();
+
+  const step=()=>{
+    const ctx = fx.ctx;
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+
+    fx.parts = fx.parts.filter(p=>p.life>0);
+    for(const p of fx.parts){
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+      p.life -= 1;
+
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot);
+
+      if(p.kind==="petal"){
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = p.col;
+        // petite “goutte”/pétale
+        ctx.beginPath();
+        ctx.ellipse(0,0,p.s*1.2,p.s*0.8, Math.PI/6, 0, Math.PI*2);
+        ctx.fill();
+      }else{
+        ctx.globalAlpha = 0.6;
+        ctx.fillStyle = "rgba(255,255,255,.85)";
+        ctx.fillRect(-p.s*0.5,-p.s*0.5,p.s,p.s);
+      }
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+
+    const elapsed = Date.now()-start;
+    if(elapsed < durationMs || fx.parts.length){
+      fx.raf = requestAnimationFrame(step);
+    }else{
+      fx.running=false;
+      cancelAnimationFrame(fx.raf);
+      fx.raf=null;
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+    }
+  };
+
+  fx.raf = requestAnimationFrame(step);
+}
+
+/* ===== POLLEN (léger) ===== */
+const pollen = { canvas:null, ctx:null, seeds:[], raf:null };
+function startPollen(){
+  if(state.ui.reduceMotion || prefersReduced()) return;
+  if(!pollen.ctx) return;
+  const target=56;
+  const make=()=>({
+    x:Math.random()*innerWidth,
+    y:Math.random()*innerHeight,
+    r:0.8+Math.random()*1.9,
+    a:0.05+Math.random()*0.12,
+    vx:(Math.random()*0.16+0.04)*(Math.random()<0.5?-1:1),
+    vy:(Math.random()*0.20+0.04),
+    wob:Math.random()*Math.PI*2,
+    wobv:0.006+Math.random()*0.010
+  });
+  while(pollen.seeds.length<target) pollen.seeds.push(make());
+
+  const loop=()=>{
+    if(state.ui.reduceMotion || prefersReduced()){
+      pollen.ctx.clearRect(0,0,innerWidth,innerHeight);
+      pollen.raf=null; return;
+    }
+    pollen.ctx.clearRect(0,0,innerWidth,innerHeight);
+    const glow = cssVar("--accent2") || "rgba(205,120,60,.45)";
+    pollen.ctx.fillStyle = glow;
+
+    for(const s of pollen.seeds){
+      s.wob += s.wobv;
+      s.x += s.vx + Math.sin(s.wob)*0.25;
+      s.y += s.vy;
+      if(s.y > innerHeight+20){ s.y=-20; s.x=Math.random()*innerWidth; }
+      if(s.x < -20) s.x = innerWidth+20;
+      if(s.x > innerWidth+20) s.x = -20;
+
+      pollen.ctx.globalAlpha = s.a;
+      pollen.ctx.beginPath();
+      pollen.ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      pollen.ctx.fill();
+    }
+    pollen.ctx.globalAlpha = 1;
+    pollen.raf = requestAnimationFrame(loop);
+  };
+  if(!pollen.raf) pollen.raf = requestAnimationFrame(loop);
+}
+
+/* ===== SOUND (WebAudio beep) ===== */
+let audioCtx = null;
+function beep(freq=880, ms=180, vol=0.06){
+  if(!state.pomodoro.sound) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.frequency.value = freq;
+    o.type = "sine";
+    g.gain.value = vol;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    setTimeout(()=>{ o.stop(); }, ms);
+  }catch(_){}
+}
+function pomoChime(){
+  // petite mélodie
+  beep(784,140,0.06);
+  setTimeout(()=>beep(988,140,0.06), 170);
+  setTimeout(()=>beep(1175,200,0.06), 340);
+}
+
+/* ===== ACTIONS ===== */
 function completeTask(id){
   const t = getTask(id);
   if(!t || t.done) return;
@@ -1424,11 +1304,17 @@ function completeTask(id){
   t.done = true;
   t.doneAt = nowISO();
   state.stats.tasksDone = (state.stats.tasksDone||0)+1;
-  confettiBurst(1.05);
+
+  // FX plein écran mais “floral”
+  spawnFloralBurst(1.0, 1600);
+
   ensureCurrentTask();
   saveState();
   renderAll();
-  if(activeTasks().length===0 && state.baseline.totalTasks>0) showVictory();
+
+  if(activeTasks().length===0 && state.baseline.totalTasks>0){
+    bigFiesta();
+  }
 }
 function deleteTask(id){
   const t = getTask(id);
@@ -1440,45 +1326,86 @@ function deleteTask(id){
   saveState();
   renderAll();
 }
+
 function degomme(){
+  ensureCurrentTask();
   const t = getTask(state.currentTaskId);
   if(!t || t.done) return;
+
+  // pas de fête pour un étorion (tu l’as demandé)
   pushUndo("etorion");
-  t.etorionsLeft = clamp((t.etorionsLeft ?? t.etorionsTotal ?? 1)-1,0,99);
+
+  const left = (typeof t.etorionsLeft==="number") ? t.etorionsLeft : (t.etorionsTotal||1);
+  t.etorionsLeft = clamp(left - 1, 0, 99);
   state.stats.etorionsDone = (state.stats.etorionsDone||0)+1;
-  if(t.etorionsLeft<=0) completeTask(t.id);
+
+  if(t.etorionsLeft<=0){
+    completeTask(t.id);
+    return;
+  }
+
   saveState();
   renderAll();
 }
 
-/* ===== Pomodoro ===== */
+/* ===== BIG FIESTA (fin de mission totale) ===== */
+const GLORY = [
+  "Glorieux. Absolument glorieux. Même les meubles applaudissent.",
+  "Tu as vaincu la paperasse. Elle pleure dans un coin.",
+  "Chef-d’œuvre. Les tâches ont demandé l’asile politique.",
+  "Légendaire. Les dragons administratifs ont rendu les armes.",
+  "Triomphe total. Le chaos a déposé une plainte… puis s’est excusé."
+];
+function bigFiesta(){
+  if($("celeTitle")) $("celeTitle").textContent = "Mission totale accomplie";
+  if($("celeMsg")) $("celeMsg").textContent = GLORY[Math.floor(Math.random()*GLORY.length)];
+  if($("celeSub")) $("celeSub").textContent = "Clique pour fermer. Et respire: tu viens de plier la réalité.";
+
+  // longue animation: plusieurs salves
+  spawnFloralBurst(1.6, 2200);
+  setTimeout(()=>spawnFloralBurst(1.5, 2200), 700);
+  setTimeout(()=>spawnFloralBurst(1.3, 2200), 1400);
+
+  openModal("celeModal");
+}
+
+/* ===== POMODORO (cycles work/break/longbreak) ===== */
 function pomoLeftMs(){
   if(!state.pomodoro.running) return null;
   if(state.pomodoro.paused && typeof state.pomodoro.pausedLeftMs==="number") return state.pomodoro.pausedLeftMs;
   if(!state.pomodoro.endsAt) return null;
   return Math.max(0, state.pomodoro.endsAt - Date.now());
 }
-function pomoStart(){
-  const min = clamp(parseInt(state.pomodoro.minutes,10)||25, 5, 90);
-  state.pomodoro.minutes=min;
-  state.pomodoro.running=true;
-  state.pomodoro.paused=false;
-  state.pomodoro.pausedLeftMs=null;
+function pomoSetPhase(phase){
+  state.pomodoro.phase = phase;
+  const work = clamp(parseInt(state.pomodoro.workMin,10)||25, 5, 90);
+  const br = clamp(parseInt(state.pomodoro.breakMin,10)||5, 1, 45);
+  const lbr = clamp(parseInt(state.pomodoro.longBreakMin,10)||15, 5, 90);
+
+  const min = (phase==="work") ? work : (phase==="longbreak" ? lbr : br);
   state.pomodoro.endsAt = Date.now() + min*60*1000;
+}
+function pomoStart(){
+  state.pomodoro.enabled = true;
+  state.pomodoro.running = true;
+  state.pomodoro.paused = false;
+  state.pomodoro.pausedLeftMs = null;
+  if(!state.pomodoro.phase) state.pomodoro.phase="work";
+  pomoSetPhase(state.pomodoro.phase);
   saveState();
   renderPomodoro();
 }
 function pomoPauseToggle(){
   if(!state.pomodoro.running) return;
   if(!state.pomodoro.paused){
-    state.pomodoro.paused=true;
-    state.pomodoro.pausedLeftMs = pomoLeftMs() ?? (state.pomodoro.minutes*60*1000);
-    state.pomodoro.endsAt=null;
+    state.pomodoro.paused = true;
+    state.pomodoro.pausedLeftMs = pomoLeftMs() ?? 0;
+    state.pomodoro.endsAt = null;
   }else{
-    state.pomodoro.paused=false;
+    state.pomodoro.paused = false;
     const left = clamp(state.pomodoro.pausedLeftMs||0, 0, 90*60*1000);
     state.pomodoro.endsAt = Date.now() + left;
-    state.pomodoro.pausedLeftMs=null;
+    state.pomodoro.pausedLeftMs = null;
   }
   saveState();
   renderPomodoro();
@@ -1491,232 +1418,230 @@ function pomoStop(){
   saveState();
   renderPomodoro();
 }
+function pomoTick(){
+  if(!state.pomodoro.running || state.pomodoro.paused) return;
+  const left = pomoLeftMs();
+  if(left===null) return;
+  if(left<=0){
+    // phase terminée
+    pomoChime();
 
-/* ===== Victory + Kiffance ===== */
-const VICTORY_LINES = [
-  "Mission accomplie. Le chaos signe l’armistice.",
-  "La forteresse des obligations est tombée. Bannière plantée.",
-  "Les dragons administratifs ont fui vers leurs dossiers.",
-  "Ton nom sera gravé sur la Tablette du Flow. En lettres propres.",
-  "La réalité a plié le genou. Marche en silence triomphal."
-];
-function showVictory(){
-  $("victoryTitle").textContent = "Victoire totale";
-  $("victoryMsg").textContent = VICTORY_LINES[Math.floor(Math.random()*VICTORY_LINES.length)];
-  confettiBurst(1.8);
-  openModal("victoryModal");
-}
+    if(state.pomodoro.phase==="work"){
+      state.pomodoro.workCount = (state.pomodoro.workCount||0)+1;
 
-/* seed kiff */
-(function seedKiff(){
-  const b = state.kiffance.bank;
-  const empty = ["5","10","15","25"].every(k=>Array.isArray(b[k]) && b[k].length===0);
-  if(!empty) return;
-  b["5"] = [
-    "Statue héroïque 20 secondes. Puis reprise royale.",
-    "Bois un verre d’eau comme un druide qui valide ton destin.",
-    "Étire nuque/épaules 60 secondes. Ailes dépliées.",
-    "Range 10 objets. Le 11e est un portail.",
-    "Respire 5 cycles lents. Tu es une montagne."
-  ];
-  b["10"] = [
-    "Fenêtre 2 min + eau + retour net.",
-    "Micro-marche 6 min sans téléphone. Reviens avec une intention.",
-    "Snack simple sans écran. Tu es un moine guerrier."
-  ];
-  b["15"] = [
-    "Marche 10 + eau 5. Pas de scroll, pas de négociation.",
-    "Respiration 4-6 (6 min) + étirements (6 min) + reprise (3 min)."
-  ];
-  b["25"] = [
-    "Pause ‘Ghibli’: lumière, thé, silence, puis retour (sans téléphone).",
-    "Micro-sieste 15–20 + eau + reprise lente."
-  ];
-  saveState();
-})();
-function pickKiff(){
-  const enabled = state.kiffance.enabledBuckets.filter(k=>state.kiffance.bank[k]?.length);
-  if(!enabled.length) return null;
-  const bucket = enabled[Math.floor(Math.random()*enabled.length)];
-  const arr = state.kiffance.bank[bucket];
-  return { bucket, text: arr[Math.floor(Math.random()*arr.length)] };
-}
-function showKiff(){
-  const p = pickKiff();
-  if(!p){
-    $("kiffTitle").textContent="Kiffance";
-    $("kiffMsg").textContent="Banque vide.";
-    $("kiffSub").textContent="";
-    openModal("kiffModal");
-    return;
+      const every = clamp(parseInt(state.pomodoro.every,10)||4, 2, 8);
+      if(state.pomodoro.workCount % every === 0){
+        state.pomodoro.phase = "longbreak";
+      }else{
+        state.pomodoro.phase = "break";
+      }
+    }else{
+      // break terminé -> retour work
+      state.pomodoro.phase = "work";
+    }
+
+    if(state.pomodoro.auto){
+      pomoSetPhase(state.pomodoro.phase);
+      saveState();
+      renderPomodoro();
+    }else{
+      // stop si pas auto
+      state.pomodoro.running=false;
+      state.pomodoro.endsAt=null;
+      saveState();
+      renderPomodoro();
+    }
+  }else{
+    // juste update affichage
+    renderPomodoro(true);
   }
-  $("kiffTitle").textContent = `Kiffance (${p.bucket} min)`;
-  $("kiffMsg").textContent = p.text;
-  $("kiffSub").textContent = "Pause courte, surprise, puis retour au monde.";
-  openModal("kiffModal");
 }
 
-/* ===== Notes ===== */
-function renderNotes(){
-  const host = $("notesList");
-  if(!host) return;
-  const items = state.notes.slice(0,60);
-  host.innerHTML = items.length
-    ? items.map(n=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)">${escapeHTML(n.text)}<div class="small">${escapeHTML(n.at)}</div></div>`).join("")
-    : `<div class="small">Aucune note.</div>`;
-}
-function addNote(){
-  const txt = ($("noteInput").value||"").trim();
-  if(!txt) return;
-  state.notes.unshift({ id:uid(), text:txt, at: new Date().toLocaleString() });
-  $("noteInput").value="";
-  saveState();
-  renderNotes();
-}
-function clearNotes(){
-  state.notes = [];
-  saveState();
-  renderNotes();
-}
-
-/* ===== Render ===== */
+/* ===== RENDER (main) ===== */
 function renderHUD(){
-  recomputeBaseline(false);
-  ensureCurrentTask();
   const p = computeProgress();
-  const time = fmtMMSS(timerNowMs());
-  $("hudPill").textContent = `${p.remT}/${p.baseT} · ${time}`;
+  if($("hudPill")){
+    const t = fmtMMSS(timerNowMs());
+    $("hudPill").textContent = `${p.remT}/${p.baseT} · ${t}`;
+  }
 }
-function renderProgress(){
+function renderProgressBar(){
   recomputeBaseline(false);
   const p = computeProgress();
-  $("barFill").style.width = `${p.pct}%`;
-  $("barPct").textContent = `${p.pct}%`;
-  $("fBarFill").style.width = `${p.pct}%`;
-  $("fBarPct").textContent = `${p.pct}%`;
+
+  // IMPORTANT: dans ton HTML, c’est "barFill" et "barPct"
+  const fill = $("barFill");
+  const pct = $("barPct");
+
+  if(fill) fill.style.width = `${p.pct}%`;
+  if(pct) pct.textContent = `${p.pct}%`;
+
+  // contraste de la séparation blanc/teinte: on met un “edge” via box-shadow si CSS le supporte.
+  // (si ton CSS a déjà un contour, c’est ok; sinon on ajoute au runtime)
+  if(fill){
+    fill.style.boxShadow = `inset -6px 0 0 ${cssVar("--barEdge") || "#fff"}`;
+  }
 }
 function renderTask(){
   ensureCurrentTask();
   const t = getTask(state.currentTaskId);
+
+  const name = $("taskName");
+  const chips = $("etorChips"); // dans ton HTML
   if(!t){
-    $("taskName").textContent = "Aucune tâche";
-    $("etorChips").innerHTML = "";
-    $("fTaskName").textContent = "Aucune tâche";
-    $("fChips").innerHTML = "";
+    if(name) name.textContent = "Aucune tâche";
+    if(chips) chips.innerHTML = "";
     return;
   }
-  $("taskName").textContent = t.title;
-  $("fTaskName").textContent = t.title;
+
+  if(name){
+    name.textContent = t.title;
+    // relief: ombre douce (tu voulais)
+    name.style.textShadow = `0 10px 26px rgba(0,0,0,${0.14*clamp(state.ui.shadowStrength,0,1)})`;
+  }
 
   const total = t.etorionsTotal||1;
   const left = (typeof t.etorionsLeft==="number") ? t.etorionsLeft : total;
 
-  const chipsHTML = Array.from({length: total}, (_,i)=>`<span class="chip ${i<left?"on":""}"></span>`).join("");
-  $("etorChips").innerHTML = chipsHTML;
-  $("fChips").innerHTML = chipsHTML;
-}
-function selectedCats(){
-  const all = Array.from(new Set(state.tasks.map(t=>t.cat||"Inbox"))).sort();
-  const act = state.filters.activeCats||[];
-  return act.length ? act : all;
-}
-function renderBelowList(){
-  const host = $("belowRows");
-  const cats = selectedCats();
-  const list = sortTasks(activeTasks().filter(t=>cats.includes(t.cat||"Inbox"))).slice(0,80);
-
-  if(!list.length){
-    host.innerHTML = `<div class="small">Aucune tâche (ou filtre vide).</div>`;
-    return;
+  if(chips){
+    let html="";
+    for(let i=0;i<total;i++){
+      html += `<span class="chip ${i<left ? "on" : ""}"></span>`;
+    }
+    chips.innerHTML = html;
   }
-  host.innerHTML = list.map(t=>{
+}
+function renderListBelow(){
+  const box = $("belowList");
+  const rows = $("belowRows");
+  if(!box || !rows) return;
+
+  if(!box.classList.contains("show")) return;
+
+  const cats = (state.filters.activeCats||[]);
+  const allowAll = cats.length===0;
+
+  const list = sortTasks(activeTasks()).filter(t=>{
+    const c = (t.cat||"Inbox").trim()||"Inbox";
+    return allowAll || cats.includes(c);
+  });
+
+  rows.innerHTML = list.length ? list.slice(0,120).map(t=>{
     const et = t.etorionsTotal||1;
-    const left = t.etorionsLeft ?? et;
+    const left = (typeof t.etorionsLeft==="number") ? t.etorionsLeft : et;
+    const cur = t.id===state.currentTaskId;
     return `
-      <div class="rowTask">
+      <div class="listRow ${cur?"cur":""}">
         <div class="t">${escapeHTML(t.title)}</div>
-        <div class="m">${left}/${et}</div>
+        <div class="m">${left}/${et}${t.pinned?" · prio":""}</div>
         <div class="tools">
-          <button class="toolBtn" data-a="pin" data-id="${t.id}">${t.pinned?"priorité":"prioriser"}</button>
-          <button class="toolBtn" data-a="go" data-id="${t.id}">cibler</button>
-          <button class="toolBtn" data-a="edit" data-id="${t.id}">éditer</button>
-          <button class="toolBtn" data-a="done" data-id="${t.id}">finir</button>
-          <button class="toolBtn" data-a="del" data-id="${t.id}">supprimer</button>
+          <div class="tool" data-a="pin" data-id="${t.id}" title="prioriser">p</div>
+          <div class="tool" data-a="go"  data-id="${t.id}" title="cibler">c</div>
+          <div class="tool" data-a="edit"data-id="${t.id}" title="éditer">e</div>
+          <div class="tool" data-a="done"data-id="${t.id}" title="finir">f</div>
+          <div class="tool" data-a="del" data-id="${t.id}" title="supprimer">x</div>
         </div>
       </div>
     `;
-  }).join("");
+  }).join("") : `<div class="muted">Aucune tâche ici.</div>`;
 
-  $$(".toolBtn", host).forEach(b=>{
-    b.onclick=()=>{
-      const id=b.getAttribute("data-id");
-      const a=b.getAttribute("data-a");
-      const t=getTask(id);
-      if(!t) return;
-      pushUndo("listAction");
-      if(a==="pin") t.pinned=!t.pinned;
-      if(a==="go") state.currentTaskId=id;
-      if(a==="done") completeTask(id);
-      if(a==="del") deleteTask(id);
-      if(a==="edit") openTaskEditor(id);
+  $$(".tool", rows).forEach(b=>{
+    b.onclick = ()=>{
+      const id = b.getAttribute("data-id");
+      const a = b.getAttribute("data-a");
+      const t = getTask(id); if(!t) return;
+      pushUndo("list");
+      if(a==="pin") t.pinned = !t.pinned;
+      if(a==="go") state.currentTaskId = id;
+      if(a==="done") { completeTask(id); return; }
+      if(a==="del") { deleteTask(id); return; }
+      if(a==="edit") { openTaskEdit(id); return; }
       saveState();
       renderAll();
     };
   });
 }
-function renderPomodoro(){
-  const wrap = $("pomoWrap");
-  wrap.style.display = state.pomodoro.visible ? "" : "none";
-  const left = pomoLeftMs();
+function renderPomodoro(lightOnly=false){
+  // Ton HTML: pomoTime, pomoHint, btnPomoStart, btnPomoStop, btnPomoToggle
+  const timeEl = $("pomoTime");
+  const hintEl = $("pomoHint");
+  const bStart = $("btnPomoStart");
+  const bStop = $("btnPomoStop");
 
-  if(!state.pomodoro.running){
-    $("pomoTime").textContent = `${pad2(state.pomodoro.minutes)}:00`;
-    $("pomoHint").textContent = "pomodoro prêt";
-    $("btnPomoStart").textContent = "start";
-    $("btnPomoStop").style.display = "none";
-  }else{
-    $("pomoTime").textContent = fmtMMSS(left||0);
-    $("pomoHint").textContent = state.pomodoro.paused ? "pomodoro (pause)" : "pomodoro (en cours)";
-    $("btnPomoStart").textContent = state.pomodoro.paused ? "reprendre" : "pause";
-    $("btnPomoStop").style.display = "";
+  if(!state.pomodoro.enabled){
+    if(timeEl) timeEl.textContent = "—";
+    if(hintEl) hintEl.textContent = "pomodoro off";
+    if(bStart) bStart.textContent = "start";
+    if(bStop) bStop.style.display = "none";
+    return;
   }
 
+  const phase = state.pomodoro.phase || "work";
+  const phaseLabel = (phase==="work") ? "travail" : (phase==="break" ? "pause" : "pause longue");
+
   if(!state.pomodoro.running){
-    $("fPomoTime").textContent = `${pad2(state.pomodoro.minutes)}:00`;
-    $("fPomoHint").textContent = "pomodoro";
-    $("fPomoStart").textContent = "start";
-    $("fPomoStop").style.display = "none";
+    const min = (phase==="work") ? state.pomodoro.workMin : (phase==="break" ? state.pomodoro.breakMin : state.pomodoro.longBreakMin);
+    if(timeEl) timeEl.textContent = `${pad2(min)}:00`;
+    if(hintEl) hintEl.textContent = `pomodoro · ${phaseLabel}`;
+    if(bStart) bStart.textContent = "start";
+    if(bStop){ bStop.style.display="none"; }
   }else{
-    $("fPomoTime").textContent = fmtMMSS(left||0);
-    $("fPomoHint").textContent = state.pomodoro.paused ? "pomodoro (pause)" : "pomodoro";
-    $("fPomoStart").textContent = state.pomodoro.paused ? "reprendre" : "pause";
-    $("fPomoStop").style.display = "";
+    const left = pomoLeftMs() ?? 0;
+    if(timeEl) timeEl.textContent = fmtMMSS(left);
+    if(hintEl) hintEl.textContent = state.pomodoro.paused ? `pomodoro · ${phaseLabel} (pause)` : `pomodoro · ${phaseLabel}`;
+    if(bStart) bStart.textContent = state.pomodoro.paused ? "reprendre" : "pause";
+    if(bStop){ bStop.style.display="inline-block"; }
+  }
+
+  // mirror focus overlay if present (ids fPomoTime etc. dans certains builds)
+  if(!lightOnly){
+    if($("fPomoTime")) $("fPomoTime").textContent = timeEl ? timeEl.textContent : "";
+    if($("fPomoHint")) $("fPomoHint").textContent = hintEl ? hintEl.textContent : "";
   }
 }
 function renderAll(){
   applyTheme();
   renderHUD();
-  renderProgress();
+  renderProgressBar();
   renderTask();
+  renderListBelow();
   renderPomodoro();
-  if($("belowList").classList.contains("show")) renderBelowList();
 }
 
-/* ===== Task editor ===== */
-function openTaskEditor(id){
-  const t = getTask(id);
+/* ===== NOTES ===== */
+function renderNotes(){
+  const host = $("notesList");
+  if(!host) return;
+  host.innerHTML = (state.notes||[]).slice(0,80).map(n=>{
+    const d = new Date(n.at);
+    return `<div class="muted">• ${escapeHTML(n.text)} <span style="opacity:.7">(${pad2(d.getHours())}:${pad2(d.getMinutes())})</span></div>`;
+  }).join("") || `<div class="muted">Aucune note.</div>`;
+}
+function addNote(txt){
+  const t = String(txt||"").trim();
   if(!t) return;
+  state.notes.unshift({ id: uid(), at: Date.now(), text: t });
+  state.notes = state.notes.slice(0,120);
+  saveState();
+  renderNotes();
+}
+
+/* ===== TASK EDIT MODAL ===== */
+function openTaskEdit(id){
+  const t = getTask(id); if(!t) return;
   const body = $("taskEditBody");
+  if(!body) return;
+
   body.innerHTML = `
     <div class="section">
-      <h3>modifier</h3>
+      <h3>tâche</h3>
       <div class="row">
         <input id="teTitle" value="${escapeHTML(t.title)}" placeholder="Titre">
-        <input id="teCat" value="${escapeHTML(t.cat||"")}" placeholder="Catégorie">
+        <input id="teCat" value="${escapeHTML(t.cat||"Inbox")}" placeholder="Catégorie">
       </div>
       <div class="row">
-        <input id="teTotal" type="number" min="1" max="99" value="${t.etorionsTotal||1}">
-        <input id="teLeft" type="number" min="0" max="99" value="${t.etorionsLeft ?? (t.etorionsTotal||1)}">
+        <input id="teTot" type="number" min="1" max="99" value="${t.etorionsTotal||1}">
+        <input id="teLeft" type="number" min="0" max="99" value="${typeof t.etorionsLeft==="number"?t.etorionsLeft:(t.etorionsTotal||1)}">
       </div>
       <div class="row">
         <button class="btn" id="teSave">enregistrer</button>
@@ -1724,503 +1649,941 @@ function openTaskEditor(id){
       </div>
     </div>
   `;
-  $("teSave").onclick=()=>{
+  $("teSave").onclick = ()=>{
     pushUndo("edit");
-    t.title = ($("teTitle").value||"").trim() || t.title;
-    t.cat = ($("teCat").value||"").trim() || t.cat;
-    t.etorionsTotal = clamp(parseInt($("teTotal").value,10)||1,1,99);
-    t.etorionsLeft = clamp(parseInt($("teLeft").value,10)||t.etorionsTotal,0,99);
+    t.title = ($("teTitle").value||t.title).trim() || t.title;
+    t.cat = ($("teCat").value||t.cat).trim() || t.cat;
+    t.etorionsTotal = clamp(parseInt($("teTot").value,10)||1, 1, 99);
+    t.etorionsLeft = clamp(parseInt($("teLeft").value,10)||t.etorionsTotal, 0, 99);
     saveState();
     closeAllModals();
     renderAll();
   };
-  $("teCancel").onclick=()=>closeAllModals();
+  $("teCancel").onclick = closeAllModals;
+
   openModal("taskEditModal");
 }
 
-/* ===== Export texte ===== */
-function exportReport(){
+/* ===== LEFT PANEL (Inbox/List/Prefs) ===== */
+function allCats(){
+  const set = new Set(state.tasks.map(t=>(t.cat||"Inbox").trim()||"Inbox"));
+  return Array.from(set).sort((a,b)=>a.localeCompare(b));
+}
+function catActive(cat){
+  const arr = state.filters.activeCats||[];
+  return arr.length===0 || arr.includes(cat);
+}
+function toggleCat(cat){
+  const arr = state.filters.activeCats || (state.filters.activeCats=[]);
+  const i = arr.indexOf(cat);
+  if(i>=0) arr.splice(i,1);
+  else arr.push(cat);
+  saveState();
+  renderAll();
+  renderLeft(); // refresh chips
+}
+function renderLeft(){
+  const tabs = $("leftTabs");
+  const body = $("leftBody");
+  if(!tabs || !body) return;
+
+  const tab = state.leftTab || "inbox";
+  tabs.innerHTML = `
+    <div class="tab ${tab==="inbox"?"active":""}" data-tab="inbox">inbox</div>
+    <div class="tab ${tab==="liste"?"active":""}" data-tab="liste">liste</div>
+    <div class="tab ${tab==="prefs"?"active":""}" data-tab="prefs">préférences</div>
+  `;
+  $$(".tab", tabs).forEach(t=>{
+    t.onclick = ()=>{
+      state.leftTab = t.getAttribute("data-tab");
+      saveState();
+      renderLeft();
+    };
+  });
+
+  if(tab==="inbox"){
+    body.innerHTML = `
+      <div class="section">
+        <h3>import inbox</h3>
+        <textarea id="inboxText" placeholder="CATEGORIES EN MAJ
+Tâche - 6
+Autre tâche 2"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="inboxImport">importer</button>
+          <button class="btn" id="baselineReset">baseline = tâches actives</button>
+        </div>
+        <div class="muted" style="margin-top:8px">
+          Astuce: baseline = référence de départ pour ta barre.
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="section">
+        <h3>filtre catégories</h3>
+        <div class="chipsel" id="catChips"></div>
+        <div class="muted" style="margin-top:8px">Si rien sélectionné: tout est inclus.</div>
+      </div>
+    `;
+
+    const cats = allCats();
+    const host = $("catChips");
+    if(host){
+      host.innerHTML = cats.length ? cats.map(c=>{
+        const on = catActive(c);
+        return `<div class="opt ${on?"on":""}" data-cat="${escapeHTML(c)}"><span class="dot"></span><span>${escapeHTML(c)}</span></div>`;
+      }).join("") : `<div class="muted">Aucune catégorie.</div>`;
+      $$(".opt", host).forEach(o=>{
+        o.onclick = ()=>toggleCat(o.getAttribute("data-cat"));
+      });
+    }
+
+    if($("inboxImport")){
+      $("inboxImport").onclick = ()=>{
+        const txt = $("inboxText").value||"";
+        const items = importFromInbox(txt);
+        if(!items.length) return;
+        pushUndo("import");
+        state.tasks.push(...items);
+        recomputeBaseline(true);
+        ensureCurrentTask();
+        $("inboxText").value="";
+        saveState();
+        renderAll();
+        renderLeft();
+      };
+    }
+    if($("baselineReset")){
+      $("baselineReset").onclick = ()=>{
+        pushUndo("baseline");
+        recomputeBaseline(true);
+        saveState();
+        renderAll();
+      };
+    }
+  }
+
+  if(tab==="liste"){
+    const act = sortTasks(activeTasks());
+    const done = sortTasks(doneTasks()).reverse();
+
+    body.innerHTML = `
+      <div class="section">
+        <h3>tâches en cours</h3>
+        ${act.length ? act.map(t=>{
+          const et = t.etorionsTotal||1;
+          const left = typeof t.etorionsLeft==="number" ? t.etorionsLeft : et;
+          return `
+            <div class="listRow">
+              <div class="t">${escapeHTML(t.title)}</div>
+              <div class="m">${left}/${et}${t.pinned?" · prio":""}</div>
+              <div class="tools">
+                <div class="tool" data-a="pin" data-id="${t.id}" title="prioriser">p</div>
+                <div class="tool" data-a="go" data-id="${t.id}" title="cibler">c</div>
+                <div class="tool" data-a="edit" data-id="${t.id}" title="éditer">e</div>
+                <div class="tool" data-a="done" data-id="${t.id}" title="finir">f</div>
+                <div class="tool" data-a="del" data-id="${t.id}" title="supprimer">x</div>
+              </div>
+            </div>
+          `;
+        }).join("") : `<div class="muted">Rien.</div>`}
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="section">
+        <h3>finies (récentes)</h3>
+        ${done.length ? done.slice(0,40).map(t=>`<div class="muted">• ${escapeHTML(t.title)}</div>`).join("") : `<div class="muted">Aucune.</div>`}
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="clearDone">vider finies</button>
+          <button class="btn" id="wipeAll">tout effacer</button>
+        </div>
+      </div>
+    `;
+
+    $$(".tool", body).forEach(b=>{
+      b.onclick = ()=>{
+        const id = b.getAttribute("data-id");
+        const a = b.getAttribute("data-a");
+        const t = getTask(id); if(!t) return;
+        pushUndo("list");
+        if(a==="pin") t.pinned=!t.pinned;
+        if(a==="go") state.currentTaskId=id;
+        if(a==="edit"){ openTaskEdit(id); return; }
+        if(a==="done"){ completeTask(id); return; }
+        if(a==="del"){ deleteTask(id); return; }
+        saveState();
+        renderAll();
+        renderLeft();
+      };
+    });
+
+    if($("clearDone")){
+      $("clearDone").onclick = ()=>{
+        pushUndo("clearDone");
+        state.tasks = state.tasks.filter(t=>!t.done);
+        recomputeBaseline(true);
+        ensureCurrentTask();
+        saveState();
+        renderAll();
+        renderLeft();
+      };
+    }
+    if($("wipeAll")){
+      $("wipeAll").onclick = ()=>{
+        if(!confirm("Tout effacer ?")) return;
+        pushUndo("wipe");
+        state.tasks=[];
+        state.baseline={totalTasks:0,totalEtorions:0};
+        state.currentTaskId=null;
+        state.stats={tasksDone:0,etorionsDone:0};
+        saveState();
+        renderAll();
+        renderLeft();
+      };
+    }
+  }
+
+  if(tab==="prefs"){
+    const season = state.ui.season;
+    const mode = state.ui.mode;
+
+    body.innerHTML = `
+      <div class="section">
+        <h3>visuel</h3>
+
+        <div class="row">
+          <button class="btn" id="toggleMode">mode: ${mode}</button>
+          <button class="btn" id="cycleSeason">saison: ${season}</button>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="muted">Lisibilité</div>
+        <div class="row">
+          <input id="contrastBoost" type="number" min="0.90" max="1.20" step="0.01" value="${state.ui.contrastBoost}">
+          <input id="shadowStrength" type="number" min="0" max="1" step="0.05" value="${state.ui.shadowStrength}">
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="muted">Ambiance (grain/pollen)</div>
+        <div class="row">
+          <input id="grain" type="number" min="0" max="0.12" step="0.01" value="${state.ui.grain}">
+          <button class="btn" id="toggleMotion">mouvement: ${state.ui.reduceMotion?"off":"on"}</button>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="section">
+        <h3>pomodoro</h3>
+        <div class="row">
+          <input id="pWork" type="number" min="5" max="90" value="${state.pomodoro.workMin}">
+          <input id="pBreak" type="number" min="1" max="45" value="${state.pomodoro.breakMin}">
+        </div>
+        <div class="row">
+          <input id="pLong" type="number" min="5" max="90" value="${state.pomodoro.longBreakMin}">
+          <input id="pEvery" type="number" min="2" max="8" value="${state.pomodoro.every}">
+        </div>
+        <div class="row">
+          <button class="btn" id="pAuto">auto: ${state.pomodoro.auto?"on":"off"}</button>
+          <button class="btn" id="pSound">son: ${state.pomodoro.sound?"on":"off"}</button>
+        </div>
+      </div>
+    `;
+
+    $("toggleMode").onclick = ()=>{
+      state.ui.mode = (state.ui.mode==="clair") ? "fonce" : "clair";
+      saveState(); renderAll(); renderLeft();
+    };
+    $("cycleSeason").onclick = ()=>{
+      const i = SEASONS.indexOf(state.ui.season);
+      state.ui.season = SEASONS[(i+1)%SEASONS.length];
+      saveState(); renderAll(); renderLeft();
+    };
+    $("toggleMotion").onclick = ()=>{
+      state.ui.reduceMotion = !state.ui.reduceMotion;
+      saveState();
+      if(state.ui.reduceMotion){
+        if(pollen.ctx) pollen.ctx.clearRect(0,0,innerWidth,innerHeight);
+      }else startPollen();
+      renderLeft();
+    };
+
+    $("contrastBoost").onchange = ()=>{
+      state.ui.contrastBoost = clamp(parseFloat($("contrastBoost").value)||1.0, 0.90, 1.20);
+      saveState(); renderAll();
+    };
+    $("shadowStrength").onchange = ()=>{
+      state.ui.shadowStrength = clamp(parseFloat($("shadowStrength").value)||0.5, 0, 1);
+      saveState(); renderAll();
+    };
+    $("grain").onchange = ()=>{
+      state.ui.grain = clamp(parseFloat($("grain").value)||0.06, 0, 0.12);
+      saveState(); applyTheme();
+    };
+
+    $("pAuto").onclick = ()=>{ state.pomodoro.auto=!state.pomodoro.auto; saveState(); renderLeft(); };
+    $("pSound").onclick = ()=>{ state.pomodoro.sound=!state.pomodoro.sound; saveState(); renderLeft(); };
+    $("pWork").onchange = ()=>{ state.pomodoro.workMin=clamp(parseInt($("pWork").value,10)||25,5,90); saveState(); renderPomodoro(); };
+    $("pBreak").onchange = ()=>{ state.pomodoro.breakMin=clamp(parseInt($("pBreak").value,10)||5,1,45); saveState(); renderPomodoro(); };
+    $("pLong").onchange = ()=>{ state.pomodoro.longBreakMin=clamp(parseInt($("pLong").value,10)||15,5,90); saveState(); };
+    $("pEvery").onchange = ()=>{ state.pomodoro.every=clamp(parseInt($("pEvery").value,10)||4,2,8); saveState(); };
+  }
+}
+
+/* ===== RIGHT PANEL (Sets/Habits/Mood/Calendar/Stats) =====
+   On revient à la config "avant": tout dans le panneau droit, avec plein de paramètres.
+   Ici, on garde minimaliste (pas mille cadres), mais complet.
+*/
+
+/* --- seeds --- */
+function seedSets(){
+  if(state.sets.list.length) return;
+  const mk=(title, unitName, unitCount, items)=>({
+    id: uid(), title, unitName, unitCount, items,
+    checks:{}, order: Date.now()+Math.random()
+  });
+  state.sets.list = [
+    mk("Set 1","Patient",4,["Voir","Notes","Traitement","Dossier"]),
+    mk("Set 2","Patient",6,["Voir","Notes","Ordonnance","Dossier"])
+  ];
+  state.sets.selectedId = state.sets.list[0].id;
+  saveState();
+}
+function seedHabits(){
+  if(state.habits.length) return;
+  state.habits = [
+    {id:uid(), name:"Eau", slots:8, checks:Array.from({length:8},()=>false)},
+    {id:uid(), name:"Marche", slots:4, checks:Array.from({length:4},()=>false)},
+    {id:uid(), name:"Lecture", slots:3, checks:Array.from({length:3},()=>false)}
+  ];
+  saveState();
+}
+function getSet(id){ return state.sets.list.find(s=>s.id===id)||null; }
+function ensureSet(){
+  if(!state.sets.list.length){ state.sets.selectedId=null; return; }
+  if(!state.sets.selectedId || !getSet(state.sets.selectedId)) state.sets.selectedId = state.sets.list[0].id;
+}
+function dk(d=new Date()){
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+function initSetDay(set, day=dk()){
+  set.checks ||= {};
+  set.checks[day] ||= {};
+}
+function setKey(u,i){ return `u${u}_i${i}`; }
+function toggleSetCheck(setId, u, i, day=dk()){
+  const s = getSet(setId); if(!s) return;
+  initSetDay(s,day);
+  const k = setKey(u,i);
+  s.checks[day][k] = !s.checks[day][k];
+  saveState();
+}
+function setSummary(setId, day=dk()){
+  const s = getSet(setId); if(!s) return {done:0,total:0};
+  initSetDay(s,day);
+  const total = (s.unitCount||0) * (s.items?.length||0);
+  const done = Object.values(s.checks[day]||{}).filter(Boolean).length;
+  return {done,total};
+}
+
+function renderRight(){
+  const tabs = $("rightTabs");
+  const body = $("rightBody");
+  if(!tabs || !body) return;
+
+  seedSets(); seedHabits(); ensureSet();
+
+  const tab = state.right.tab || "sets";
+  tabs.innerHTML = `
+    <div class="tab ${tab==="sets"?"active":""}" data-tab="sets">sets</div>
+    <div class="tab ${tab==="habits"?"active":""}" data-tab="habits">habitudes</div>
+    <div class="tab ${tab==="mood"?"active":""}" data-tab="mood">humeur</div>
+    <div class="tab ${tab==="calendar"?"active":""}" data-tab="calendar">calendrier</div>
+    <div class="tab ${tab==="stats"?"active":""}" data-tab="stats">stats</div>
+  `;
+  $$(".tab", tabs).forEach(t=>{
+    t.onclick = ()=>{
+      state.right.tab = t.getAttribute("data-tab");
+      saveState();
+      renderRight();
+    };
+  });
+
+  if(tab==="sets"){
+    const day = dk();
+    const sel = getSet(state.sets.selectedId);
+
+    body.innerHTML = `
+      <div class="section">
+        <h3>sélection</h3>
+        <div class="row">
+          <select id="setPick">
+            ${state.sets.list.slice().sort((a,b)=>(a.order||0)-(b.order||0)).map(s=>{
+              const sum = setSummary(s.id, day);
+              return `<option value="${s.id}" ${s.id===state.sets.selectedId?"selected":""}>${escapeHTML(s.title)} (${sum.done}/${sum.total})</option>`;
+            }).join("")}
+          </select>
+          <button class="btn" id="setEdit">éditer</button>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="section">
+        <h3>checklist</h3>
+        <div id="setLines"></div>
+      </div>
+    `;
+
+    $("setPick").onchange = ()=>{
+      state.sets.selectedId = $("setPick").value;
+      saveState();
+      renderRight();
+    };
+
+    $("setEdit").onclick = ()=>{
+      const s = getSet(state.sets.selectedId);
+      if(!s) return;
+      const host = $("setEditBody");
+      host.innerHTML = `
+        <div class="section">
+          <h3>éditer set</h3>
+          <div class="row">
+            <input id="seTitle" value="${escapeHTML(s.title)}" placeholder="Titre">
+            <input id="seUnitName" value="${escapeHTML(s.unitName)}" placeholder="Unité (ex: Patient)">
+          </div>
+          <div class="row">
+            <input id="seUnitCount" type="number" min="1" max="30" value="${s.unitCount||3}">
+            <button class="btn" id="seReset">reset jour</button>
+          </div>
+          <textarea id="seItems" style="min-height:180px; margin-top:8px">${escapeHTML((s.items||[]).join("\n"))}</textarea>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="seSave">enregistrer</button>
+            <button class="btn" id="seClose">fermer</button>
+            <button class="btn" id="seDelete">supprimer</button>
+          </div>
+        </div>
+      `;
+      $("seSave").onclick=()=>{
+        s.title = ($("seTitle").value||s.title).trim()||s.title;
+        s.unitName = ($("seUnitName").value||s.unitName).trim()||s.unitName;
+        s.unitCount = clamp(parseInt($("seUnitCount").value,10)||s.unitCount,1,30);
+        s.items = ($("seItems").value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,40);
+        saveState();
+        closeAllModals();
+        renderRight();
+      };
+      $("seClose").onclick = closeAllModals;
+      $("seReset").onclick=()=>{
+        initSetDay(s,day);
+        s.checks[day] = {};
+        saveState();
+        renderRight();
+      };
+      $("seDelete").onclick=()=>{
+        if(!confirm("Supprimer ce set ?")) return;
+        state.sets.list = state.sets.list.filter(x=>x.id!==s.id);
+        ensureSet();
+        saveState();
+        closeAllModals();
+        renderRight();
+      };
+      openModal("setEditModal");
+    };
+
+    // render vertical lines (pas des cases)
+    const lines = $("setLines");
+    if(sel && lines){
+      initSetDay(sel, day);
+      const checks = sel.checks[day]||{};
+      let html="";
+      for(let u=0;u<sel.unitCount;u++){
+        html += `<div style="margin-bottom:10px">
+          <div class="muted" style="margin-bottom:6px">${escapeHTML(sel.unitName)} ${u+1}</div>
+          <div>`;
+        for(let i=0;i<sel.items.length;i++){
+          const k = setKey(u,i);
+          const on = !!checks[k];
+          html += `
+            <div class="opt ${on?"on":""}" data-u="${u}" data-i="${i}" style="margin-bottom:6px">
+              <span class="dot"></span><span>${escapeHTML(sel.items[i])}</span>
+            </div>`;
+        }
+        html += `</div></div>`;
+      }
+      lines.innerHTML = html;
+      $$(".opt", lines).forEach(o=>{
+        o.onclick=()=>{
+          toggleSetCheck(sel.id, parseInt(o.getAttribute("data-u"),10), parseInt(o.getAttribute("data-i"),10), day);
+          renderRight();
+        };
+      });
+    }
+  }
+
+  if(tab==="habits"){
+    body.innerHTML = `
+      <div class="section">
+        <h3>habitudes</h3>
+        <div class="row">
+          <input id="hName" placeholder="Nom (ex: eau)">
+          <input id="hSlots" type="number" min="3" max="12" value="8">
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="hAdd">ajouter</button>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="section">
+        <h3>liste</h3>
+        <div id="hList"></div>
+      </div>
+    `;
+    $("hAdd").onclick=()=>{
+      const nm = ($("hName").value||"").trim();
+      const sl = clamp(parseInt($("hSlots").value,10)||8,3,12);
+      if(!nm) return;
+      state.habits.unshift({id:uid(), name:nm, slots:sl, checks:Array.from({length:sl},()=>false)});
+      $("hName").value="";
+      saveState();
+      renderRight();
+    };
+
+    const host = $("hList");
+    if(host){
+      host.innerHTML = state.habits.length ? state.habits.map(h=>{
+        const done = h.checks.filter(Boolean).length;
+        const tot = h.checks.length;
+        return `
+          <div style="margin-bottom:12px">
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:center">
+              <div><b>${escapeHTML(h.name)}</b> <span class="muted">${done}/${tot}</span></div>
+              <div>
+                <button class="btn" data-a="reset" data-id="${h.id}">reset</button>
+                <button class="btn" data-a="del" data-id="${h.id}">suppr</button>
+              </div>
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px">
+              ${h.checks.map((v,i)=>`<div class="chip ${v?"on":""}" data-h="${h.id}" data-i="${i}" style="width:16px;height:16px;border-radius:6px;cursor:pointer"></div>`).join("")}
+            </div>
+          </div>
+        `;
+      }).join("") : `<div class="muted">Aucune habitude.</div>`;
+
+      $$(".chip", host).forEach(c=>{
+        c.onclick=()=>{
+          const id=c.getAttribute("data-h");
+          const i=parseInt(c.getAttribute("data-i"),10);
+          const h=state.habits.find(x=>x.id===id); if(!h) return;
+          h.checks[i]=!h.checks[i];
+          saveState();
+          renderRight();
+        };
+      });
+      $$("button[data-a]", host).forEach(b=>{
+        b.onclick=()=>{
+          const id=b.getAttribute("data-id");
+          const a=b.getAttribute("data-a");
+          const h=state.habits.find(x=>x.id===id); if(!h) return;
+          if(a==="reset") h.checks = h.checks.map(()=>false);
+          if(a==="del"){
+            if(!confirm("Supprimer ?")) return;
+            state.habits = state.habits.filter(x=>x.id!==id);
+          }
+          saveState();
+          renderRight();
+        };
+      });
+    }
+  }
+
+  if(tab==="mood"){
+    body.innerHTML = `
+      <div class="section">
+        <h3>humeur (rapide)</h3>
+        <div class="muted">Version “clic” (pas d’essai de littérature).</div>
+        <div style="margin-top:10px" id="moodQuick"></div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="section">
+        <h3>aujourd’hui</h3>
+        <div id="moodToday"></div>
+      </div>
+    `;
+
+    const EMOS = ["Joie","Calme","Stress","Anxiété","Tristesse","Colère","Honte","Fatigue","Frustration","Peur","Soulagement"];
+    const DIST = ["Tout ou rien","Catastrophisme","Lecture de pensée","Doit/Il faut","Filtre négatif","Étiquetage","Raisonnement émotionnel","Surgénéralisation"];
+    const NEEDS = ["Repos","Sécurité","Clarté","Lien","Autonomie","Protection","Sens","Reconnaissance"];
+    const ACTIONS = ["Respiration 4-6 (2 min)","Ancrage 5-4-3-2-1 (1 min)","Micro-marche (3 min)","Hydratation + posture (1 min)","Écrire 3 lignes (faits/pensée/alt)"];
+
+    const pickRow=(label, arr, key, cur)=>`
+      <div style="margin-top:10px">
+        <div class="muted" style="margin-bottom:6px">${label}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${arr.map(v=>`<div class="opt ${cur[key]===v?"on":""}" data-k="${key}" data-v="${escapeHTML(v)}"><span class="dot"></span><span>${escapeHTML(v)}</span></div>`).join("")}
+        </div>
+      </div>
+    `;
+
+    const cur = { emotion:"Stress", intensity:5, distortion:"", need:"", action:"" };
+    const host = $("moodQuick");
+    const render = ()=>{
+      host.innerHTML = `
+        ${pickRow("émotion", EMOS, "emotion", cur)}
+        <div style="margin-top:10px">
+          <div class="muted">intensité: <b id="mInt">${cur.intensity}</b>/10</div>
+          <input id="mSlider" type="range" min="0" max="10" step="1" value="${cur.intensity}">
+        </div>
+        ${pickRow("distorsion", DIST, "distortion", cur)}
+        ${pickRow("besoin", NEEDS, "need", cur)}
+        ${pickRow("outil", ACTIONS, "action", cur)}
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="mSave">enregistrer</button>
+        </div>
+      `;
+
+      $$(".opt", host).forEach(o=>{
+        o.onclick=()=>{
+          cur[o.getAttribute("data-k")] = o.getAttribute("data-v");
+          render();
+        };
+      });
+      $("mSlider").oninput=()=>{
+        cur.intensity = parseInt($("mSlider").value,10)||0;
+        $("mInt").textContent = String(cur.intensity);
+      };
+      $("mSave").onclick=()=>{
+        state.mood.entries.unshift({
+          id:uid(), day:dk(), at:nowISO(),
+          emotion:cur.emotion, intensity:cur.intensity,
+          distortion:cur.distortion, need:cur.need, action:cur.action
+        });
+        saveState();
+        renderRight();
+      };
+    };
+    render();
+
+    const todayHost = $("moodToday");
+    const today = (state.mood.entries||[]).filter(e=>e.day===dk()).slice(0,12);
+    todayHost.innerHTML = today.length ? today.map(e=>{
+      return `<div class="muted">• ${escapeHTML(e.emotion)} ${e.intensity}/10 · ${escapeHTML(e.need||"")} · ${escapeHTML(e.action||"")}</div>`;
+    }).join("") : `<div class="muted">Aucune entrée.</div>`;
+  }
+
+  if(tab==="calendar"){
+    // simple mois + planification
+    const now = new Date();
+    if(!state.right.calMonth) state.right.calMonth = `${now.getFullYear()}-${pad2(now.getMonth()+1)}`;
+    const [yy,mm] = state.right.calMonth.split("-").map(n=>parseInt(n,10));
+    const first = new Date(yy,mm-1,1);
+    const startDow = (first.getDay()+6)%7; // lundi=0
+    const dim = new Date(yy,mm,0).getDate();
+
+    const cell=(d)=>{
+      const day = `${yy}-${pad2(mm)}-${pad2(d)}`;
+      const plans = state.planner.items.filter(x=>x.day===day);
+      return `<button class="btn" data-day="${day}" style="text-align:left;padding:10px;min-height:70px">
+        <div style="display:flex;justify-content:space-between">
+          <b>${d}</b><span class="muted">${plans.length?plans.length+" item":" "}</span>
+        </div>
+        <div class="muted" style="margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${plans[0]?escapeHTML(plans[0].title):""}</div>
+      </button>`;
+    };
+
+    body.innerHTML = `
+      <div class="section">
+        <h3>calendrier</h3>
+        <div class="row">
+          <button class="btn" id="calPrev">préc</button>
+          <div class="muted" style="text-align:center">${state.right.calMonth}</div>
+          <button class="btn" id="calNext">suiv</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:10px">
+          ${Array.from({length:startDow},()=>`<div></div>`).join("")}
+          ${Array.from({length:dim},(_,i)=>cell(i+1)).join("")}
+        </div>
+      </div>
+    `;
+
+    $("calPrev").onclick=()=>{
+      const d=new Date(yy,mm-2,1);
+      state.right.calMonth = `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
+      saveState(); renderRight();
+    };
+    $("calNext").onclick=()=>{
+      const d=new Date(yy,mm,1);
+      state.right.calMonth = `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
+      saveState(); renderRight();
+    };
+
+    $$("button[data-day]", body).forEach(b=>{
+      b.onclick=()=>{
+        const day=b.getAttribute("data-day");
+        openCalendarDay(day);
+      };
+    });
+  }
+
+  if(tab==="stats"){
+    recomputeBaseline(false);
+    const p = computeProgress();
+    body.innerHTML = `
+      <div class="section">
+        <h3>stats</h3>
+        <div class="muted">Tâches finies: <b>${state.stats.tasksDone||0}</b> · Étorions: <b>${state.stats.etorionsDone||0}</b></div>
+        <div class="muted">Reste: <b>${p.remT}</b> / baseline <b>${p.baseT}</b> (${p.pct}%)</div>
+        <div style="height:10px"></div>
+        <button class="btn" id="exportOpen">export texte</button>
+      </div>
+    `;
+    $("exportOpen").onclick=()=>{
+      if($("expOut")) $("expOut").value = exportText();
+      openModal("exportModal");
+    };
+  }
+}
+
+function openCalendarDay(day){
+  // si ton HTML n’a pas de calendar modal, on utilise export modal comme fallback
+  if(!$("exportModal") || !$("expOut")){
+    alert(day);
+    return;
+  }
+  const plans = state.planner.items.filter(x=>x.day===day);
+  const txt = [
+    `Jour: ${day}`,
+    "",
+    "Plan:",
+    ...(plans.length ? plans.map(p=>`- ${p.title} (${p.minutes||10} min)`) : ["- Rien."]),
+    "",
+    "Astuce: tu peux planifier des tâches futures ici."
+  ].join("\n");
+
+  $("expOut").value = txt;
+  openModal("exportModal");
+
+  // mini UI ajout via prompt (simple, robuste)
+  setTimeout(()=>{
+    const title = prompt(`Ajouter au ${day} (titre) :`);
+    if(title===null) return;
+    const t = title.trim();
+    if(!t) return;
+    const min = prompt("Minutes (1-240) :", "10");
+    const m = clamp(parseInt(min,10)||10,1,240);
+    state.planner.items.unshift({ id:uid(), day, title:t, minutes:m, createdAt:nowISO() });
+    saveState();
+    renderRight();
+  }, 50);
+}
+
+/* ===== EXPORT TEXTE ===== */
+function exportText(){
   recomputeBaseline(false);
   const p = computeProgress();
-  const done = p.baseT - p.remT;
+  const done = (p.baseT - p.remT);
 
   const lines=[];
   lines.push("ELIMINATOR — export texte");
-  lines.push(`Date: ${dayKey()}`);
-  lines.push(`Tâches: ${done} faites / ${p.baseT} total (reste ${p.remT})`);
-  lines.push(`Étorions: ${state.stats.etorionsDone||0} faits (baseline ${state.baseline.totalEtorions||0})`);
-  lines.push(`Temps actif: ${fmtMMSS(timerNowMs())}`);
+  lines.push(`Date: ${dk()}`);
+  lines.push(`Tâches: ${done} faites / ${p.baseT} baseline (reste ${p.remT})`);
+  lines.push(`Étorions: ${state.stats.etorionsDone||0} · Tâches finies: ${state.stats.tasksDone||0}`);
   lines.push("");
 
   const act = sortTasks(activeTasks());
-  const byCat={};
-  act.forEach(t=>{ const c=(t.cat||"Inbox").trim()||"Inbox"; (byCat[c] ||= []).push(t); });
+  const byCat = {};
+  act.forEach(t=>{
+    const c=(t.cat||"Inbox").trim()||"Inbox";
+    (byCat[c] ||= []).push(t);
+  });
   Object.keys(byCat).sort().forEach(cat=>{
     lines.push(cat);
     byCat[cat].forEach(t=>{
       const et=t.etorionsTotal||1;
-      const left=t.etorionsLeft ?? et;
-      lines.push(`- ${t.title} (${left}/${et})${t.pinned?" [priorité]":""}`);
+      const left=typeof t.etorionsLeft==="number"?t.etorionsLeft:et;
+      lines.push(`- ${t.title} (${left}/${et})${t.pinned?" [prio]":""}`);
     });
     lines.push("");
   });
 
-  const doneList = doneTasks().slice().sort((a,b)=>String(b.doneAt||"").localeCompare(String(a.doneAt||""))).slice(0,20);
-  if(doneList.length){
-    lines.push("Finies (dernier 20)");
-    doneList.forEach(t=>lines.push(`- ${t.title}`));
+  const dn = doneTasks().slice().sort((a,b)=>String(b.doneAt||"").localeCompare(String(a.doneAt||""))).slice(0,25);
+  if(dn.length){
+    lines.push("Finies (25 dernières)");
+    dn.forEach(t=>lines.push(`- ${t.title}`));
+    lines.push("");
   }
+
+  lines.push(`Chrono: ${fmtMMSS(timerNowMs())}`);
+  lines.push(`Pomodoro: ${state.pomodoro.running ? (state.pomodoro.phase+" "+fmtMMSS(pomoLeftMs()||0)) : "inactif"}`);
   return lines.join("\n");
 }
-async function copyText(txt){
-  try{ await navigator.clipboard.writeText(txt); return true; }catch(_){ return false; }
-}
 
-/* ============================================================
-   LEFT / RIGHT PANELS
-   (On garde ta version stable, juste adaptée au backdrop unique)
-============================================================ */
-const LEFT_TABS = [
-  { key:"inbox", label:"inbox" },
-  { key:"prefs", label:"préférences" },
-  { key:"kiff", label:"kiffance" }
-];
+/* ===== WIRING (main UI) ===== */
+function bindUI(){
+  // backdrop / close
+  if(panel.back()) panel.back().addEventListener("click", ()=>panel.closeAll());
 
-function renderLeft(){
-  const tabs = $("leftTabs");
-  const body = $("leftBody");
-  if(!tabs||!body) return;
+  if($("btnLeft")) $("btnLeft").onclick = ()=>panel.open("left");
+  if($("btnRight")) $("btnRight").onclick = ()=>panel.open("right");
 
-  state.ui.leftTab = state.ui.leftTab || "inbox";
-  tabs.innerHTML = LEFT_TABS.map(t=>`<button class="tab ${state.ui.leftTab===t.key?"active":""}" data-tab="${t.key}">${t.label}</button>`).join("");
-  $$(".tab", tabs).forEach(b=>{
-    b.onclick=()=>{
-      state.ui.leftTab = b.getAttribute("data-tab");
-      saveState();
-      renderLeft();
-    };
-  });
+  if($("leftClose")) $("leftClose").onclick = ()=>panel.closeAll();
+  if($("rightClose")) $("rightClose").onclick = ()=>panel.closeAll();
 
-  if(state.ui.leftTab==="inbox"){
-    body.innerHTML = `
-      <div class="section">
-        <h3>import</h3>
-        <div class="small">Catégories en MAJ. Exemple: CONSULT · tâche - 6</div>
-        <textarea id="inboxText" placeholder="HOSPITALIER&#10;Patient 1 - 6&#10;Patient 2 - 4&#10;&#10;CONSULT&#10;Appeler X - 2"></textarea>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="inboxImportBtn">importer</button>
-          <button class="btn" id="baselineResetBtn">reset baseline</button>
-        </div>
-      </div>
-
-      <div class="section">
-        <h3>filtres catégories</h3>
-        <div id="catBox" class="row"></div>
-        <div class="small" style="margin-top:8px">Si aucun filtre sélectionné : tout est inclus.</div>
-      </div>
-
-      <div class="section">
-        <h3>nettoyage</h3>
-        <div class="row">
-          <button class="btn" id="clearDoneBtn">supprimer finies</button>
-          <button class="btn" id="wipeAllBtn">tout effacer</button>
-        </div>
-      </div>
-    `;
-
-    $("inboxImportBtn").onclick=()=>{
-      const items = importFromInbox(($("inboxText").value||""));
-      if(!items.length) return;
-      pushUndo("import");
-      state.tasks.push(...items);
-      recomputeBaseline(true);
-      ensureCurrentTask();
-      $("inboxText").value="";
-      saveState();
-      renderAll();
-    };
-    $("baselineResetBtn").onclick=()=>{
-      pushUndo("baseline");
-      recomputeBaseline(true);
-      saveState();
-      renderAll();
-    };
-    $("clearDoneBtn").onclick=()=>{
-      pushUndo("clearDone");
-      state.tasks = state.tasks.filter(t=>!t.done);
-      recomputeBaseline(true);
-      ensureCurrentTask();
-      saveState();
-      renderAll();
-    };
-    $("wipeAllBtn").onclick=()=>{
-      if(!confirm("Tout effacer ?")) return;
-      pushUndo("wipeAll");
-      state.tasks=[];
-      state.baseline={totalTasks:0,totalEtorions:0};
-      state.currentTaskId=null;
-      state.stats={tasksDone:0,etorionsDone:0};
-      saveState();
-      renderAll();
-    };
-
-    const cats = Array.from(new Set(state.tasks.map(t=>(t.cat||"Inbox").trim()||"Inbox"))).sort();
-    const host = $("catBox");
-    host.innerHTML = cats.length ? cats.map(c=>{
-      const active = (state.filters.activeCats||[]).length===0 || (state.filters.activeCats||[]).includes(c);
-      return `<button class="opt ${active?"on":""}" data-cat="${escapeHTML(c)}"><span class="dot"></span>${escapeHTML(c)}</button>`;
-    }).join("") : `<div class="small">Aucune catégorie.</div>`;
-
-    $$(".opt", host).forEach(b=>{
-      b.onclick=()=>{
-        const c = b.getAttribute("data-cat");
-        const arr = state.filters.activeCats || (state.filters.activeCats=[]);
-        const i = arr.indexOf(c);
-        if(i>=0) arr.splice(i,1); else arr.push(c);
-        saveState();
-        renderAll();
-        renderLeft();
-        if($("belowList").classList.contains("show")) renderBelowList();
-      };
-    });
-  }
-
-  if(state.ui.leftTab==="prefs"){
-    body.innerHTML = `
-      <div class="section">
-        <h3>affichage</h3>
-        <div class="row">
-          <button class="btn" id="prefMode">${state.ui.mode==="clair"?"passer foncé":"passer clair"}</button>
-          <button class="btn" id="prefChroma">${state.ui.chroma==="mono"?"passer couleur":"passer mono"}</button>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="prefMotion">${(state.ui.reduceMotion||false)?"réduire motion: oui":"réduire motion: non"}</button>
-        </div>
-      </div>
-
-      <div class="section">
-        <h3>panneaux</h3>
-        <div class="row">
-          <input id="prefLeftW" type="number" min="320" max="980" value="${state.ui.leftW}">
-          <input id="prefRightW" type="number" min="320" max="980" value="${state.ui.rightW}">
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="prefApplyPanels">appliquer</button>
-        </div>
-      </div>
-    `;
-
-    $("prefMode").onclick=()=>{
-      state.ui.mode = state.ui.mode==="clair" ? "fonce" : "clair";
-      saveState(); renderAll(); renderLeft();
-    };
-    $("prefChroma").onclick=()=>{
-      state.ui.chroma = state.ui.chroma==="mono" ? "color" : "mono";
-      saveState(); renderAll(); renderLeft();
-    };
-    $("prefMotion").onclick=()=>{
-      state.ui.reduceMotion = !state.ui.reduceMotion;
-      saveState();
-      if(state.ui.reduceMotion){ if(pollen.ctx) pollen.ctx.clearRect(0,0,innerWidth,innerHeight); }
-      else startPollen();
-      renderLeft();
-    };
-    $("prefApplyPanels").onclick=()=>{
-      state.ui.leftW = clamp(parseInt($("prefLeftW").value,10)||420, 320, 980);
-      state.ui.rightW = clamp(parseInt($("prefRightW").value,10)||560, 320, 980);
-      saveState(); applyTheme();
-    };
-  }
-
-  if(state.ui.leftTab==="kiff"){
-    body.innerHTML = `
-      <div class="section">
-        <h3>tirage</h3>
-        <div class="row">
-          <button class="btn" id="kiffPickBtn">surprise</button>
-          <button class="btn" id="kiffRevealBtn">${state.kiffance.revealBank?"cacher banque":"voir banque"}</button>
-        </div>
-      </div>
-
-      <div class="section">
-        <h3>buckets actifs</h3>
-        <div class="row" id="kiffBuckets"></div>
-      </div>
-
-      <div class="section" id="kiffBankBox" style="display:${state.kiffance.revealBank?"block":"none"}">
-        <h3>banque (édition)</h3>
-        <div class="small">Une ligne = une kiffance.</div>
-        <div class="row">
-          <textarea id="k5" placeholder="moins de 5 min">${(state.kiffance.bank["5"]||[]).join("\n")}</textarea>
-          <textarea id="k10" placeholder="moins de 10 min">${(state.kiffance.bank["10"]||[]).join("\n")}</textarea>
-        </div>
-        <div class="row">
-          <textarea id="k15" placeholder="moins de 15 min">${(state.kiffance.bank["15"]||[]).join("\n")}</textarea>
-          <textarea id="k25" placeholder="plus long">${(state.kiffance.bank["25"]||[]).join("\n")}</textarea>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="kiffSave">enregistrer</button>
-        </div>
-      </div>
-    `;
-
-    $("kiffPickBtn").onclick=showKiff;
-    $("kiffRevealBtn").onclick=()=>{
-      state.kiffance.revealBank = !state.kiffance.revealBank;
-      saveState(); renderLeft();
-    };
-
-    const host = $("kiffBuckets");
-    const buckets = ["5","10","15","25"];
-    host.innerHTML = buckets.map(b=>{
-      const on = state.kiffance.enabledBuckets.includes(b);
-      return `<button class="opt ${on?"on":""}" data-b="${b}"><span class="dot"></span>${b} min</button>`;
-    }).join("");
-    $$(".opt", host).forEach(b=>{
-      b.onclick=()=>{
-        const k = b.getAttribute("data-b");
-        const arr = state.kiffance.enabledBuckets;
-        const i = arr.indexOf(k);
-        if(i>=0) arr.splice(i,1); else arr.push(k);
-        saveState(); renderLeft();
-      };
-    });
-
-    if($("kiffSave")){
-      $("kiffSave").onclick=()=>{
-        state.kiffance.bank["5"] = ($("k5").value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-        state.kiffance.bank["10"]= ($("k10").value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-        state.kiffance.bank["15"]= ($("k15").value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-        state.kiffance.bank["25"]= ($("k25").value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-        saveState(); renderLeft();
-      };
-    }
-  }
-}
-
-/* RIGHT PANEL (tu gardes ta version stable existante) */
-function ensureRightSeeds(){
-  if(!state.sets.list.length){
-    state.sets.list = [
-      { id:uid(), title:"Set 1", unitName:"Patient", unitCount:4, items:["Voir","Note","Traitement","Dossier"], checks:{} },
-      { id:uid(), title:"Set 2", unitName:"Patient", unitCount:6, items:["Voir","Note","Ordonnance","Dossier"], checks:{} }
-    ];
-    state.sets.selectedId = state.sets.list[0].id;
-  }
-  if(!state.habits.length){
-    state.habits = [
-      { id:uid(), name:"Eau", slots:8, checks:Array.from({length:8},()=>false) },
-      { id:uid(), name:"Marche", slots:4, checks:Array.from({length:4},()=>false) },
-      { id:uid(), name:"Lecture", slots:3, checks:Array.from({length:3},()=>false) }
-    ];
-  }
-  saveState();
-}
-function renderRight(){
-  ensureRightSeeds();
-  const tabs = $("rightTabs"), body = $("rightBody");
-  if(!tabs||!body) return;
-
-  const tab = state.right.tab || "sets";
-  const T = [
-    ["sets","sets"],["habits","habitudes"],["mood","humeur"],["cal","calendrier"],["stats","stats"]
-  ];
-  tabs.innerHTML = T.map(([k,l])=>`<button class="tab ${tab===k?"active":""}" data-t="${k}">${l}</button>`).join("");
-  $$(".tab", tabs).forEach(b=>{
-    b.onclick=()=>{ state.right.tab=b.getAttribute("data-t"); saveState(); renderRight(); };
-  });
-
-  body.innerHTML = `<div class="small">Panel prêt (version stable). Tes vues restent intactes.</div>`;
-  /* NOTE: Ici, tu peux recoller tes fonctions viewSets/viewHabits/viewMood/viewCalendar/viewStats
-     de ta version précédente si tu veux l’intégralité.
-     Je laisse ce placeholder pour ne PAS te réinjecter 800 lignes qui n’ont pas bougé.
-     Le socle UI + thèmes + panels + bar est déjà corrigé. */
-}
-
-/* ===== Events wiring ===== */
-function bindEvents(){
-  // panels
-  $("btnLeft").onclick=()=>panel.open("left");
-  $("leftClose").onclick=()=>panel.closeAll();
-
-  $("btnRight").onclick=()=>panel.open("right");
-  $("rightClose").onclick=()=>panel.closeAll();
-
-  $("panelBack").onclick=()=>panel.closeAll();
-
-  // theme toggle
-  $("btnTheme").onclick=()=>{
-    state.ui.mode = state.ui.mode==="clair" ? "fonce" : "clair";
-    saveState();
-    renderAll();
+  // top theme buttons
+  if($("btnTheme")) $("btnTheme").onclick = ()=>{
+    state.ui.mode = (state.ui.mode==="clair") ? "fonce" : "clair";
+    saveState(); renderAll();
   };
-  // season cycle
-  $("btnSeason").onclick=()=>{
-    const i = Math.max(0, SEASONS.indexOf(state.ui.season));
+  if($("btnSeason")) $("btnSeason").onclick = ()=>{
+    const i = SEASONS.indexOf(state.ui.season);
     state.ui.season = SEASONS[(i+1)%SEASONS.length];
-    saveState();
-    renderAll();
-  };
-  // chroma toggle
-  $("btnChroma").onclick=()=>{
-    state.ui.chroma = state.ui.chroma==="mono" ? "color" : "mono";
-    saveState();
-    renderAll();
+    saveState(); renderAll();
   };
 
-  // focus
-  $("btnFocus").onclick=()=>{
-    $("focusOverlay").classList.add("show");
-    renderAll();
-  };
-  $("btnExitFocus").onclick=()=>{
-    $("focusOverlay").classList.remove("show");
+  // notes modal
+  if($("btnNotes")) $("btnNotes").onclick = ()=>{ renderNotes(); openModal("notesModal"); };
+  if($("noteAdd")) $("noteAdd").onclick = ()=>{ addNote($("noteInput").value); $("noteInput").value=""; };
+  if($("noteClear")) $("noteClear").onclick = ()=>{ state.notes=[]; saveState(); renderNotes(); };
+
+  // export modal
+  if($("expRefresh")) $("expRefresh").onclick = ()=>{ $("expOut").value = exportText(); };
+  if($("expCopy")) $("expCopy").onclick = async ()=>{
+    try{
+      await navigator.clipboard.writeText($("expOut").value||"");
+      $("expCopy").textContent="copié";
+      setTimeout(()=>$("expCopy").textContent="copier", 900);
+    }catch(_){
+      $("expCopy").textContent="échec";
+      setTimeout(()=>$("expCopy").textContent="copier", 900);
+    }
   };
 
-  // export
-  $("btnExport").onclick=()=>{
-    $("expOut").value = exportReport();
-    openModal("exportModal");
-  };
-  $("expRefresh").onclick=()=>{ $("expOut").value = exportReport(); };
-  $("expCopy").onclick=async()=>{
-    const ok = await copyText($("expOut").value);
-    $("expCopy").textContent = ok ? "copié" : "échec";
-    setTimeout(()=>$("expCopy").textContent="copier", 1200);
-  };
-
-  // modal close
-  $("modalBack").onclick=closeAllModals;
+  // modal backdrop
+  if($("modalBack")) $("modalBack").addEventListener("click", closeAllModals);
   $$(".modal").forEach(m=>{
     m.addEventListener("click",(e)=>{ if(e.target===m) closeAllModals(); });
   });
 
-  // actions
-  $("btnUndo").onclick=undo;
-  $("btnRoulette").onclick=()=>{
-    const el=$("btnRoulette");
-    el.classList.remove("spin"); void el.offsetWidth; el.classList.add("spin");
+  // list toggle
+  if($("btnList")) $("btnList").onclick = ()=>{
+    $("belowList")?.classList.toggle("show");
+    renderListBelow();
+  };
+  if($("btnHideList")) $("btnHideList").onclick = ()=>{
+    $("belowList")?.classList.remove("show");
+  };
+
+  // roulette
+  if($("btnRoulette")) $("btnRoulette").onclick = ()=>{
     const list = sortTasks(activeTasks());
     if(!list.length) return;
-    const pinned=list.filter(t=>t.pinned);
-    const pool=pinned.length?pinned:list;
-    const pick=pool[Math.floor(Math.random()*pool.length)];
-    state.currentTaskId=pick.id;
-    saveState(); renderAll();
+    const pinned = list.filter(t=>t.pinned);
+    const pool = pinned.length ? pinned : list;
+    const pick = pool[Math.floor(Math.random()*pool.length)];
+    state.currentTaskId = pick.id;
+    saveState();
+    renderAll();
   };
-  $("btnEto").onclick=degomme;
 
-  $("btnNotes").onclick=()=>{ renderNotes(); openModal("notesModal"); };
-  $("noteAdd").onclick=addNote;
-  $("noteClear").onclick=clearNotes;
+  // edit current
+  if($("btnEdit")) $("btnEdit").onclick = ()=>{
+    ensureCurrentTask();
+    if(!state.currentTaskId) return;
+    openTaskEdit(state.currentTaskId);
+  };
 
-  $("btnList").onclick=()=>{
-    $("belowList").classList.toggle("show");
-    if($("belowList").classList.contains("show")) renderBelowList();
-  };
-  $("btnHideList").onclick=()=>$("belowList").classList.remove("show");
-  $("btnEdit").onclick=()=>{
-    const t=getTask(state.currentTaskId);
-    if(!t) return;
-    openTaskEditor(t.id);
-  };
-  $("btnPause").onclick=()=>{
-    toggleGlobalPause();
-    $("btnPause").querySelector("small").textContent = state.timer.pausedAt ? "reprendre" : "pause";
-  };
-  $("btnKiff").onclick=showKiff;
+  // undo
+  if($("btnUndo")) $("btnUndo").onclick = undo;
 
-  // pomodoro
-  $("btnPomoToggle").onclick=()=>{
-    state.pomodoro.visible = !state.pomodoro.visible;
+  // global pause
+  if($("btnPause")) $("btnPause").onclick = toggleGlobalPause;
+
+  // degomme
+  if($("btnEto")) $("btnEto").onclick = degomme;
+
+  // pomodoro placement: centré sous la barre (côté HTML/CSS), ici logique:
+  if($("btnPomoStart")) $("btnPomoStart").onclick = ()=>{
+    if(!state.pomodoro.running) pomoStart();
+    else pomoPauseToggle();
+  };
+  if($("btnPomoStop")) $("btnPomoStop").onclick = pomoStop;
+
+  if($("pomoClickZone")) $("pomoClickZone").onclick = ()=>{
+    // réglage rapide sans casser l’UX
+    const w = prompt("Travail (min) :", String(state.pomodoro.workMin||25));
+    if(w===null) return;
+    const b = prompt("Pause (min) :", String(state.pomodoro.breakMin||5));
+    if(b===null) return;
+    state.pomodoro.workMin = clamp(parseInt(w,10)||25,5,90);
+    state.pomodoro.breakMin = clamp(parseInt(b,10)||5,1,45);
     saveState();
     renderPomodoro();
   };
-  $("btnPomoStart").onclick=()=>{
-    if(!state.pomodoro.running) pomoStart();
-    else pomoPauseToggle();
+
+  if($("btnPomoToggle")) $("btnPomoToggle").onclick = ()=>{
+    state.pomodoro.enabled = !state.pomodoro.enabled;
+    if(!state.pomodoro.enabled) pomoStop();
+    saveState();
     renderPomodoro();
   };
-  $("btnPomoStop").onclick=()=>{ pomoStop(); renderPomodoro(); };
-  $("pomoClickZone").onclick=()=>{
-    const v = prompt("Durée pomodoro (minutes 5..90) :", String(state.pomodoro.minutes||25));
-    if(v===null) return;
-    state.pomodoro.minutes = clamp(parseInt(v,10)||25,5,90);
-    saveState(); renderPomodoro();
-  };
 
-  // focus mirror
-  $("fUndo").onclick=undo;
-  $("fEto").onclick=degomme;
-  $("fNotes").onclick=()=>{ renderNotes(); openModal("notesModal"); };
-  $("fPause").onclick=()=>{ toggleGlobalPause(); renderAll(); };
-  $("fKiff").onclick=showKiff;
+  // celebration modal close
+  if($("celeModal")) $("celeModal").addEventListener("click", closeAllModals);
 
-  $("fPomoStart").onclick=()=>{
-    if(!state.pomodoro.running) pomoStart();
-    else pomoPauseToggle();
-    renderPomodoro();
-  };
-  $("fPomoStop").onclick=()=>{ pomoStop(); renderPomodoro(); };
-  $("fPomoClick").onclick=$("pomoClickZone").onclick;
-
-  // keyboard
+  // escape closes panels/modals
   document.addEventListener("keydown",(e)=>{
     if(e.key==="Escape"){
       closeAllModals();
-      $("focusOverlay").classList.remove("show");
       panel.closeAll();
     }
   });
+
+  // resizers (IDs dans ton HTML: leftResizer/rightResizer)
+  initResizer("leftResizer","left");
+  initResizer("rightResizer","right");
 }
 
-/* ===== Tick loop ===== */
-let tick=null;
-function startTick(){
+/* ===== LOOP ===== */
+let tick = null;
+function ensureLoop(){
   if(tick) return;
-  tick=setInterval(()=>{
+  tick = setInterval(()=>{
     renderHUD();
-    if(state.pomodoro.running && !state.pomodoro.paused){
-      const left = pomoLeftMs();
-      if(left!==null && left<=0){
-        pomoStop();
-        renderPomodoro();
-        showKiff();
-      }else{
-        renderPomodoro();
-      }
-    }
-    if($("focusOverlay").classList.contains("show")) renderProgress();
+    pomoTick();
   }, 500);
 }
 
-/* ===== Boot ===== */
+/* ===== BOOT ===== */
 (function boot(){
+  // canvas FX
+  const conf = setupCanvas("confetti");
+  if(conf){ fx.canvas=conf.c; fx.ctx=conf.ctx; }
+
+  const pol = setupCanvas("pollen");
+  if(pol){ pollen.canvas=pol.c; pollen.ctx=pol.ctx; }
+
   if(!state.timer.startedAt) state.timer.startedAt = Date.now();
 
-  const c1=setupCanvas("confettiCanvas"); if(c1){ conf.canvas=c1.c; conf.ctx=c1.ctx; }
-  const c2=setupCanvas("pollenCanvas"); if(c2){ pollen.canvas=c2.c; pollen.ctx=c2.ctx; }
+  // baseline on first run
+  recomputeBaseline(false);
+  ensureCurrentTask();
 
   applyTheme();
-  initResizer("leftResizer","left");
-  initResizer("rightResizer","right");
+  bindUI();
 
-  bindEvents();
-  startPollen();
-  startTick();
+  // pollen
+  if(!(state.ui.reduceMotion || prefersReduced())) startPollen();
+
   renderAll();
-
-  // mini API pour extensions sans réécrire tout
-  window.ELIMINATOR = {
-    state,
-    save: saveState,
-    render: renderAll,
-    panel,
-    addTasksFromText: (txt)=>{ const items = importFromInbox(txt); state.tasks.push(...items); recomputeBaseline(true); ensureCurrentTask(); saveState(); renderAll(); },
-    setTheme: (mode, season, chroma)=>{ if(mode) state.ui.mode=mode; if(season) state.ui.season=season; if(chroma) state.ui.chroma=chroma; saveState(); renderAll(); }
-  };
+  ensureLoop();
 })();
 </script>
 
 </body>
 </html>
+  
