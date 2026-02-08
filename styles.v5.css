@@ -19,13 +19,17 @@
   --decoA: rgba(211,138,92,.12);
   --decoB: rgba(255,210,160,.12);
 
+  --doodle: none;         /* ✅ injecté par JS */
+  --doodleOpacity: .22;   /* ✅ injecté par JS */
+
   --leftW:360px;
   --rightW:420px;
   --baseSize:16px;
 
-  /* progression style (flotte/ancrée) */
   --progressShadow: 0 18px 30px rgba(0,0,0,.10);
   --progressBorder: 1px solid var(--line);
+
+  --rouletteSize: 166px; /* ✅ responsive sans casser l’horizontal */
 }
 
 *{ box-sizing:border-box; }
@@ -49,7 +53,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 .muted{ color: var(--muted); }
 .small{ font-size: 12px; }
 
-/* texture + décor saisonnier discret */
+/* texture + décor discret */
 body::before{
   content:"";
   position: fixed;
@@ -63,6 +67,20 @@ body::before{
     repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 2px, rgba(0,0,0,.02) 2px 4px);
   mix-blend-mode: overlay;
   opacity:.55;
+}
+
+/* ✅ doodles saisonniers */
+body::after{
+  content:"";
+  position: fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background-image: var(--doodle);
+  background-repeat: repeat;
+  background-size: 520px 520px;
+  opacity: var(--doodleOpacity);
+  mix-blend-mode: multiply;
 }
 
 /* ---------- Topbar ---------- */
@@ -106,7 +124,6 @@ body::before{
 
 .tb-sep{ opacity:.55; }
 
-/* ✅ pas de soulignement : surbrillance “nuage” */
 .tb-chip{
   border:none;
   background: transparent;
@@ -121,7 +138,6 @@ body::before{
 }
 .tb-chip:hover{ background: var(--accent); opacity: 1; }
 .tb-chip:active{ transform: translateY(1px); }
-
 .tb-chip-quiet{ opacity:.78; }
 .tb-chip.active{
   background: var(--accent2);
@@ -134,6 +150,8 @@ body::before{
   padding-top: 56px;
   display:flex;
   justify-content:center;
+  position: relative;
+  z-index:1;
 }
 
 #hub-inner{
@@ -148,21 +166,22 @@ body::before{
   font-weight: 900;
   letter-spacing: .06em;
   margin: 8px 0 0;
-
-  /* léger relief “encré” */
   text-shadow:
     0 2px 0 rgba(255,255,255,.45),
     0 16px 26px rgba(0,0,0,.14);
 }
 
 .subtitle{
-  margin: 6px 0 14px;
+  margin: 6px 0 18px;
   color: var(--muted);
   font-size: 15px;
 }
 
-/* ---------- Progression ---------- */
-#progressWrap{ margin: 0 auto 16px; width: 100%; }
+/* ✅ plus d’air */
+#progressWrap{
+  margin: 0 auto 26px;
+  width: 100%;
+}
 
 .progressBar{
   position: relative;
@@ -252,6 +271,7 @@ body::before{
   border-radius: 999px;
 }
 .pomoTimeInline:hover{ background: var(--accent); }
+.pomoTimeInline.running{ background: var(--accent2); }
 
 .pomoEditInline{
   border:none;
@@ -276,7 +296,6 @@ body::before{
   max-width: 320px;
 }
 
-/* ✅ titre de tâche centré + ultra gras */
 .missionTitle{
   text-align:center;
   font-family: "Baloo 2", cursive;
@@ -289,13 +308,14 @@ body::before{
 
 .missionMeta{ margin-top: 6px; text-align:center; }
 
-/* ✅ Actions horizontales, ordre strict, bien centré */
+/* ✅ Toujours horizontal : jamais de colonne */
 .missionActionsRow{
   display:flex;
   align-items:center;
-  justify-content:space-between;
+  justify-content:center;
   gap: 12px;
   padding: 8px 0 6px;
+  flex-wrap: nowrap;
 }
 
 .actionPill{
@@ -310,19 +330,26 @@ body::before{
   display:flex;
   align-items:center;
   gap: 8px;
-  min-width: 170px;
+  min-width: 0;
   justify-content:center;
+  flex: 1 1 0;
+  max-width: 240px;
+  white-space: nowrap;
 }
-.actionPill span{ font-size: 12px; color: var(--muted); font-weight: 900; }
-
+.actionPill span{
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 900;
+}
 .actionPill.bomb{
   background: var(--accent);
   border-color: var(--accent2);
 }
 
+/* Roulette */
 .rouletteBtn{
-  width: 166px;
-  height: 166px;
+  width: var(--rouletteSize);
+  height: var(--rouletteSize);
   border: none;
   background: transparent;
   padding: 0;
@@ -331,8 +358,8 @@ body::before{
 }
 
 .rouletteWheel{
-  width: 166px;
-  height: 166px;
+  width: var(--rouletteSize);
+  height: var(--rouletteSize);
   border-radius: 999px;
   background:
     radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%),
@@ -355,6 +382,25 @@ body::before{
   text-shadow: 0 2px 0 rgba(255,255,255,.55);
 }
 
+.rouletteWheel.spinning{
+  filter: drop-shadow(0 14px 18px rgba(0,0,0,.12));
+}
+
+/* ✅ Responsive : on réduit sans empiler */
+@media (max-width: 720px){
+  :root{ --rouletteSize: 150px; }
+  .missionActionsRow{ gap: 10px; }
+  .actionPill{ padding: 9px 10px; max-width: 220px; }
+  .actionPill span{ font-size: 11px; }
+}
+@media (max-width: 560px){
+  :root{ --rouletteSize: 132px; }
+  .missionActionsRow{ gap: 8px; }
+  .actionPill{ padding: 8px 9px; }
+  .actionPill span{ font-size: 10px; }
+}
+
+/* Liens bas */
 .miniLinks{
   display:flex;
   gap: 14px;
@@ -461,17 +507,10 @@ body::before{
   border-radius: 999px;
 }
 .tabBtn:hover{ background: var(--accent); }
-.tabBtn.active{
-  background: var(--accent2);
-  opacity: 1;
-}
+.tabBtn.active{ background: var(--accent2); opacity: 1; }
 
-.panel-content{
-  padding: 14px 12px 18px;
-  overflow:auto;
-}
+.panel-content{ padding: 14px 12px 18px; overflow:auto; }
 
-/* Tab pages */
 .tabPage{ display:none; }
 .tabPage.show{ display:block; }
 
@@ -482,7 +521,7 @@ body::before{
   opacity:.75;
 }
 
-/* Inputs */
+/* Inputs & buttons */
 .area{
   width: 100%;
   border-radius: 14px;
@@ -520,7 +559,6 @@ body::before{
 .btn.danger{ background: rgba(255,120,120,.14); border-color: rgba(255,120,120,.26); }
 
 .list{ display:flex; flex-direction:column; gap: 8px; margin-top: 10px; }
-
 .cardRow{
   border: 1px solid var(--line);
   background: rgba(255,255,255,.10);
@@ -592,8 +630,3 @@ body::before{
   color: var(--fg);
 }
 .modalBody{ padding: 12px; }
-
-@media (max-width: 720px){
-  .missionActionsRow{ flex-direction:column; }
-  .actionPill{ min-width: auto; width: 100%; }
-}
