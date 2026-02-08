@@ -311,8 +311,45 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   overflow: visible;
   transition: transform 180ms ease;
 }
-.rouletteBtn.spinning .rouletteFace{
-  transition: transform 1.4s cubic-bezier(.1,.85,.2,1);
+.rouletteWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+
+.rouletteBtn{
+  width: 140px;
+  height: 140px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.rouletteWheel{
+  width: 140px;
+  height: 140px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%),
+    radial-gradient(circle at 70% 70%, rgba(0,0,0,.06), transparent 55%),
+    linear-gradient(135deg, rgba(235,170,115,.55), rgba(255,245,228,.7));
+  border: 2px solid rgba(0,0,0,.10);
+  box-shadow: 0 10px 26px rgba(0,0,0,.08);
+  display:grid;
+  place-items:center;
+  transform: rotate(0deg);
+  will-change: transform;
+}
+
+.rouletteCenterText{
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: .02em;
+  color: rgba(20,18,15,.80);
+  text-shadow: 0 2px 0 rgba(255,255,255,.55);
+}
+
+.rouletteLegend{
+  font-size: 14px;
+  font-weight: 700;
+  opacity: .78;
 }
 
 .rouletteFace{
