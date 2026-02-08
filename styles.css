@@ -5,6 +5,19 @@
 
   --accentSoft: rgba(211,138,92,.22);
 
+  --font-ui: "Zen Maru Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-title: "Baloo 2", cursive;
+
+  /* Tout le reste de l’app */
+  body, button, input, select, textarea{
+  font-family: var(--font-ui);
+  }
+
+  /* Le gros titre uniquement */
+ #appTitle{
+  font-family: var(--font-title);
+  font-weight: 900;
+  }
   /* barre : pas grise, plus chaude */
   --barEmpty: rgba(255, 210, 165, .28);
   --barFill: rgba(211,138,92,.92);
