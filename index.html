@@ -1,9 +1,3 @@
-<!-- ===========================
-     index.html — ELIMINATOR (Étape 2+)
-     - Phrase/mantra CENTRÉE juste sous la barre de progression
-     - Messages (info + kiffance 🎁) affichés dans cette zone
-     - Panneaux latéraux fiables + extensibles
-     =========================== -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -11,32 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eliminator</title>
 
-  <!-- Polices “Ghibli-ish” (sélectionnables) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Zen+Maru+Gothic:wght@400;500;700&family=Yomogi&family=Zen+Kurenaido&family=Kiwi+Maru:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Zen+Maru+Gothic:wght@400;500;700&family=Yomogi&family=Kiwi+Maru:wght@400;500;700&family=Zen+Kurenaido&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css">
+  <!-- ✅ versionnée pour casser le cache -->
+  <link rel="stylesheet" href="styles.v6.css">
 </head>
 
-<body data-mode="clair" data-season="automne" data-font="zenmaru">
-
-  <!-- TOP BAR FIXE -->
+<body>
   <header id="topBar">
     <div class="tb-left">
       <button id="btnLeft" class="tb-icon" title="Menu gauche" aria-label="Menu gauche">≡</button>
     </div>
 
     <div class="tb-center">
-      <!-- Pas de dropdown : toggles compacts -->
-      <div class="tb-pills" aria-label="Visuels">
-        <button id="modeToggle" class="pill" type="button" aria-label="Mode clair/sombre">Clair</button>
-        <button id="seasonCycle" class="pill" type="button" aria-label="Changer de saison">Automne</button>
-      </div>
+      <nav class="tb-nav" aria-label="Contrôles">
+        <button id="modeToggle" class="tb-chip" type="button" aria-pressed="false">Clair</button>
+        <button id="seasonCycle" class="tb-chip" type="button">Automne</button>
 
-      <nav class="tb-links" aria-label="Actions">
-        <button id="focusBtn" class="tb-link" type="button">Focus</button>
-        <button id="countersBtn" class="tb-link" type="button">Compteurs</button>
+        <span class="tb-sep" aria-hidden="true">•</span>
+
+        <button id="focusBtn" class="tb-chip tb-chip-quiet" type="button">Focus</button>
+        <button id="countersBtn" class="tb-chip tb-chip-quiet" type="button">Compteurs</button>
       </nav>
     </div>
 
@@ -45,13 +36,11 @@
     </div>
   </header>
 
-  <!-- BACKDROP PANELS -->
   <div id="panelBack" aria-hidden="true"></div>
 
-  <!-- PANNEAU GAUCHE -->
   <aside id="leftPanel" class="panel panel-left" aria-label="Panneau gauche">
     <div class="panel-top">
-      <div id="leftResizer" class="panelResizer left" aria-hidden="true"></div>
+      <div id="leftResizer" class="panelResizer left" title="Redimensionner"></div>
       <div class="panel-title">Menu</div>
       <button class="closeBtn" id="leftClose" aria-label="Fermer le panneau gauche">×</button>
     </div>
@@ -65,7 +54,6 @@
     </nav>
 
     <div class="panel-content">
-      <!-- INBOX -->
       <section class="tabPage show" id="left-inbox">
         <p class="muted small">
           Une ligne = une tâche. Ligne en MAJUSCULES = catégorie.
@@ -90,7 +78,6 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <!-- TASKS -->
       <section class="tabPage" id="left-tasks">
         <div class="row wrap">
           <label class="muted small">Catégorie</label>
@@ -107,10 +94,8 @@ Lire article - 2"></textarea>
         <div class="list" id="taskList"></div>
       </section>
 
-      <!-- KIFFANCE -->
       <section class="tabPage" id="left-kiffance">
         <p class="muted small">Récompenses surprises (base éditable).</p>
-
         <div class="row wrap">
           <input id="kiffNew" class="input" placeholder="Ajouter une kiffance…" />
           <button id="kiffAdd" class="btn primary">+</button>
@@ -118,7 +103,6 @@ Lire article - 2"></textarea>
         <div class="list" id="kiffList"></div>
       </section>
 
-      <!-- PREFS -->
       <section class="tabPage" id="left-prefs">
         <div class="grid2">
           <div>
@@ -143,24 +127,40 @@ Lire article - 2"></textarea>
           <div>
             <label class="muted small">Police</label>
             <select id="fontSel" class="select">
-              <option value="zenmaru">Zen Maru</option>
-              <option value="yomogi">Yomogi</option>
-              <option value="zenkure">Zen Kurenaido</option>
+              <option value="yomogi">Yomogi (manuscrite)</option>
+              <option value="zen">Zen Maru Gothic</option>
               <option value="kiwi">Kiwi Maru</option>
+              <option value="kurenaido">Zen Kurenaido</option>
             </select>
           </div>
 
           <div>
-            <label class="muted small">Taille UI</label>
-            <input id="uiScale" type="range" min="14" max="19" step="1" />
+            <label class="muted small">Taille (UI)</label>
+            <input id="uiScale" type="range" min="14" max="18" step="1" />
+          </div>
+
+          <div class="span2">
+            <label class="muted small">Barre progression</label>
+            <select id="progressStyleSel" class="select">
+              <option value="float">Flotte</option>
+              <option value="anchored">Ancrée</option>
+            </select>
+          </div>
+
+          <div class="span2">
+            <label class="muted small">Pomodoro (minutes)</label>
+            <input id="pomoQuick" class="input" type="number" min="5" max="90" step="1" />
           </div>
         </div>
 
-        <p class="muted small">Les préférences doivent s’appliquer immédiatement.</p>
+        <div class="row">
+          <button id="prefsApply" class="btn primary">Appliquer</button>
+          <button id="prefsReset" class="btn ghost">Reset prefs</button>
+        </div>
       </section>
 
-      <!-- EXPORT -->
       <section class="tabPage" id="left-export">
+        <p class="muted small">Export JSON simple.</p>
         <div class="row wrap">
           <button id="exportBtn" class="btn ghost">Copier JSON</button>
           <button id="wipeBtn" class="btn danger">Reset total</button>
@@ -170,45 +170,41 @@ Lire article - 2"></textarea>
     </div>
   </aside>
 
-  <!-- HUB CENTRAL -->
   <main id="hub">
     <div id="hub-inner">
-
       <h1 id="appTitle">ELIMINATOR</h1>
+      <p id="subtitle" class="subtitle">Une quête après l’autre.</p>
 
-      <!-- PROGRESSION -->
       <section id="progressWrap" aria-label="Progression">
-        <div id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+        <div id="progressBar" class="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
           <div id="progressFill"></div>
           <div id="progressPctIn">100%</div>
         </div>
       </section>
 
-      <!-- MANTRA / MESSAGES (CENTRÉ sous la barre) -->
-      <div id="mantra" class="mantra" aria-live="polite" aria-atomic="true">
-        <span class="mantraText" id="mantraText">Une quête après l’autre.</span>
-      </div>
+      <section id="missionCard" class="missionCard" aria-label="Mission">
+        <div class="missionTopRow">
+          <div class="missionLine" id="missionLineLeft">Tâches en cours (0 finies · 0/0)</div>
 
-      <!-- “CADRE” HUB (tout le bas dedans) -->
-      <section class="hubCard" aria-label="Hub actions">
-        <div class="hubTopRow">
-          <div class="hubMiniLeft" id="hubMiniLeft">Tâche en cours <span class="hubMiniMeta" id="hubMiniMeta">(0 finies · 0/0)</span></div>
-
-          <!-- Pomodoro mini à droite (clic = start/pause) + crayon ouvre paramètres -->
-          <div class="hubMiniRight">
-            <button id="pomoMini" class="pomoMini" type="button" aria-label="Pomodoro (clic pour démarrer/mettre en pause)">
-              <span id="pomoMiniTime">25:00</span>
-            </button>
-            <button id="pomoEdit" class="pomoEdit" type="button" aria-label="Paramètres pomodoro" title="Paramètres">✎</button>
+          <div class="missionRight">
+            <div class="pomoInline" aria-label="Pomodoro">
+              <span id="pomoTime" class="pomoTimeInline" title="Cliquer = play/pause">25:00</span>
+              <button id="pomoEdit" class="pomoEditInline" type="button" title="Paramètres pomodoro" aria-label="Paramètres pomodoro">✎</button>
+            </div>
+            <div id="statusSpot" class="statusSpot" aria-live="polite"></div>
           </div>
         </div>
 
-        <!-- Tâche courante (grosse, centrée) -->
-        <div class="hubTaskTitle" id="taskTitle">Aucune tâche sélectionnée</div>
+        <div class="missionTitle" id="taskTitle">Aucune tâche sélectionnée</div>
 
-        <!-- Actions alignées HORIZONTALES (jamais en colonne) -->
-        <div class="hubActions" aria-label="Actions principales">
-          <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour" aria-label="Retour">↶</button>
+        <div class="missionMeta muted" id="taskMetaDetails" hidden>
+          Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
+        </div>
+
+        <div class="missionActionsRow">
+          <button id="undoBtn" class="actionPill" type="button" title="Retour arrière">
+            ↶ <span>Retour</span>
+          </button>
 
           <button id="rouletteBtn" class="rouletteBtn" type="button" aria-label="Roulette">
             <div class="rouletteWheel" id="rouletteWheel">
@@ -216,26 +212,26 @@ Lire article - 2"></textarea>
             </div>
           </button>
 
-          <button id="bombBtn" class="roundBtn primary" type="button" title="Dégommer 1 Éthorion" aria-label="Dégommer 1 Éthorion">💣</button>
+          <button id="bombBtn" class="actionPill bomb" type="button" title="Dégommer 1 Éthorion">
+            💣 <span>Dégommer 1 Éthorion</span>
+          </button>
         </div>
 
-        <!-- Quick words (dans le cadre, sans contour) -->
-        <div class="hubQuickWords" aria-label="Accès rapides">
-          <button class="wordBtn" type="button" id="openNotes">Notes</button>
-          <button class="wordBtn" type="button" id="openTyphonse">Typhonse</button>
-          <button class="wordBtn" type="button" id="openKiffance">Kiffance</button>
-          <button class="wordBtn" type="button" id="openStats">Stats</button>
+        <div class="miniLinks" role="navigation" aria-label="Accès rapides">
+          <button class="miniLink" type="button" id="openNotes">Notes</button>
+          <button class="miniLink" type="button" id="openTyphonse">Typhonse</button>
+          <button class="miniLink" type="button" id="openKiffance">Kiffance</button>
+          <button class="miniLink" type="button" id="openStats">Stats</button>
+          <button class="miniLink mutedLink" type="button" id="taskInfoBtn">Détails</button>
         </div>
       </section>
-
     </div>
   </main>
 
-  <!-- PANNEAU DROIT -->
   <aside id="rightPanel" class="panel panel-right" aria-label="Panneau droit">
     <div class="panel-top">
       <div class="panel-title">Panneau</div>
-      <div id="rightResizer" class="panelResizer right" aria-hidden="true"></div>
+      <div id="rightResizer" class="panelResizer right" title="Redimensionner"></div>
       <button class="closeBtn" id="rightClose" aria-label="Fermer le panneau droit">×</button>
     </div>
 
@@ -249,46 +245,49 @@ Lire article - 2"></textarea>
     </nav>
 
     <div class="panel-content">
-      <section class="tabPage show" id="right-sets"><p class="muted small">Structure prête (module suivant).</p></section>
-      <section class="tabPage" id="right-habits"><p class="muted small">Structure prête (module suivant).</p></section>
-      <section class="tabPage" id="right-mood"><p class="muted small">Mood expert TCC (module suivant).</p></section>
-      <section class="tabPage" id="right-calendar"><p class="muted small">Calendrier + timeline (module suivant).</p></section>
-      <section class="tabPage" id="right-notes"><p class="muted small">Notes & rappels (module suivant).</p></section>
-      <section class="tabPage" id="right-stats"><p class="muted small">Stats & infographies (module suivant).</p></section>
+      <section class="tabPage show" id="right-sets"><p class="muted small">Structure prête (édition + play au module suivant).</p></section>
+      <section class="tabPage" id="right-habits"><p class="muted small">Structure prête (lignes compactes au module suivant).</p></section>
+      <section class="tabPage" id="right-mood"><p class="muted small">Module expert émotions TCC au module suivant.</p></section>
+      <section class="tabPage" id="right-calendar"><p class="muted small">Calendrier + timeline au module suivant.</p></section>
+      <section class="tabPage" id="right-notes"><p class="muted small">Notes + aide-mémoire + rappels au module suivant.</p></section>
+      <section class="tabPage" id="right-stats"><p class="muted small">Infographies au module suivant.</p></section>
     </div>
   </aside>
 
-  <!-- MODAL Pomodoro -->
-  <div id="modalBack" class="modalBack" aria-hidden="true"></div>
-  <div id="pomoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="pomoModalTitle">
-    <div class="modalCard">
-      <div class="modalHeader">
-        <div id="pomoModalTitle" class="modalTitle">Paramètres Pomodoro</div>
-        <button id="pomoModalClose" class="closeBtn" aria-label="Fermer">×</button>
-      </div>
+  <div id="modalBack" class="modalBack" hidden></div>
+  <div id="pomoModal" class="modal" hidden role="dialog" aria-modal="true" aria-label="Paramètres pomodoro">
+    <div class="modalHead">
+      <div class="modalTitle">Paramètres Pomodoro</div>
+      <button id="modalClose" class="modalClose" type="button" aria-label="Fermer">×</button>
+    </div>
 
+    <div class="modalBody">
       <div class="grid2">
         <div>
-          <label class="muted small">Travail (min)</label>
-          <input id="pWork" class="input" type="number" min="5" max="90" step="1" />
+          <label class="muted small">Pomodoro (min)</label>
+          <input id="pomoMinutes" class="input" type="number" min="5" max="90" step="1">
         </div>
         <div>
           <label class="muted small">Pause (min)</label>
-          <input id="pBreak" class="input" type="number" min="1" max="30" step="1" />
+          <input id="breakMinutes" class="input" type="number" min="1" max="30" step="1">
+        </div>
+        <div class="span2">
+          <label class="muted small">Auto-start après fin (Pomodoro ⇄ Pause)</label>
+          <select id="autoStartSel" class="select">
+            <option value="auto">Automatique</option>
+            <option value="manual">Manuel</option>
+          </select>
         </div>
       </div>
 
       <div class="row">
-        <label class="muted small"><input id="pAuto" type="checkbox" /> Auto (enchaîner)</label>
-      </div>
-
-      <div class="row">
-        <button id="pApply" class="btn primary" type="button">Appliquer</button>
-        <button id="pReset" class="btn ghost" type="button">Reset</button>
+        <button id="pomoApply" class="btn primary" type="button">Appliquer</button>
+        <button id="pomoReset" class="btn ghost" type="button">Reset timer</button>
       </div>
     </div>
   </div>
 
-  <script src="state.js" defer></script>
+  <!-- ✅ versionné pour casser le cache -->
+  <script src="state.v6.js" defer></script>
 </body>
 </html>
