@@ -3,6 +3,9 @@
   --fg: #14120f;
   --muted: #6a5d53;
 
+  --accent: #d38a5c;
+  --accent-soft: rgba(211,138,92,0.25);
+
   --panel-bg: rgba(255,255,255,0.7);
   --line: rgba(0,0,0,0.1);
 
@@ -28,11 +31,9 @@ body {
   right: 0;
   height: 56px;
   padding: 0 16px;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   background: rgba(255,255,255,0.6);
   backdrop-filter: blur(10px);
   z-index: 1000;
@@ -43,7 +44,6 @@ body {
   border: none;
   font-family: inherit;
   cursor: pointer;
-  font-size: 14px;
 }
 
 /* HUB */
@@ -55,26 +55,132 @@ body {
 }
 
 #hub-inner {
-  max-width: 700px;
+  max-width: 760px;
   padding: 48px 24px;
   text-align: center;
 }
 
 #appTitle {
-  font-size: 48px;
-  margin-bottom: 8px;
+  font-size: 52px;
+  margin-bottom: 6px;
 }
 
 #subtitle {
+  margin-bottom: 32px;
   color: var(--muted);
 }
 
-/* BACKDROP */
+/* PROGRESSION */
+#progressWrap {
+  margin-bottom: 24px;
+}
+
+#progressBar {
+  width: 100%;
+  height: 22px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+#progressFill {
+  width: 0%;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.6s ease;
+}
+
+#progressPct {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+/* POMODORO */
+#pomodoro {
+  margin-bottom: 28px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  align-items: center;
+}
+
+#pomoTime {
+  font-size: 24px;
+}
+
+#pomodoro button {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+/* TÂCHE */
+#currentTask {
+  margin-bottom: 32px;
+}
+
+.taskTitle {
+  display: block;
+  font-size: 22px;
+}
+
+.taskFraction {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ACTIONS */
+#actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}
+
+#actions button {
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+/* ROULETTE */
+#rouletteWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#roulette {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wheel {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+}
+
+.rouletteLabel {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* PANELS + BACKDROP */
 #panelBack {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.25);
-  backdrop-filter: blur(6px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease;
@@ -86,17 +192,14 @@ body {
   pointer-events: auto;
 }
 
-/* PANELS */
 .panel {
   position: fixed;
   top: 0;
   bottom: 0;
   background: var(--panel-bg);
-  backdrop-filter: blur(14px);
   border: 1px solid var(--line);
   z-index: 1000;
   transition: transform 0.25s ease;
-  overflow-y: auto;
 }
 
 #leftPanel {
