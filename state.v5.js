@@ -4,9 +4,9 @@ const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
 const uid = ()=>Math.random().toString(36).slice(2,10)+"_"+Date.now().toString(36);
 const nowISO = ()=>new Date().toISOString();
 
-const LS_KEY = "eliminator_step2_fix";
-
+const LS_KEY = "eliminator_step2_fix_v5";
 const SEASONS = ["printemps","ete","automne","hiver","noirblanc"];
+
 const seasonLabel = (s)=>{
   const map = { printemps:"Printemps", ete:"Été", automne:"Automne", hiver:"Hiver", noirblanc:"Noir & blanc" };
   return map[s] || "Automne";
@@ -19,10 +19,81 @@ const SUBLINES = [
   "Le destin a peur de ta to-do.",
   "Tes Éthorions n’ont qu’à bien se tenir."
 ];
+const pickSubline = ()=>SUBLINES[Math.floor(Math.random()*SUBLINES.length)];
 
-function pickSubline(){ return SUBLINES[Math.floor(Math.random()*SUBLINES.length)]; }
+/* ----------- doodles (SVG repeat, légers) ----------- */
+function svgUrl(svg){
+  const enc = encodeURIComponent(svg)
+    .replace(/'/g,"%27").replace(/"/g,"%22");
+  return `url("data:image/svg+xml,${enc}")`;
+}
 
-/* Thèmes */
+const DOODLES = {
+  printemps: svgUrl(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+      <g fill="none" stroke="rgba(255,120,170,0.55)" stroke-width="2" stroke-linecap="round">
+        <path d="M90 120c30-30 65-30 95 0-30 30-65 30-95 0z"/>
+        <path d="M180 160c12-20 26-32 42-36-5 18-18 34-42 36z"/>
+        <path d="M360 110c28-22 60-22 88 0-28 22-60 22-88 0z"/>
+      </g>
+      <g fill="none" stroke="rgba(120,207,168,0.50)" stroke-width="2" stroke-linecap="round">
+        <path d="M120 360c28-26 58-26 86 0-28 26-58 26-86 0z"/>
+        <path d="M330 360c22-34 44-48 70-52-6 26-26 48-70 52z"/>
+      </g>
+    </svg>
+  `),
+  ete: svgUrl(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+      <g fill="none" stroke="rgba(242,178,75,0.55)" stroke-width="2" stroke-linecap="round">
+        <circle cx="120" cy="120" r="22"/>
+        <path d="M120 86v-18M120 172v18M86 120H68M172 120h18M96 96l-12-12M144 144l12 12M96 144l-12 12M144 96l12-12"/>
+      </g>
+      <g fill="none" stroke="rgba(90,190,200,0.45)" stroke-width="2" stroke-linecap="round">
+        <path d="M300 120c30-20 62-20 92 0-30 20-62 20-92 0z"/>
+        <path d="M90 360c40 20 80 20 120 0"/>
+        <path d="M290 380c40 20 80 20 120 0"/>
+      </g>
+    </svg>
+  `),
+  automne: svgUrl(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+      <g fill="none" stroke="rgba(211,138,92,0.55)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M110 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
+        <path d="M155 130c-8-18-10-34-6-52"/>
+        <path d="M360 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
+        <path d="M405 130c-8-18-10-34-6-52"/>
+      </g>
+      <g fill="none" stroke="rgba(140,110,85,0.45)" stroke-width="2" stroke-linecap="round">
+        <path d="M120 360c26-22 54-22 80 0-26 22-54 22-80 0z"/>
+        <path d="M320 380c26-22 54-22 80 0-26 22-54 22-80 0z"/>
+      </g>
+    </svg>
+  `),
+  hiver: svgUrl(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+      <g fill="none" stroke="rgba(120,160,200,0.55)" stroke-width="2" stroke-linecap="round">
+        <path d="M120 120l22 22M142 120l-22 22M120 98v44M98 120h44"/>
+        <path d="M360 140l26 26M386 140l-26 26M360 112v56M332 140h56"/>
+      </g>
+      <g fill="none" stroke="rgba(220,240,255,0.35)" stroke-width="2" stroke-linecap="round">
+        <path d="M100 360c40-16 80-16 120 0"/>
+        <path d="M290 380c40-16 80-16 120 0"/>
+      </g>
+    </svg>
+  `),
+  noirblanc: svgUrl(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+      <g fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round">
+        <path d="M110 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
+        <path d="M360 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
+        <circle cx="120" cy="360" r="18"/>
+        <circle cx="360" cy="380" r="18"/>
+      </g>
+    </svg>
+  `)
+};
+
+/* ---------- Thèmes (identiques à ta v4, on garde) ---------- */
 const THEMES = {
   printemps:{
     clair:{ bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54", barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)", accent:"rgba(255,162,190,.14)", accent2:"rgba(124,207,168,.30)", panel:"rgba(255,255,255,.72)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)" },
@@ -68,8 +139,8 @@ const defaultState = {
   pomodoro:{
     workMin: 25,
     breakMin: 5,
-    autoStart: "auto",     // auto | manual
-    phase: "work"          // work | break
+    autoStart: "auto",
+    phase: "work"
   }
 };
 
@@ -79,6 +150,7 @@ function deepAssign(t,s){
     else t[k]=s[k];
   }
 }
+
 function loadState(){
   try{
     const raw = localStorage.getItem(LS_KEY);
@@ -94,7 +166,7 @@ function loadState(){
 let state = loadState();
 function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){} }
 
-/* ---------- Status spot (messages) ---------- */
+/* ---------- Status spot ---------- */
 let statusTimer = null;
 function status(msg, ms=5000){
   const el = $("statusSpot");
@@ -145,35 +217,40 @@ function applyTheme(){
     setVar("--progressBorder", "1px solid var(--line)");
   }
 
+  // ✅ doodle saison
+  const doodle = DOODLES[season] || DOODLES.automne;
+  setVar("--doodle", doodle);
+  setVar("--doodleOpacity", (mode==="sombre") ? ".16" : ".22");
+
   document.body.setAttribute("data-font", state.ui.font);
   document.body.setAttribute("data-mode", state.ui.mode);
 
-  $("modeToggle").textContent = (state.ui.mode === "sombre") ? "Sombre" : "Clair";
-  $("modeToggle").setAttribute("aria-pressed", state.ui.mode === "sombre" ? "true" : "false");
-
-  $("seasonCycle").textContent = seasonLabel(state.ui.season);
-
-  // reflect focus/counters state visually
-  $("focusBtn").classList.toggle("active", document.body.classList.contains("focusMode"));
-  $("countersBtn").classList.toggle("active", !document.body.classList.contains("hideCounters"));
+  // topbar reflect
+  const mt = $("modeToggle");
+  const sc = $("seasonCycle");
+  if(mt){
+    mt.textContent = (state.ui.mode === "sombre") ? "Sombre" : "Clair";
+    mt.setAttribute("aria-pressed", state.ui.mode === "sombre" ? "true" : "false");
+  }
+  if(sc) sc.textContent = seasonLabel(state.ui.season);
 }
 
 /* ---------- Panels ---------- */
 function openPanel(which){
-  $("panelBack").classList.add("show");
+  $("panelBack")?.classList.add("show");
   document.body.style.overflow = "hidden";
   if(which === "left"){
-    $("leftPanel").classList.add("open");
-    $("rightPanel").classList.remove("open");
+    $("leftPanel")?.classList.add("open");
+    $("rightPanel")?.classList.remove("open");
   }else{
-    $("rightPanel").classList.add("open");
-    $("leftPanel").classList.remove("open");
+    $("rightPanel")?.classList.add("open");
+    $("leftPanel")?.classList.remove("open");
   }
 }
 function closePanels(){
-  $("panelBack").classList.remove("show");
-  $("leftPanel").classList.remove("open");
-  $("rightPanel").classList.remove("open");
+  $("panelBack")?.classList.remove("show");
+  $("leftPanel")?.classList.remove("open");
+  $("rightPanel")?.classList.remove("open");
   document.body.style.overflow = "";
 }
 
@@ -217,7 +294,7 @@ function bindTabs(){
       btn.classList.add("active");
       const key = btn.dataset.lefttab;
       $$("#leftPanel .tabPage").forEach(p=>p.classList.remove("show"));
-      $("left-"+key).classList.add("show");
+      $("left-"+key)?.classList.add("show");
       if(key==="tasks") renderTasksPanel();
       if(key==="kiffance") renderKiffance();
       if(key==="export") renderExport();
@@ -231,7 +308,7 @@ function bindTabs(){
       btn.classList.add("active");
       const key = btn.dataset.righttab;
       $$("#rightPanel .tabPage").forEach(p=>p.classList.remove("show"));
-      $("right-"+key).classList.add("show");
+      $("right-"+key)?.classList.add("show");
     });
   });
 }
@@ -310,18 +387,17 @@ function computeRemainingPct(){
 }
 function renderProgress(){
   const pct = computeRemainingPct();
-  $("progressFill").style.width = `${pct}%`;
-  $("progressPctIn").textContent = `${pct}%`;
-  $("progressBar").setAttribute("aria-valuenow", String(pct));
+  const fill = $("progressFill");
+  const pctEl = $("progressPctIn");
+  const bar = $("progressBar");
+  if(fill) fill.style.width = `${pct}%`;
+  if(pctEl) pctEl.textContent = `${pct}%`;
+  if(bar) bar.setAttribute("aria-valuenow", String(pct));
 }
 
 /* ---------- Undo ---------- */
 function pushUndo(label){
-  state.undo.unshift({
-    label,
-    at: Date.now(),
-    payload: structuredClone(state)
-  });
+  state.undo.unshift({ label, at: Date.now(), payload: structuredClone(state) });
   state.undo = state.undo.slice(0, 25);
   saveState();
 }
@@ -343,7 +419,8 @@ function renderHub(){
   $("statActive").textContent = String(act.length);
   $("statDone").textContent = String(done.length);
 
-  $("missionLineLeft").textContent = `Tâches en cours (${done.length} finies · ${act.length}/${base || act.length || 0})`;
+  const ml = $("missionLineLeft");
+  if(ml) ml.textContent = `Tâches en cours (${done.length} finies · ${act.length}/${base || act.length || 0})`;
 
   const cur = getTask(state.currentTaskId);
   if(!cur){
@@ -358,7 +435,9 @@ function renderHub(){
 }
 
 function toggleTaskMeta(){
-  $("taskMetaDetails").hidden = !$("taskMetaDetails").hidden;
+  const m = $("taskMetaDetails");
+  if(!m) return;
+  m.hidden = !m.hidden;
 }
 
 /* ---------- Actions ---------- */
@@ -427,8 +506,10 @@ function onRouletteStop(){
 function spinRoulette(){
   if(spinning) return;
   const wheel = $("rouletteWheel");
-  if(!wheel) return;
+  if(!wheel) return status("Roulette introuvable (bug DOM).");
+
   spinning = true;
+  wheel.classList.add("spinning");
 
   const turns = 4 + Math.random()*3;
   const extraDeg = Math.random()*360;
@@ -445,7 +526,11 @@ function spinRoulette(){
     wheel.style.transform = `rotate(${a}deg)`;
     wheel._angle = a;
     if(t < 1) requestAnimationFrame(frame);
-    else{ spinning = false; onRouletteStop(); }
+    else{
+      spinning = false;
+      wheel.classList.remove("spinning");
+      onRouletteStop();
+    }
   }
   requestAnimationFrame(frame);
 }
@@ -631,7 +716,7 @@ async function copyText(text){
   catch(_){ status("Impossible de copier (clipboard)."); }
 }
 
-/* ---------- Pomodoro (inline) ---------- */
+/* ---------- Pomodoro ---------- */
 let pomoTimer = null;
 let pomoRunning = false;
 let remainingMs = 0;
@@ -652,11 +737,15 @@ function resetPhase(){
 function startPomo(){
   if(pomoRunning) return;
   pomoRunning = true;
+  $("pomoTime")?.classList.add("running");
   if(!pomoTimer){
     pomoTimer = setInterval(tick, 250);
   }
 }
-function pausePomo(){ pomoRunning = false; }
+function pausePomo(){
+  pomoRunning = false;
+  $("pomoTime")?.classList.remove("running");
+}
 function togglePomo(){
   if(pomoRunning) pausePomo();
   else startPomo();
@@ -669,7 +758,6 @@ function tick(){
     $("pomoTime").textContent = "00:00";
     pausePomo();
 
-    // switch phase
     state.pomodoro.phase = (state.pomodoro.phase === "work") ? "break" : "work";
     saveState();
 
@@ -705,7 +793,6 @@ function applyPomoSettings(){
   state.pomodoro.breakMin = b;
   state.pomodoro.autoStart = a;
 
-  // quick input in prefs mirrors
   if($("pomoQuick")) $("pomoQuick").value = String(w);
 
   saveState();
@@ -714,7 +801,7 @@ function applyPomoSettings(){
   closeModal();
 }
 
-/* ---------- Visuals topbar ---------- */
+/* ---------- Topbar ---------- */
 function bindTopbar(){
   $("modeToggle").addEventListener("click", ()=>{
     state.ui.mode = (state.ui.mode === "clair") ? "sombre" : "clair";
@@ -731,16 +818,16 @@ function bindTopbar(){
 
   $("focusBtn").addEventListener("click", ()=>{
     document.body.classList.toggle("focusMode");
-    applyTheme();
+    $("focusBtn").classList.toggle("active", document.body.classList.contains("focusMode"));
   });
 
   $("countersBtn").addEventListener("click", ()=>{
     document.body.classList.toggle("hideCounters");
-    applyTheme();
+    $("countersBtn").classList.toggle("active", !document.body.classList.contains("hideCounters"));
   });
 }
 
-/* ---------- Prefs ---------- */
+/* ---------- Prefs (✅ live + apply) ---------- */
 function syncPrefsUI(){
   $("modeSel").value = state.ui.mode;
   $("seasonSel").value = state.ui.season;
@@ -750,20 +837,30 @@ function syncPrefsUI(){
   $("pomoQuick").value = String(clamp(state.pomodoro.workMin, 5, 90));
 }
 
+function applyPrefsFromUI(){
+  state.ui.mode = $("modeSel").value;
+  state.ui.season = $("seasonSel").value;
+  state.ui.font = $("fontSel").value;
+  state.ui.baseSize = parseInt($("uiScale").value, 10) || 16;
+  state.ui.progressStyle = $("progressStyleSel").value;
+
+  const quick = clamp(parseInt($("pomoQuick").value,10) || state.pomodoro.workMin, 5, 90);
+  state.pomodoro.workMin = quick;
+
+  saveState();
+  renderAll();
+}
+
 function bindPrefs(){
+  // ✅ live
+  ["modeSel","seasonSel","fontSel","progressStyleSel"].forEach(id=>{
+    $(id).addEventListener("change", applyPrefsFromUI);
+  });
+  $("uiScale").addEventListener("input", applyPrefsFromUI);
+  $("pomoQuick").addEventListener("input", ()=>{ /* pas trop agressif */ });
+
   $("prefsApply").addEventListener("click", ()=>{
-    state.ui.mode = $("modeSel").value;
-    state.ui.season = $("seasonSel").value;
-    state.ui.font = $("fontSel").value;
-    state.ui.baseSize = parseInt($("uiScale").value, 10) || 16;
-    state.ui.progressStyle = $("progressStyleSel").value;
-
-    // update pomo work minutes from prefs quick
-    const quick = clamp(parseInt($("pomoQuick").value,10) || state.pomodoro.workMin, 5, 90);
-    state.pomodoro.workMin = quick;
-
-    saveState();
-    renderAll();
+    applyPrefsFromUI();
     status("Préférences appliquées.");
   });
 
@@ -868,12 +965,19 @@ document.addEventListener("DOMContentLoaded", ()=>{
     status("Kiffance ajoutée.");
   };
 
-  // pomodoro inline
+  // pomodoro
+  if(!state.pomodoro.phase) state.pomodoro.phase = "work";
+  resetPhase();
+
   $("pomoTime").onclick = ()=>{
     if(remainingMs <= 0) resetPhase();
     togglePomo();
   };
-  $("pomoEdit").onclick = openModal;
+  $("pomoEdit").onclick = (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    openModal();
+  };
 
   // modal
   $("modalBack").onclick = closeModal;
@@ -885,9 +989,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
     status("Timer reset.");
   };
 
-  // initialize pomo
-  if(!state.pomodoro.phase) state.pomodoro.phase = "work";
-  resetPhase();
+  window.addEventListener("keydown",(e)=>{
+    if(e.key === "Escape" && !$("pomoModal").hidden) closeModal();
+  });
 
   renderAll();
 });
