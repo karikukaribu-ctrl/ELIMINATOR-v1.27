@@ -1,6 +1,7 @@
 function $(id){ return document.getElementById(id); }
+function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
 
-/* ========== PANNEAUX ========== */
+/* PANNEAUX */
 function openPanel(which){
   $("panelBack").classList.add("show");
   document.body.style.overflow = "hidden";
@@ -13,7 +14,6 @@ function openPanel(which){
     $("leftPanel").classList.remove("open");
   }
 }
-
 function closePanels(){
   $("panelBack").classList.remove("show");
   $("leftPanel").classList.remove("open");
@@ -21,82 +21,72 @@ function closePanels(){
   document.body.style.overflow = "";
 }
 
-/* ========== DEMO STATE (Étape 1) ==========
-   Progression = “reste à faire” en %
-   → commence à 100 et décroît.
-*/
+/* DEMO STATE — progression “reste à faire” */
 let remainingPct = 100;
-let spinning = false;
 
-function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
-
+/* PROGRESSION */
 function renderProgress(){
-  // width = reste
   $("progressFill").style.width = `${remainingPct}%`;
   $("progressPctIn").textContent = `${remainingPct}%`;
   $("progressBar").setAttribute("aria-valuenow", String(remainingPct));
-
-  // lisibilité du texte selon remplissage (si très bas -> texte plus sombre/clair)
-  const text = $("progressPctIn");
-  if(remainingPct < 18){
-    text.style.color = "rgba(0,0,0,.78)";
-  }else{
-    text.style.color = "rgba(0,0,0,.72)";
-  }
 }
-
 function decrementProgress(step=10){
   remainingPct = clamp(remainingPct - step, 0, 100);
   renderProgress();
 }
-
 function incrementProgress(step=10){
   remainingPct = clamp(remainingPct + step, 0, 100);
   renderProgress();
 }
 
-/* ========== ROULETTE (animation plus fluide) ========== */
+/* ROULETTE (mouvement de roulage fluide) */
+let spinning = false;
+let currentRotation = 0;
+
 function spinRoulette(){
   if(spinning) return;
   spinning = true;
 
-  const el = $("roulette");
-  const turns = 3 + Math.random() * 4;         // 3..7 tours
-  const deg = turns * 360 + Math.random()*40;  // petite variation
-  const duration = 1400;
+  const btn = $("roulette");
+  const face = btn.querySelector(".rouletteFace");
 
-  el.animate(
-    [
-      { transform: "rotate(0deg)" },
-      { transform: `rotate(${deg}deg)` }
-    ],
-    { duration, easing: "cubic-bezier(.12,.78,.18,1)" }
+  const turns = 3 + Math.random()*5;         // 3..8 tours
+  const extra = Math.random()*180;           // variation
+  const target = currentRotation + turns*360 + extra;
+  const duration = 1600;
+
+  face.animate(
+    [{ transform:`rotate(${currentRotation}deg)` },
+     { transform:`rotate(${target}deg)` }],
+    { duration, easing:"cubic-bezier(.12,.78,.18,1)" }
   );
 
+  // On fixe l’état final
   setTimeout(()=>{
+    face.style.transform = `rotate(${target}deg)`;
+    currentRotation = target;
     spinning = false;
-    // Démo: roulette = “avancer” => donc reste diminue
+
+    // Démo : roulette => “avance” => reste diminue
     decrementProgress(10);
   }, duration);
 }
 
-/* ========== “DÉGOMMER” (démo) ========== */
+/* DÉGOMMER 1 ÉTHORION (démo) */
 function degommerOne(){
   decrementProgress(10);
 }
 
-/* ========== UNDO (retour arrière) ========== */
+/* UNDO */
 function undoOne(){
   incrementProgress(10);
 }
 
-/* ========== POMODORO (démo: juste edit minutes) ========== */
+/* POMODORO (démo édition minutes) */
 let pomoMinutes = 25;
-
 function renderPomodoro(){
   $("pomoTime").textContent = `${String(pomoMinutes).padStart(2,"0")}:00`;
 }
-
 function editPomodoro(){
   const v = prompt("Durée pomodoro (minutes) :", String(pomoMinutes));
   if(v === null) return;
@@ -107,24 +97,27 @@ function editPomodoro(){
   }
 }
 
-/* ========== INIT ========== */
+/* DÉTAILS TÂCHE (masqués par défaut) */
+function toggleTaskMeta(){
+  const meta = $("taskMeta");
+  meta.hidden = !meta.hidden;
+}
+
+/* INIT */
 document.addEventListener("DOMContentLoaded", ()=>{
-  // panels
   $("btnLeft").onclick = ()=>openPanel("left");
   $("btnRight").onclick = ()=>openPanel("right");
   $("leftClose").onclick = closePanels;
   $("rightClose").onclick = closePanels;
   $("panelBack").onclick = closePanels;
 
-  // actions
   $("roulette").onclick = spinRoulette;
   $("bombBtn").onclick = degommerOne;
   $("undoBtn").onclick = undoOne;
 
-  // pomo
   $("pomoEdit").onclick = editPomodoro;
+  $("taskInfoBtn").onclick = toggleTaskMeta;
 
-  // initial render
   renderProgress();
   renderPomodoro();
 });
