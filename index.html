@@ -14,7 +14,6 @@
 </head>
 
 <body>
-
   <!-- TOP BAR FIXE -->
   <header id="topBar">
     <div class="tb-left">
@@ -23,11 +22,13 @@
 
     <div class="tb-center">
       <nav class="tb-nav" aria-label="Contrôles">
-        <button id="modeToggle" class="tb-link" type="button" aria-pressed="false">Clair</button>
-        <button id="seasonCycle" class="tb-link" type="button">Automne</button>
+        <button id="modeToggle" class="tb-chip" type="button" aria-pressed="false">Clair</button>
+        <button id="seasonCycle" class="tb-chip" type="button">Automne</button>
+
         <span class="tb-sep" aria-hidden="true">•</span>
-        <button id="focusBtn" class="tb-link tb-focus" type="button">Focus</button>
-        <button id="countersBtn" class="tb-link" type="button">Compteurs</button>
+
+        <button id="focusBtn" class="tb-chip tb-chip-quiet" type="button">Focus</button>
+        <button id="countersBtn" class="tb-chip tb-chip-quiet" type="button">Compteurs</button>
       </nav>
     </div>
 
@@ -155,11 +156,8 @@ Lire article - 2"></textarea>
           </div>
 
           <div class="span2">
-            <label class="muted small">Pomodoro</label>
-            <select id="pomoVisibleSel" class="select">
-              <option value="show">Afficher</option>
-              <option value="hide">Masquer (🍅)</option>
-            </select>
+            <label class="muted small">Pomodoro (minutes)</label>
+            <input id="pomoQuick" class="input" type="number" min="5" max="90" step="1" />
           </div>
         </div>
 
@@ -184,10 +182,8 @@ Lire article - 2"></textarea>
   <!-- HUB CENTRAL -->
   <main id="hub">
     <div id="hub-inner">
-
       <h1 id="appTitle">ELIMINATOR</h1>
       <p id="subtitle" class="subtitle">Une quête après l’autre.</p>
-      <p id="statusLine" class="statusLine muted"></p>
 
       <!-- PROGRESSION -->
       <section id="progressWrap" aria-label="Progression">
@@ -197,33 +193,34 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <!-- POMODORO -->
-      <section id="pomodoro" aria-label="Pomodoro">
-        <button id="pomoTomato" class="pomoTomato" type="button" aria-label="Afficher le pomodoro" title="Pomodoro">🍅</button>
-
-        <div id="pomoBox" class="pomoBox">
-          <div id="pomoTime" class="pomoTime" title="Cliquer = play/pause">25:00</div>
-          <div class="pomoMiniRow">
-            <button id="pomoReset" class="pomoMini" type="button" title="Retour à zéro" aria-label="Retour à zéro">↺</button>
-            <button id="pomoEdit" class="pomoMini" type="button" title="Modifier" aria-label="Modifier">✎</button>
-            <button id="pomoStop" class="pomoMini" type="button" title="Stop" aria-label="Stop">■</button>
-          </div>
-        </div>
-      </section>
-
       <!-- CADRE MISSION -->
       <section id="missionCard" class="missionCard" aria-label="Mission">
-        <div class="missionLine" id="missionLineLeft">Tâches en cours (0 finies · 0/0)</div>
 
+        <!-- Ligne compacte : texte à gauche + pomodoro+messages à droite -->
+        <div class="missionTopRow">
+          <div class="missionLine" id="missionLineLeft">Tâches en cours (0 finies · 0/0)</div>
+
+          <div class="missionRight">
+            <div class="pomoInline" aria-label="Pomodoro">
+              <span id="pomoTime" class="pomoTimeInline" title="Cliquer = play/pause">25:00</span>
+              <button id="pomoEdit" class="pomoEditInline" type="button" title="Paramètres pomodoro" aria-label="Paramètres pomodoro">✎</button>
+            </div>
+            <div id="statusSpot" class="statusSpot" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <!-- Titre tâche -->
         <div class="missionTitle" id="taskTitle">Aucune tâche sélectionnée</div>
+
         <div class="missionMeta muted" id="taskMetaDetails" hidden>
           Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
         </div>
 
-        <!-- ✅ RIEN ICI entre le nom de tâche et les boutons -->
-
+        <!-- Actions HORIZONTALES (ordre strict) -->
         <div class="missionActionsRow">
-          <button id="undoBtn" class="actionPill" type="button" title="Retour arrière">↶ <span>Retour</span></button>
+          <button id="undoBtn" class="actionPill" type="button" title="Retour arrière">
+            ↶ <span>Retour</span>
+          </button>
 
           <button id="rouletteBtn" class="rouletteBtn" type="button" aria-label="Roulette">
             <div class="rouletteWheel" id="rouletteWheel">
@@ -231,9 +228,12 @@ Lire article - 2"></textarea>
             </div>
           </button>
 
-          <button id="bombBtn" class="actionPill bomb" type="button" title="Dégommer 1 Éthorion">💣 <span>Dégommer 1 Éthorion</span></button>
+          <button id="bombBtn" class="actionPill bomb" type="button" title="Dégommer 1 Éthorion">
+            💣 <span>Dégommer 1 Éthorion</span>
+          </button>
         </div>
 
+        <!-- Liens bas : mots seuls -->
         <div class="miniLinks" role="navigation" aria-label="Accès rapides">
           <button class="miniLink" type="button" id="openNotes">Notes</button>
           <button class="miniLink" type="button" id="openTyphonse">Typhonse</button>
@@ -242,8 +242,6 @@ Lire article - 2"></textarea>
           <button class="miniLink mutedLink" type="button" id="taskInfoBtn">Détails</button>
         </div>
       </section>
-
-      <div id="toast" class="toast" aria-live="polite" aria-atomic="true" hidden></div>
     </div>
   </main>
 
@@ -267,12 +265,46 @@ Lire article - 2"></textarea>
     <div class="panel-content">
       <section class="tabPage show" id="right-sets"><p class="muted small">Structure prête (édition + play au module suivant).</p></section>
       <section class="tabPage" id="right-habits"><p class="muted small">Structure prête (lignes compactes au module suivant).</p></section>
-      <section class="tabPage" id="right-mood"><p class="muted small">Module expert émotions TCC (fenêtres contextuelles) au module suivant.</p></section>
+      <section class="tabPage" id="right-mood"><p class="muted small">Module expert émotions TCC au module suivant.</p></section>
       <section class="tabPage" id="right-calendar"><p class="muted small">Calendrier + timeline au module suivant.</p></section>
       <section class="tabPage" id="right-notes"><p class="muted small">Notes + aide-mémoire + rappels au module suivant.</p></section>
       <section class="tabPage" id="right-stats"><p class="muted small">Infographies au module suivant.</p></section>
     </div>
   </aside>
+
+  <!-- MODAL Pomodoro -->
+  <div id="modalBack" class="modalBack" hidden></div>
+  <div id="pomoModal" class="modal" hidden role="dialog" aria-modal="true" aria-label="Paramètres pomodoro">
+    <div class="modalHead">
+      <div class="modalTitle">Paramètres Pomodoro</div>
+      <button id="modalClose" class="modalClose" type="button" aria-label="Fermer">×</button>
+    </div>
+
+    <div class="modalBody">
+      <div class="grid2">
+        <div>
+          <label class="muted small">Pomodoro (min)</label>
+          <input id="pomoMinutes" class="input" type="number" min="5" max="90" step="1">
+        </div>
+        <div>
+          <label class="muted small">Pause (min)</label>
+          <input id="breakMinutes" class="input" type="number" min="1" max="30" step="1">
+        </div>
+        <div class="span2">
+          <label class="muted small">Auto-start après fin (Pomodoro ⇄ Pause)</label>
+          <select id="autoStartSel" class="select">
+            <option value="auto">Automatique</option>
+            <option value="manual">Manuel</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="pomoApply" class="btn primary" type="button">Appliquer</button>
+        <button id="pomoReset" class="btn ghost" type="button">Reset timer</button>
+      </div>
+    </div>
+  </div>
 
   <script src="state.js" defer></script>
 </body>
