@@ -10,21 +10,22 @@
   --barFill: rgba(211,138,92,.92);
   --barEdge: rgba(255,255,255,.82);
 
-  /* accents saisonniers (JS les change vraiment) */
   --accent: rgba(211,138,92,.18);
   --accent2: rgba(211,138,92,.36);
 
-  /* glass */
   --glass: rgba(255,255,255,.58);
   --glass2: rgba(255,255,255,.40);
 
-  /* décor doux “Ghibli-ish” */
   --decoA: rgba(255,255,255,.18);
   --decoB: rgba(255,255,255,.10);
 
   --leftW:360px;
   --rightW:420px;
   --baseSize:16px;
+
+  /* style progression */
+  --progressShadow: 0 18px 30px rgba(0,0,0,.10);
+  --progressBorder: 1px solid var(--line);
 }
 
 *{ box-sizing:border-box; }
@@ -35,8 +36,28 @@ body{
   margin:0;
   background: var(--bg);
   color: var(--fg);
-  font-family: "Yomogi", cursive; /* ✅ plus manuscrite par défaut */
+  font-family: "Yomogi", cursive;
+  position: relative;
+  overflow-x:hidden;
 }
+
+/* ✅ texture discrète (grain + nuages) */
+body::before{
+  content:"";
+  position: fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,.14), transparent 58%),
+    radial-gradient(circle at 82% 18%, rgba(255,255,255,.10), transparent 60%),
+    radial-gradient(circle at 35% 92%, rgba(0,0,0,.04), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 2px, rgba(0,0,0,.02) 2px 4px);
+  mix-blend-mode: overlay;
+  opacity:.45;
+}
+
+body > *{ position: relative; z-index:1; }
 
 /* Fonts switch */
 body[data-font="yomogi"]{ font-family: "Yomogi", cursive; }
@@ -69,19 +90,6 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 .tb-center{ justify-self:center; }
 .tb-right{ justify-self:end; }
 
-.tb-visuals{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
-.tb-dot{
-  width:6px; height:6px;
-  border-radius:999px;
-  background: var(--accent2);
-  opacity:.9;
-}
-
 .tb-icon{
   border: 1px solid var(--line);
   background: var(--glass2);
@@ -93,22 +101,52 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   color: var(--fg);
 }
 
-.tb-chip{
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--glass2);
-  padding: 8px 12px;
+.tb-nav{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.tb-sep{ opacity:.55; }
+
+/* ✅ plus de contour : mots seuls, style “onglets” */
+.tb-link{
+  border:none;
+  background: transparent;
+  padding: 0;
   cursor:pointer;
-  color: var(--fg);
   font-family: inherit;
   font-weight: 900;
+  color: var(--fg);
+  opacity:.86;
+  text-decoration: none;
 }
-.tb-chip.subtle{ opacity:.88; }
+.tb-link:hover{
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
 
-/* Focus : ✅ moins agressif */
-.tb-chip.subtle.active{
-  background: var(--accent);
-  border-color: var(--accent2);
+/* Focus : ressort différemment (sans bouton “Windows 95”) */
+.tb-link.tb-focus{
+  position: relative;
+  opacity: .95;
+}
+.tb-link.tb-focus.active{
+  opacity: 1;
+}
+.tb-link.tb-focus.active::after{
+  content:"";
+  position:absolute;
+  left: -6px;
+  right: -6px;
+  bottom: -8px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent2);
+  filter: blur(0.2px);
+  opacity: .65;
 }
 
 /* ---------- Hub ---------- */
@@ -121,7 +159,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 
 #hub-inner{
   width: min(980px, 94vw);
-  padding: 44px 18px 56px;
+  padding: 34px 18px 56px; /* ✅ un peu moins haut */
   text-align:center;
 }
 
@@ -130,26 +168,33 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   font-size: clamp(86px, 9.5vw, 128px);
   font-weight: 900;
   letter-spacing: .06em;
+  margin: 6px 0 0;
 }
 
-#subtitle{
-  margin: 0 0 26px;
+.subtitle{
+  margin: 4px 0 10px;  /* ✅ remonte */
   color: var(--muted);
   font-size: 15px;
 }
 
-/* ---------- Progression ---------- */
-#progressWrap{ margin: 0 auto 18px; width: 100%; }
+.statusLine{
+  margin: 0 0 14px;
+  font-size: 13px;
+  min-height: 18px;
+}
 
-#progressBar{
+/* ---------- Progression ---------- */
+#progressWrap{ margin: 0 auto 16px; width: 100%; }
+
+.progressBar{
   position: relative;
   width: 100%;
   height: 104px;
   border-radius: 26px;
   overflow: hidden;
   background: var(--barEmpty);
-  border: 1px solid var(--line);
-  box-shadow: 0 18px 30px rgba(0,0,0,.08);
+  border: var(--progressBorder);
+  box-shadow: var(--progressShadow);
 }
 
 #progressFill{
@@ -176,11 +221,31 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   pointer-events:none;
 }
 
-/* ---------- Pomodoro discret ---------- */
-#pomodoro{ margin: 12px 0 18px; display:flex; justify-content:center; }
+/* ---------- Pomodoro (masquable) ---------- */
+#pomodoro{
+  margin: 10px 0 14px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height: 56px;
+  gap: 10px;
+}
 
-.pomoRow{ display:flex; align-items:center; gap: 10px; }
+.pomoTomato{
+  border:none;
+  background: transparent;
+  cursor:pointer;
+  font-size: 22px;
+  opacity: .84;
+}
+.pomoTomato:hover{ opacity: 1; }
 
+.pomoBox{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap: 6px;
+}
 .pomoTime{
   font-size: 30px;
   letter-spacing: .02em;
@@ -188,25 +253,29 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   cursor: pointer;
   user-select:none;
 }
-
-.pomoIcon{
+.pomoMiniRow{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  justify-content:center;
+}
+.pomoMini{
   border:none;
   background: transparent;
   cursor:pointer;
   font-family: inherit;
   font-weight: 900;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--fg);
-  opacity:.86;
-  padding: 2px 6px;
+  opacity:.75;
+  padding: 0;
 }
-.pomoIcon.subtle{ opacity:.62; }
-.pomoIcon.pencil{ opacity:.70; }
-.pomoIcon:active{ transform: translateY(1px); }
+.pomoMini:hover{ opacity: 1; }
+.pomoMini:active{ transform: translateY(1px); }
 
-/* ---------- Mission Card + texture ---------- */
+/* ---------- Mission Card ---------- */
 .missionCard{
-  margin: 10px auto 10px;
+  margin: 6px auto 10px;
   width: 100%;
   background: var(--glass2);
   border: 1px solid var(--line);
@@ -228,12 +297,10 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
     radial-gradient(circle at 82% 25%, var(--decoB), transparent 60%),
     radial-gradient(circle at 40% 95%, var(--decoB), transparent 60%);
   pointer-events:none;
+  opacity:.90;
 }
 
 .missionLine{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
   font-size: 12px;
   font-weight: 900;
   color: var(--muted);
@@ -241,55 +308,26 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   margin-bottom: 8px;
 }
 
+/* ✅ titre de tâche centré + police “titre” + ultra gras */
 .missionTitle{
-  font-size: clamp(34px, 3.8vw, 54px);
+  text-align:center;
+  font-family: "Baloo 2", cursive;
+  font-size: clamp(36px, 4.2vw, 58px);
   font-weight: 900;
-  line-height: 1.10;
-  margin: 4px 0 0;
+  line-height: 1.08;
+  margin: 6px 0 6px;
   text-shadow: 0 12px 18px rgba(0,0,0,.12);
 }
 
-.missionMeta{ margin-top: 8px; }
+.missionMeta{ margin-top: 6px; text-align:center; }
 
-.divider{
-  height:1px;
-  background: var(--line);
-  margin: 12px 0;
-  opacity:.75;
-}
-.divider.soft{ opacity:.55; }
-
-/* Liste hub */
-.hubList{
-  display:flex;
-  flex-direction:column;
-  gap: 8px;
-  margin: 0;
-}
-
-.hubTaskRow{
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,.16);
-  color: var(--fg);
-  border-radius: 14px;
-  padding: 10px 12px;
-  cursor:pointer;
-  text-align:left;
-  font-family: inherit;
-  font-weight: 900;
-}
-.hubTaskRow.active{
-  background: var(--accent);
-  border-color: var(--accent2);
-}
-
-/* Actions : mieux centré */
+/* ✅ Actions horizontales */
 .missionActionsRow{
   display:grid;
   grid-template-columns: 1fr auto 1fr;
   align-items:center;
-  gap: 10px;
-  padding-top: 4px;
+  gap: 12px;
+  padding-top: 6px;
   padding-bottom: 6px;
 }
 
@@ -308,7 +346,6 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   gap: 8px;
 }
 .actionPill span{ font-size: 12px; color: var(--muted); font-weight: 900; }
-
 .actionPill.bomb{ justify-self: end; background: var(--accent); border-color: var(--accent2); }
 
 .rouletteBtn{
@@ -337,7 +374,6 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   transform: rotate(0deg);
   will-change: transform;
 }
-
 .rouletteCenterText{
   font-weight: 900;
   font-size: 18px;
@@ -346,7 +382,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   text-shadow: 0 2px 0 rgba(255,255,255,.55);
 }
 
-/* mini links DANS le cadre, sans contour */
+/* mini links : mots sans contour */
 .miniLinks{
   display:flex;
   gap: 14px;
@@ -362,15 +398,20 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   font-family: inherit;
   font-weight: 900;
   color: var(--fg);
-  opacity:.88;
+  opacity:.90;
   padding: 0;
 }
-.miniLink:hover{ opacity: 1; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+.miniLink:hover{
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
 .mutedLink{ opacity: .70; }
 
 /* Toast */
 .toast{
-  margin: 16px auto 0;
+  margin: 14px auto 0;
   max-width: 560px;
   padding: 10px 12px;
   border-radius: 14px;
@@ -404,6 +445,8 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   transition: transform .25s ease;
   display:flex;
   flex-direction:column;
+
+  /* ✅ lisibilité */
   color: var(--fg);
 }
 
@@ -454,8 +497,8 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   border:none;
   background: transparent;
   padding: 6px 10px;
-  color: var(--fg);
-  opacity: .84;
+  color: var(--fg);     /* ✅ plus foncé (plus lisible) */
+  opacity: .92;
   cursor:pointer;
   font-family: inherit;
   font-weight: 900;
@@ -469,12 +512,25 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 .panel-content{
   padding: 14px 12px 18px;
   overflow:auto;
-  color: var(--fg);
+  color: rgba(0,0,0,.88); /* ✅ mieux en clair */
+}
+
+/* En sombre, on garde la lisibilité */
+body[data-mode="sombre"] .panel-content{
+  color: rgba(255,255,255,.92);
 }
 
 .tabPage{ display:none; }
 .tabPage.show{ display:block; }
 
+.divider{
+  height:1px;
+  background: var(--line);
+  margin: 12px 0;
+  opacity:.75;
+}
+
+/* Inputs */
 .area{
   width: 100%;
   border-radius: 14px;
@@ -541,6 +597,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 .iconBtn:active{ transform: translateY(1px); }
 
 .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid2 .span2{ grid-column: 1 / -1; }
 
 @media (max-width: 720px){
   .missionActionsRow{ grid-template-columns: 1fr; gap: 10px; }
