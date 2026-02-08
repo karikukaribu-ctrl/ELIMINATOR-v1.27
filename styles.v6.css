@@ -19,8 +19,8 @@
   --decoA: rgba(211,138,92,.12);
   --decoB: rgba(255,210,160,.12);
 
-  --doodle: none;         /* ✅ injecté par JS */
-  --doodleOpacity: .22;   /* ✅ injecté par JS */
+  --doodle: none;
+  --doodleOpacity: .22;
 
   --leftW:360px;
   --rightW:420px;
@@ -29,7 +29,16 @@
   --progressShadow: 0 18px 30px rgba(0,0,0,.10);
   --progressBorder: 1px solid var(--line);
 
-  --rouletteSize: 166px; /* ✅ responsive sans casser l’horizontal */
+  --rouletteSize: 166px;
+
+  /* ✅ Progress "intensité" (futuriste doux) */
+  --progRim: rgba(255,255,255,.55);
+  --progGlow: rgba(255,255,255,.22);
+  --progSeam: rgba(0,0,0,.18);
+  --progTick: rgba(255,255,255,.14);
+  --progCut: rgba(255,255,255,.92); /* ligne de séparation */
+  --progCutGlow: rgba(255,255,255,.40);
+  --progressPct: 100; /* mis à jour par JS */
 }
 
 *{ box-sizing:border-box; }
@@ -44,7 +53,6 @@ body{
   overflow-x:hidden;
 }
 
-/* Fonts switch */
 body[data-font="yomogi"]{ font-family: "Yomogi", cursive; }
 body[data-font="zen"]{ font-family: "Zen Maru Gothic", sans-serif; }
 body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
@@ -69,7 +77,6 @@ body::before{
   opacity:.55;
 }
 
-/* ✅ doodles saisonniers */
 body::after{
   content:"";
   position: fixed;
@@ -179,30 +186,92 @@ body::after{
 
 /* ✅ plus d’air */
 #progressWrap{
-  margin: 0 auto 26px;
+  margin: 0 auto 30px;
   width: 100%;
 }
 
+/* ---------- Progress BAR: futuriste doux + délimitation nette ---------- */
 .progressBar{
   position: relative;
   width: 100%;
-  height: 104px;
-  border-radius: 26px;
+  height: 108px;
+  border-radius: 28px;
   overflow: hidden;
-  background: var(--barEmpty);
+
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.22), transparent 35%),
+    linear-gradient(180deg, rgba(0,0,0,.06), transparent 55%),
+    var(--barEmpty);
+
   border: var(--progressBorder);
   box-shadow: var(--progressShadow);
 }
 
+/* grille de "ticks" (lisible mais discret) */
+.progressBar::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 34px,
+      var(--progTick) 34px 35px
+    );
+  opacity:.55;
+  pointer-events:none;
+}
+
+/* ligne de séparation "fait / reste" */
+.progressBar::after{
+  content:"";
+  position:absolute;
+  top: 10px;
+  bottom: 10px;
+  left: calc(var(--progressPct) * 1%);
+  width: 2px;
+
+  background: linear-gradient(180deg, transparent, var(--progCut), transparent);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.06),
+    0 0 16px var(--progCutGlow);
+  transform: translateX(-1px);
+  pointer-events:none;
+}
+
+/* remplissage */
 #progressFill{
   position:absolute;
   top:0; left:0; bottom:0;
   width: 100%;
+
   background:
-    linear-gradient(180deg, rgba(255,255,255,.26), transparent 55%),
-    linear-gradient(90deg, var(--barFill), rgba(255,255,255,.14));
-  box-shadow: inset -5px 0 0 var(--barEdge);
+    linear-gradient(180deg, rgba(255,255,255,.30), transparent 55%),
+    linear-gradient(90deg, var(--barFill), rgba(255,255,255,.12)),
+    radial-gradient(circle at 18% 30%, rgba(255,255,255,.24), transparent 45%);
+
+  box-shadow:
+    inset -6px 0 0 var(--barEdge),
+    inset 0 0 0 1px rgba(255,255,255,.18);
+
   transition: width .55s cubic-bezier(.2,.8,.2,1);
+}
+
+/* léger "shimmer" très doux */
+#progressFill::after{
+  content:"";
+  position:absolute;
+  inset:-20px;
+  background:
+    linear-gradient(120deg, transparent 0 42%, rgba(255,255,255,.22) 48%, transparent 56%);
+  transform: translateX(-40%);
+  opacity:.55;
+  animation: shimmer 3.4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes shimmer{
+  0%,100%{ transform: translateX(-45%); opacity:.18; }
+  50%{ transform: translateX(45%); opacity:.40; }
 }
 
 #progressPctIn{
@@ -212,7 +281,7 @@ body::after{
   justify-content:center;
   align-items:center;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 900;
   color: rgba(255,255,255,.92);
   text-shadow: 0 2px 10px rgba(0,0,0,.22);
   pointer-events:none;
@@ -308,7 +377,7 @@ body::after{
 
 .missionMeta{ margin-top: 6px; text-align:center; }
 
-/* ✅ Toujours horizontal : jamais de colonne */
+/* Toujours horizontal */
 .missionActionsRow{
   display:flex;
   align-items:center;
@@ -373,7 +442,6 @@ body::after{
   transform: rotate(0deg);
   will-change: transform;
 }
-
 .rouletteCenterText{
   font-weight: 900;
   font-size: 18px;
@@ -381,12 +449,11 @@ body::after{
   color: rgba(20,18,15,.82);
   text-shadow: 0 2px 0 rgba(255,255,255,.55);
 }
-
 .rouletteWheel.spinning{
   filter: drop-shadow(0 14px 18px rgba(0,0,0,.12));
 }
 
-/* ✅ Responsive : on réduit sans empiler */
+/* Responsive sans empiler */
 @media (max-width: 720px){
   :root{ --rouletteSize: 150px; }
   .missionActionsRow{ gap: 10px; }
@@ -400,7 +467,6 @@ body::after{
   .actionPill span{ font-size: 10px; }
 }
 
-/* Liens bas */
 .miniLinks{
   display:flex;
   gap: 14px;
@@ -588,7 +654,7 @@ body::after{
 .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .grid2 .span2{ grid-column: 1 / -1; }
 
-/* ---------- Modal ---------- */
+/* ---------- Modals (Pomodoro + Central overlay) ---------- */
 .modalBack{
   position: fixed;
   inset:0;
@@ -602,7 +668,7 @@ body::after{
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(520px, 92vw);
+  width: min(720px, 92vw);
   border-radius: 18px;
   border: 1px solid var(--line);
   background: var(--panelBg);
@@ -630,3 +696,36 @@ body::after{
   color: var(--fg);
 }
 .modalBody{ padding: 12px; }
+
+/* ✅ overlay central content */
+.overlayTabs{
+  display:flex;
+  gap:8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.overlayTab{
+  border:none;
+  background: transparent;
+  cursor:pointer;
+  font-family: inherit;
+  font-weight: 900;
+  color: var(--fg);
+  opacity:.85;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+.overlayTab:hover{ background: var(--accent); opacity:1; }
+.overlayTab.active{ background: var(--accent2); opacity:1; }
+
+.overlayGrid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.overlayHint{
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 900;
+  opacity:.9;
+}
