@@ -726,3 +726,84 @@ body{
 }
 
 /* ===== Dark mode tweaks applied by JS variables ===== */
+/* ===== PATCH: Title thicker WITHOUT changing font ===== */
+.brand__title,
+#appTitle,
+.appTitle,
+.logoTitle {
+  font-weight: 900;               /* <- rend plus épais */
+  letter-spacing: 0.05em;
+  /* optionnel si la font ne grossit pas assez : */
+  /* text-shadow: 0 1px 0 rgba(0,0,0,.10); */
+}
+
+/* ===== PATCH: Topbar always above main content ===== */
+#topBar, .topbar, header.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 5000;
+}
+
+/* ===== PATCH: Backdrop for panels (click to close) ===== */
+#panelBack, .panelBack, .backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5900;         /* below panels, above topbar */
+  background: rgba(0,0,0,.22);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+#panelBack.show, .panelBack.show, .backdrop.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ===== PATCH: Panels ALWAYS ABOVE topbar + never "inside" hub layout ===== */
+#leftPanel, #rightPanel,
+.leftPanel, .rightPanel,
+.panel {
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  z-index: 6000 !important;  /* above topbar */
+  overflow: auto;
+  contain: paint;            /* évite certains glitches */
+}
+
+/* ===== PATCH: Slide-in behavior (avoid weird transforms) ===== */
+#leftPanel, .panel-left {
+  left: 0;
+  transform: translateX(-105%);
+  transition: transform .22s ease;
+}
+#rightPanel, .panel-right {
+  right: 0;
+  transform: translateX(105%);
+  transition: transform .22s ease;
+}
+#leftPanel.open, .panel-left.open { transform: translateX(0); }
+#rightPanel.open, .panel-right.open { transform: translateX(0); }
+
+/* ===== PATCH: Resizers visible + working (if you already had them) ===== */
+#leftResizer, .leftResizer, .panelResizer--right {
+  position: absolute;
+  top: 0; bottom: 0;
+  right: 0;
+  width: 10px;
+  cursor: ew-resize;
+}
+#rightResizer, .rightResizer, .panelResizer--left {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0;
+  width: 10px;
+  cursor: ew-resize;
+}
+
+/* ===== PATCH: Avoid panels being clipped by parent transforms ===== */
+/* Si un parent du body a un transform, les fixed peuvent bugger.
+   On neutralise les transforms fréquents sur wrappers. */
+#app, .app, main.app, .hubWrap, .layout {
+  transform: none !important;
+}
