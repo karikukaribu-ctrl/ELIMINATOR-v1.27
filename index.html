@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 
-<body data-font="yomogi">
+<body>
 
   <!-- TOP BAR FIXE -->
   <header id="topBar">
@@ -35,10 +35,134 @@
 
   <!-- PANNEAU GAUCHE -->
   <aside id="leftPanel" class="panel panel-left" aria-label="Panneau gauche">
-    <button class="closeBtn" id="leftClose" aria-label="Fermer le panneau gauche">×</button>
+    <div class="panel-top">
+      <div class="panel-title">Menu</div>
+      <button class="closeBtn" id="leftClose" aria-label="Fermer le panneau gauche">×</button>
+    </div>
+
+    <nav class="panel-tabs" aria-label="Onglets gauche">
+      <button class="tabBtn active" data-lefttab="inbox">Inbox</button>
+      <button class="tabBtn" data-lefttab="tasks">Tâches</button>
+      <button class="tabBtn" data-lefttab="kiffance">Kiffance</button>
+      <button class="tabBtn" data-lefttab="prefs">Préférences</button>
+      <button class="tabBtn" data-lefttab="export">Export</button>
+    </nav>
+
     <div class="panel-content">
-      <h3>Menu gauche</h3>
-      <p class="muted">Étape 1 : placeholder (Inbox / Tâches / Kiffance / Préférences / Export … arrivent ensuite).</p>
+
+      <!-- INBOX -->
+      <section class="tabPage show" id="left-inbox">
+        <h3>Inbox</h3>
+        <p class="muted small">
+          Colle des tâches. Une ligne = une tâche.
+          Ligne en MAJUSCULES = catégorie.
+          “Titre - 6” ou “Titre 6” = 6 Éthorions.
+        </p>
+
+        <textarea id="inboxText" class="area" rows="8" placeholder="EXEMPLE CATÉGORIE
+Ranger bureau - 3
+Appeler X 1
+Lire article - 2"></textarea>
+
+        <div class="row">
+          <button id="inboxAdd" class="btn primary">Ajouter</button>
+          <button id="inboxClear" class="btn ghost">Effacer champ</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <div class="muted small">Actives : <b id="statActive">0</b></div>
+          <div class="muted small">Finies : <b id="statDone">0</b></div>
+        </div>
+      </section>
+
+      <!-- TASKS -->
+      <section class="tabPage" id="left-tasks">
+        <h3>Tâches</h3>
+
+        <div class="row wrap">
+          <label class="muted small">Catégorie</label>
+          <select id="catFilter" class="select"></select>
+
+          <label class="muted small">Vue</label>
+          <select id="viewFilter" class="select">
+            <option value="active">Actives</option>
+            <option value="done">Finies</option>
+            <option value="all">Toutes</option>
+          </select>
+        </div>
+
+        <div class="list" id="taskList"></div>
+      </section>
+
+      <!-- KIFFANCE -->
+      <section class="tabPage" id="left-kiffance">
+        <h3>Kiffance</h3>
+        <p class="muted small">Récompenses surprises. (Étape 2 : base éditable.)</p>
+
+        <div class="row wrap">
+          <input id="kiffNew" class="input" placeholder="Ajouter une kiffance…" />
+          <button id="kiffAdd" class="btn primary">+</button>
+        </div>
+        <div class="list" id="kiffList"></div>
+      </section>
+
+      <!-- PREFS -->
+      <section class="tabPage" id="left-prefs">
+        <h3>Préférences</h3>
+
+        <div class="grid2">
+          <div>
+            <label class="muted small">Mode</label>
+            <select id="modeSel" class="select">
+              <option value="clair">Clair</option>
+              <option value="fonce">Foncé</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="muted small">Saison</label>
+            <select id="seasonSel" class="select">
+              <option value="printemps">Printemps</option>
+              <option value="ete">Été</option>
+              <option value="automne">Automne</option>
+              <option value="hiver">Hiver</option>
+              <option value="noirblanc">Noir & blanc</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="muted small">Police</label>
+            <select id="fontSel" class="select">
+              <option value="yomogi">Yomogi</option>
+              <option value="zen">Zen Kurenaido</option>
+              <option value="kiwi">Kiwi Maru</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="muted small">Intensité</label>
+            <input id="intensity" type="range" min="0.85" max="1.12" step="0.01" />
+          </div>
+        </div>
+
+        <p class="muted small">
+          Objectif : lisible, chaud en clair, doux en foncé. Sans “noir sale”.
+        </p>
+      </section>
+
+      <!-- EXPORT -->
+      <section class="tabPage" id="left-export">
+        <h3>Export</h3>
+        <p class="muted small">Étape 2 : export JSON simple.</p>
+        <div class="row wrap">
+          <button id="exportBtn" class="btn ghost">Copier JSON</button>
+          <button id="wipeBtn" class="btn danger">Reset total</button>
+        </div>
+        <textarea id="exportOut" class="area" rows="8" readonly></textarea>
+      </section>
+
     </div>
   </aside>
 
@@ -49,7 +173,7 @@
       <h1 id="appTitle">ELIMINATOR</h1>
       <p id="subtitle">Une quête après l’autre.</p>
 
-      <!-- PROGRESSION (PLEINE -> DÉCROÎT), PLUS ÉPAISSE -->
+      <!-- PROGRESSION -->
       <section id="progressWrap" aria-label="Progression">
         <div id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
           <div id="progressFill"></div>
@@ -57,7 +181,7 @@
         </div>
       </section>
 
-      <!-- POMODORO (temps puis édition en dessous) -->
+      <!-- POMODORO -->
       <section id="pomodoro" aria-label="Pomodoro">
         <div id="pomoTime">25:00</div>
         <button id="pomoEdit" class="iconLink" type="button" title="Modifier le pomodoro" aria-label="Modifier le pomodoro">
@@ -71,7 +195,6 @@
           <span class="taskLabel">Tâche en cours</span>
           <span class="taskFraction" id="taskFraction">0/0</span>
 
-          <!-- infos masquées par défaut -->
           <button id="taskInfoBtn" class="tinyBtn" type="button" title="Afficher/masquer les détails" aria-label="Afficher/masquer les détails">
             i
           </button>
@@ -79,13 +202,12 @@
 
         <div class="taskTitle" id="taskTitle">Aucune tâche sélectionnée</div>
 
-        <!-- masqué par défaut (on le garde mais pas visible en permanence) -->
         <div class="taskMeta muted" id="taskMeta" hidden>
-          Catégorie : — · Éthorions : —
+          Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
         </div>
       </section>
 
-      <!-- ACTIONS (roulette + undo + bombe) -->
+      <!-- ACTIONS -->
       <section id="actions" aria-label="Actions">
         <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">
           ↶
@@ -104,15 +226,60 @@
         </button>
       </section>
 
+      <!-- PETIT FEEDBACK (sobre) -->
+      <div id="toast" class="toast" aria-live="polite" aria-atomic="true" hidden></div>
+
     </div>
   </main>
 
   <!-- PANNEAU DROIT -->
   <aside id="rightPanel" class="panel panel-right" aria-label="Panneau droit">
-    <button class="closeBtn" id="rightClose" aria-label="Fermer le panneau droit">×</button>
+    <div class="panel-top">
+      <div class="panel-title">Panneau</div>
+      <button class="closeBtn" id="rightClose" aria-label="Fermer le panneau droit">×</button>
+    </div>
+
+    <nav class="panel-tabs" aria-label="Onglets droit">
+      <button class="tabBtn active" data-righttab="sets">Sets</button>
+      <button class="tabBtn" data-righttab="habits">Habitudes</button>
+      <button class="tabBtn" data-righttab="mood">Mood</button>
+      <button class="tabBtn" data-righttab="calendar">Calendrier</button>
+      <button class="tabBtn" data-righttab="notes">Notes</button>
+      <button class="tabBtn" data-righttab="stats">Stats</button>
+    </nav>
+
     <div class="panel-content">
-      <h3>Panneau droit</h3>
-      <p class="muted">Étape 1 : placeholder (Sets / Habitudes / Mood / Calendrier / Notes-Rappels / Stats … arrivent ensuite).</p>
+
+      <section class="tabPage show" id="right-sets">
+        <h3>Sets</h3>
+        <p class="muted small">Structure prête. (Étape 3+ : édition + play + progression set.)</p>
+      </section>
+
+      <section class="tabPage" id="right-habits">
+        <h3>Habitudes</h3>
+        <p class="muted small">Structure prête. (Étape 3+ : lignes compactes + cases colorées.)</p>
+      </section>
+
+      <section class="tabPage" id="right-mood">
+        <h3>Mood</h3>
+        <p class="muted small">Étape 4+ : journal émotionnel TCC avec fenêtres contextuelles.</p>
+      </section>
+
+      <section class="tabPage" id="right-calendar">
+        <h3>Calendrier</h3>
+        <p class="muted small">Étape 4+ : calendrier + vue timeline.</p>
+      </section>
+
+      <section class="tabPage" id="right-notes">
+        <h3>Notes & Rappels</h3>
+        <p class="muted small">Étape 4+ : notes + aide-mémoire + rappels.</p>
+      </section>
+
+      <section class="tabPage" id="right-stats">
+        <h3>Stats</h3>
+        <p class="muted small">Étape 5+ : infographies + export.</p>
+      </section>
+
     </div>
   </aside>
 
