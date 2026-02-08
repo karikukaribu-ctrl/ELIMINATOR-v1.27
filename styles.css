@@ -3,32 +3,19 @@
   --fg:#14120f;
   --muted:#6a5d53;
 
-  --accentSoft: rgba(211,138,92,.22);
-
-  --font-ui: "Zen Maru Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  --font-title: "Baloo 2", cursive;
-
-  /* Panels + cartes */
-  --panelBg: rgba(255,255,255,.70);
-  --card: rgba(255,255,255,.52);
   --line: rgba(0,0,0,.10);
+  --panelBg: rgba(255,255,255,.70);
 
-  /* Progress */
   --barEmpty: rgba(255, 210, 165, .28);
   --barFill: rgba(211,138,92,.92);
   --barEdge: rgba(255,255,255,.82);
 
-  /* Largeurs panneaux (pilotées aussi par JS via --leftW/--rightW) */
+  --glass: rgba(255,255,255,.58);
+  --glass2: rgba(255,255,255,.40);
+
   --leftW:360px;
   --rightW:420px;
-
-  /* taille globale (pas de scale body) */
-  --baseSize: 16px;
-
-  /* z-index (net, sans contradictions) */
-  --z-topbar: 4000;
-  --z-backdrop: 6500;
-  --z-panels: 7000;
+  --baseSize:16px;
 }
 
 *{ box-sizing:border-box; }
@@ -39,37 +26,33 @@ body{
   margin:0;
   background: var(--bg);
   color: var(--fg);
-  font-family: var(--font-ui);
+  font-family: "Zen Maru Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
-/* Fonts switch (via JS data-font) */
-body[data-font="yomogi"]{ font-family: "Yomogi", var(--font-ui); }
-body[data-font="zen"]{ font-family: "Zen Kurenaido", var(--font-ui); }
-body[data-font="kiwi"]{ font-family: "Kiwi Maru", var(--font-ui); }
+/* Polices switchables */
+body[data-font="zen"]{ font-family: "Zen Maru Gothic", sans-serif; }
+body[data-font="yomogi"]{ font-family: "Yomogi", cursive; }
+body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
+body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 
 .muted{ color: var(--muted); }
 .small{ font-size: 12px; }
 
-/* Focus/counters helpers */
-body.focusMode .panelToggleLeft,
-body.focusMode .panelToggleRight{ display:none; }
-body.hideCounters #hudCounters{ display:none; }
-
-/* ---------- Topbar fixe ---------- */
+/* ---------- Topbar : vitré + discret ---------- */
 #topBar{
   position: fixed;
   top:0; left:0; right:0;
   height:56px;
-  z-index: var(--z-topbar);
+  z-index: 4000;
 
   display:grid;
   grid-template-columns: 1fr auto 1fr;
   align-items:center;
 
   padding: 0 12px;
-  background: rgba(255,255,255,.62);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
 
@@ -77,15 +60,52 @@ body.hideCounters #hudCounters{ display:none; }
 .tb-center{ justify-self:center; }
 .tb-right{ justify-self:end; }
 
-.tb-btn{
+.tb-visuals{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.tb-spacer{ width: 8px; }
+
+.tb-icon{
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.35);
-  border-radius: 10px;
+  background: var(--glass2);
+  border-radius: 12px;
   width: 44px;
   height: 36px;
   cursor:pointer;
-  font-family: inherit;
   font-size: 18px;
+  color: var(--fg);
+}
+
+.tb-select{
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--glass2);
+  padding: 8px 12px;
+  color: var(--fg);
+  font-family: inherit;
+  cursor:pointer;
+}
+
+.tb-chip{
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--glass2);
+  padding: 8px 12px;
+  cursor:pointer;
+  color: var(--fg);
+  font-family: inherit;
+  font-weight: 800;
+}
+.tb-chip.subtle{
+  font-weight: 700;
+  opacity: .90;
+}
+.tb-chip.active{
+  background: rgba(211,138,92,.18);
+  border-color: rgba(211,138,92,.30);
 }
 
 /* ---------- Hub ---------- */
@@ -102,9 +122,8 @@ body.hideCounters #hudCounters{ display:none; }
   text-align:center;
 }
 
-/* Titre */
 #appTitle{
-  font-family: var(--font-title);
+  font-family: "Baloo 2", cursive;
   font-size: clamp(72px, 8vw, 112px);
   font-weight: 900;
   letter-spacing: .06em;
@@ -150,15 +169,15 @@ body.hideCounters #hudCounters{ display:none; }
   justify-content:center;
   align-items:center;
   font-size: 16px;
-  font-weight: 700;
-  color: rgba(255,255,255,.92);
+  font-weight: 800;
+  color: rgba(255,255,255,.90);
   text-shadow: 0 2px 10px rgba(0,0,0,.22);
   pointer-events:none;
 }
 
 /* ---------- Pomodoro ---------- */
 #pomodoro{
-  margin: 12px 0 22px;
+  margin: 12px 0 18px;
   display:flex;
   justify-content:center;
 }
@@ -172,7 +191,7 @@ body.hideCounters #hudCounters{ display:none; }
 #pomoTime{
   font-size: 30px;
   letter-spacing: .02em;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .iconLink{
@@ -186,102 +205,35 @@ body.hideCounters #hudCounters{ display:none; }
   line-height: 1;
 }
 
-/* ---------- Bottom card: tâches en cours + quick links ---------- */
-.bottomCard{
-  margin-top: 18px;
-  background: var(--card);
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 18px;
-  padding: 14px 14px 10px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.bottomHeader{
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom: 10px;
-}
-
-.bottomTitle{
-  font-weight: 900;
-  font-size: 22px;
-  letter-spacing: .01em;
-  text-shadow: 0 2px 0 rgba(255,255,255,.5);
-}
-
-.bottomMeta{
-  font-weight: 700;
-  opacity: .70;
-}
-
-#tasksList{
-  display:flex;
-  flex-direction:column;
-  gap: 8px;
-}
-
-.hubTaskRow{
+/* ---------- Mission Card : le grand cadre unique ---------- */
+.missionCard{
+  margin: 10px auto 10px;
   width: 100%;
-  text-align:left;
-  border: 1px solid rgba(0,0,0,.08);
-  background: rgba(255,255,255,.35);
-  border-radius: 14px;
-  padding: 10px 10px;
-  cursor:pointer;
-  font-family: inherit;
-  font-weight: 800;
-}
-.hubTaskRow.active{
-  background: rgba(211,138,92,.22);
-  border-color: rgba(211,138,92,.35);
+  background: var(--glass2);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 16px 16px 14px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  text-align: center;
 }
 
-.quickLinks{
-  display:flex;
-  gap:10px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(0,0,0,.08);
-}
-
-.ql{
-  border:none;
-  background: rgba(255,255,255,.35);
-  padding: 8px 10px;
-  border-radius: 999px;
-  font-weight: 800;
-  cursor:pointer;
-  font-family: inherit;
-}
-.ql:hover{ background: rgba(255,255,255,.55); }
-
-/* ---------- Tâche en cours ---------- */
-#currentTask{ margin: 6px 0 22px; }
-
-.taskLine{
+.missionKicker{
   display:flex;
   justify-content:center;
+  align-items:center;
   gap: 10px;
-  align-items: center;
+  flex-wrap: wrap;
   margin-bottom: 8px;
 }
 
-.taskLabel{
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.taskFraction{
-  font-size: 13px;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,.35);
+.chip{
   border-radius: 999px;
-  padding: 2px 8px;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.28);
+  font-weight: 800;
+  color: var(--fg);
 }
 
 .tinyBtn{
@@ -289,28 +241,80 @@ body.hideCounters #hudCounters{ display:none; }
   height: 26px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.35);
+  background: rgba(255,255,255,.28);
   cursor:pointer;
   font-family: inherit;
   font-size: 13px;
   color: var(--muted);
 }
 
-.taskTitle{
+.missionTitle{
   font-size: clamp(34px, 3.6vw, 50px);
   font-weight: 900;
   line-height: 1.10;
   margin: 6px 0 0;
-  text-shadow: 0 12px 20px rgba(0,0,0,.11);
+  text-shadow: 0 10px 18px rgba(0,0,0,.10);
 }
 
-.taskMeta{ margin-top: 10px; }
+.missionMeta{
+  margin-top: 10px;
+}
 
-/* ---------- Actions ---------- */
-#actions{
+.divider{
+  height:1px;
+  background: var(--line);
+  margin: 12px 0;
+  opacity:.8;
+}
+.divider.soft{ opacity:.55; }
+
+.missionListHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap: 12px;
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+.missionListTitle{
+  font-weight: 900;
+  font-size: 18px;
+}
+.missionListMeta{
+  opacity: .78;
+  font-weight: 800;
+}
+
+/* Liste hub cliquable */
+.hubList{
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+}
+.hubTaskRow{
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.26);
+  color: var(--fg);
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor:pointer;
+  text-align:left;
+  font-family: inherit;
+  font-weight: 800;
+}
+.hubTaskRow.active{
+  background: rgba(211,138,92,.18);
+  border-color: rgba(211,138,92,.28);
+}
+
+/* ---------- Actions dans le cadre ---------- */
+.missionActions{
   display:grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr auto 1fr;
   align-items:start;
+  gap: 14px;
 }
 
 .actionCol{
@@ -318,21 +322,21 @@ body.hideCounters #hudCounters{ display:none; }
   flex-direction:column;
   align-items:center;
   gap: 8px;
-  min-width: 160px;
+  min-width: 140px;
 }
 
 .actionLbl{
   font-size: 12px;
   color: var(--muted);
+  font-weight: 800;
 }
 
-/* Boutons ronds */
 .roundBtn{
-  width: 70px;
-  height: 70px;
+  width: 72px;
+  height: 72px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.45);
+  background: rgba(255,255,255,.28);
   cursor:pointer;
   font-family: inherit;
   font-size: 26px;
@@ -342,29 +346,25 @@ body.hideCounters #hudCounters{ display:none; }
   transition: transform 160ms ease;
 }
 .roundBtn:active{ transform: translateY(1px) scale(.99); }
-.roundBtn.ghost{ background: rgba(255,255,255,.30); }
-
+.roundBtn.ghost{ background: rgba(255,255,255,.22); }
 .roundBtn.primary{
-  background: rgba(211,138,92,.18);
+  background: rgba(211,138,92,.16);
   border-color: rgba(211,138,92,.30);
 }
 
-/* ---------- Roulette (une seule version, stable) ---------- */
-.rouletteWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
-
+/* Roulette (dans le cadre) */
 .rouletteBtn{
-  width: 140px;
-  height: 140px;
+  width: 164px;
+  height: 164px;
   border: none;
   background: transparent;
   padding: 0;
   cursor: pointer;
-  font-family: inherit;
 }
 
 .rouletteWheel{
-  width: 140px;
-  height: 140px;
+  width: 164px;
+  height: 164px;
   border-radius: 999px;
   background:
     radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 55%),
@@ -379,18 +379,35 @@ body.hideCounters #hudCounters{ display:none; }
 }
 
 .rouletteCenterText{
-  font-weight: 800;
+  font-weight: 900;
   font-size: 18px;
   letter-spacing: .02em;
   color: rgba(20,18,15,.82);
   text-shadow: 0 2px 0 rgba(255,255,255,.55);
 }
 
-.rouletteLegend{
-  font-size: 14px;
-  font-weight: 700;
-  opacity: .78;
+/* ---------- Quicklinks : sous le cadre, centrés ---------- */
+.quickLinks{
+  display:flex;
+  gap:10px;
+  flex-wrap: wrap;
+  justify-content:center;
 }
+.quickLinks.below{
+  margin: 12px 0 0;
+}
+
+.ql{
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.22);
+  color: var(--fg);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 900;
+  cursor:pointer;
+  font-family: inherit;
+}
+.ql:hover{ background: rgba(255,255,255,.34); }
 
 /* ---------- Toast ---------- */
 .toast{
@@ -398,16 +415,16 @@ body.hideCounters #hudCounters{ display:none; }
   max-width: 560px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.42);
   border: 1px solid var(--line);
-  color: rgba(0,0,0,.70);
+  color: var(--fg);
 }
 
-/* ---------- Backdrop + Panels (AU-DESSUS de la topbar) ---------- */
+/* ---------- Panels (lisibles en sombre aussi) ---------- */
 #panelBack{
   position: fixed;
   inset: 0;
-  z-index: var(--z-backdrop);
+  z-index: 5900;
   background: rgba(0,0,0,.22);
   opacity: 0;
   pointer-events:none;
@@ -422,21 +439,17 @@ body.hideCounters #hudCounters{ display:none; }
   position: fixed;
   top: 0;
   bottom: 0;
-  z-index: var(--z-panels);
-
+  z-index: 6000;
   background: var(--panelBg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--line);
   overflow:auto;
-
   transition: transform .25s ease;
   display:flex;
   flex-direction:column;
+  color: var(--fg);
 }
-
-/* IMPORTANT: texte panel lisible (pas gris fantôme) */
-.panel, .panel-content{ color: rgba(20,18,15,.86); }
 
 .panel-left{
   left:0;
@@ -444,22 +457,19 @@ body.hideCounters #hudCounters{ display:none; }
   transform: translateX(-110%);
   border-right: 1px solid var(--line);
 }
-
 .panel-right{
   right:0;
   width: var(--rightW);
   transform: translateX(110%);
   border-left: 1px solid var(--line);
 }
-
 .panel.open{ transform: translateX(0); }
 
-/* Resizers */
 .panelResizer{
   position:absolute;
   top:0;
   bottom:0;
-  width: 12px;
+  width: 10px;
   cursor: ew-resize;
   opacity: .0;
 }
@@ -467,7 +477,6 @@ body.hideCounters #hudCounters{ display:none; }
 .panelResizer.left{ right:0; }
 .panelResizer.right{ left:0; }
 
-/* Panel chrome */
 .panel-top{
   display:flex;
   justify-content:space-between;
@@ -480,17 +489,19 @@ body.hideCounters #hudCounters{ display:none; }
   color: var(--muted);
   letter-spacing: .04em;
   font-size: 13px;
+  font-weight: 900;
 }
 
 .closeBtn{
   width: 40px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.35);
+  background: rgba(255,255,255,.22);
   cursor:pointer;
   font-size: 18px;
   font-family: inherit;
+  color: var(--fg);
 }
 
 .panel-tabs{
@@ -503,49 +514,43 @@ body.hideCounters #hudCounters{ display:none; }
 .tabBtn{
   border:none;
   background: transparent;
-  padding: 6px 8px;
-  color: rgba(20,18,15,.78);
-  font-family: inherit;
+  padding: 6px 10px;
+  color: var(--fg);
+  opacity: .82;
   cursor:pointer;
-}
-
-.tabBtn.active{
-  background: rgba(211,138,92,.22);
-  border-radius: 999px;
+  font-family: inherit;
   font-weight: 800;
+}
+.tabBtn.active{
+  background: rgba(211,138,92,.18);
+  border-radius: 999px;
+  opacity: 1;
 }
 
 .panel-content{
   padding: 14px 12px 18px;
   overflow:auto;
+  color: var(--fg);
 }
 
-/* Tab pages */
 .tabPage{ display:none; }
 .tabPage.show{ display:block; }
 
-.divider{
-  height:1px;
-  background: var(--line);
-  margin: 12px 0;
-  opacity:.8;
-}
-
-/* Inputs */
 .area{
   width: 100%;
   border-radius: 14px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.40);
+  background: rgba(255,255,255,.22);
+  color: var(--fg);
   padding: 10px;
   font-family: inherit;
   resize: vertical;
 }
-
 .input, .select{
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.40);
+  background: rgba(255,255,255,.22);
+  color: var(--fg);
   padding: 8px 10px;
   font-family: inherit;
 }
@@ -558,26 +563,28 @@ body.hideCounters #hudCounters{ display:none; }
 }
 .row.wrap{ flex-wrap: wrap; }
 
-/* Buttons */
 .btn{
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.35);
+  background: rgba(255,255,255,.22);
+  color: var(--fg);
   padding: 8px 12px;
   cursor:pointer;
   font-family: inherit;
+  font-weight: 900;
 }
 .btn.primary{
-  background: rgba(211,138,92,.22);
-  border-color: rgba(211,138,92,.35);
+  background: rgba(211,138,92,.18);
+  border-color: rgba(211,138,92,.28);
 }
-.btn.ghost{ background: rgba(255,255,255,.25); }
+.btn.ghost{
+  background: rgba(255,255,255,.16);
+}
 .btn.danger{
-  background: rgba(255,120,120,.20);
-  border-color: rgba(255,120,120,.35);
+  background: rgba(255,120,120,.16);
+  border-color: rgba(255,120,120,.26);
 }
 
-/* Lists */
 .list{
   display:flex;
   flex-direction:column;
@@ -587,7 +594,7 @@ body.hideCounters #hudCounters{ display:none; }
 
 .cardRow{
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.34);
+  background: rgba(255,255,255,.18);
   border-radius: 14px;
   padding: 10px 10px;
   display:flex;
@@ -620,11 +627,12 @@ body.hideCounters #hudCounters{ display:none; }
 .iconBtn{
   width: 36px;
   height: 34px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.30);
+  background: rgba(255,255,255,.16);
   cursor:pointer;
   font-family: inherit;
+  color: var(--fg);
 }
 .iconBtn:active{ transform: translateY(1px); }
 
@@ -632,4 +640,18 @@ body.hideCounters #hudCounters{ display:none; }
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+/* ---------- Focus mode : cache juste ce qui doit l’être ---------- */
+body.focusMode .panel-left,
+body.focusMode .panel-right{
+  /* focus = tu peux décider plus tard, ici on garde l'ouverture possible */
+}
+
+/* mobile */
+@media (max-width: 720px){
+  .missionActions{ grid-template-columns: 1fr; }
+  .actionCol{ min-width: 0; }
+  .rouletteBtn{ width: 150px; height: 150px; }
+  .rouletteWheel{ width: 150px; height: 150px; }
 }
