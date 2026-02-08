@@ -297,61 +297,44 @@ function degommerOne(){
 
 /* ---------- Roulette animation plus clean ---------- */
 let spinning = false;
-let currentRotation = 0;
+
+function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
 
 function spinRoulette(){
   if(spinning) return;
-
-  const act = activeTasks();
-  if(act.length===0) return toast("Pas de tâches. Repos… ou vide cosmique.");
-
   spinning = true;
-  const face = $("roulette").classList.add("spinning");
 
-  const turns = 3 + Math.random()*4.5;
-  const extra = Math.random()*220;
-  const target = currentRotation + turns*360 + extra;
-  const duration = 1400 + Math.random()*250;
+  const wheel = document.getElementById("rouletteWheel");
+  if(!wheel){ spinning=false; return; }
 
-  face.animate(
-    [{ transform:`rotate(${currentRotation}deg)` }, { transform:`rotate(${target}deg)` }],
-    { duration, easing:"cubic-bezier(.10,.85,.18,1)" }
-  );
+  // Spin visible : 4 à 7 tours + arrêt
+  const turns = 4 + Math.random()*3;
+  const extraDeg = (Math.random()*360);
+  const start = performance.now();
+  const dur = 1400 + Math.random()*600;
 
-  setTimeout(()=>{
-    face.style.transform = `rotate(${target}deg)`;
-    currentRotation = target;
-    spinning = false;
+  // angle actuel (si déjà tourné)
+  const cur = wheel._angle || 0;
+  const target = cur + turns*360 + extraDeg;
 
-    const pick = act[Math.floor(Math.random()*act.length)];
-    selectTask(pick.id);
-    toast(`Tirage : "${pick.title}"`);
-  }, duration);
-}
+  function frame(now){
+    const t = Math.min(1, (now - start)/dur);
+    const k = easeOutCubic(t);
+    const a = cur + (target - cur)*k;
+    wheel.style.transform = `rotate(${a}deg)`;
+    wheel._angle = a;
 
-/* ---------- Hub render ---------- */
-function renderHubTask(){
-  ensureCurrentTask();
-  const t = getTask(state.currentTaskId);
-
-  $("statActive").textContent = String(activeTasks().length);
-  $("statDone").textContent = String(doneTasks().length);
-
-  ensureBaseline();
-  const base = state.baseline.totalTasks || 0;
-  $("taskFraction").textContent = `${activeTasks().length}/${base || activeTasks().length || 0}`;
-
-  if(!t){
-    $("taskTitle").textContent = "Aucune tâche sélectionnée";
-    $("metaCat").textContent = "—";
-    $("metaEt").textContent = "—";
-    return;
+    if(t < 1) requestAnimationFrame(frame);
+    else{
+      spinning = false;
+      // Ici tu déclenches ton tirage (tâche/kiffance)
+      if(typeof onRouletteStop === "function") onRouletteStop();
+    }
   }
-
-  $("taskTitle").textContent = t.title;
-  $("metaCat").textContent = t.cat || "—";
-  $("metaEt").textContent = `${t.etorionsLeft}/${t.etorionsTotal}`;
+  requestAnimationFrame(frame);
 }
+
+document.getElementById("rouletteBtn")?.addEventListener("click", spinRoulette);
 
 /* ---------- Tasks panel ---------- */
 function categories(){
