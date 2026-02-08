@@ -6,9 +6,9 @@
   --line: rgba(0,0,0,.10);
   --panelBg: rgba(255,255,255,.70);
 
-  --barEmpty: rgba(255, 210, 165, .28);
+  --barEmpty: rgba(211,138,92,.18);
   --barFill: rgba(211,138,92,.92);
-  --barEdge: rgba(255,255,255,.82);
+  --barEdge: rgba(255,255,255,.85);
 
   --accent: rgba(211,138,92,.18);
   --accent2: rgba(211,138,92,.36);
@@ -16,14 +16,14 @@
   --glass: rgba(255,255,255,.58);
   --glass2: rgba(255,255,255,.40);
 
-  --decoA: rgba(255,255,255,.18);
-  --decoB: rgba(255,255,255,.10);
+  --decoA: rgba(211,138,92,.12);
+  --decoB: rgba(255,210,160,.12);
 
   --leftW:360px;
   --rightW:420px;
   --baseSize:16px;
 
-  /* style progression */
+  /* progression style (flotte/ancrée) */
   --progressShadow: 0 18px 30px rgba(0,0,0,.10);
   --progressBorder: 1px solid var(--line);
 }
@@ -37,27 +37,8 @@ body{
   background: var(--bg);
   color: var(--fg);
   font-family: "Yomogi", cursive;
-  position: relative;
   overflow-x:hidden;
 }
-
-/* ✅ texture discrète (grain + nuages) */
-body::before{
-  content:"";
-  position: fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
-  background:
-    radial-gradient(circle at 18% 22%, rgba(255,255,255,.14), transparent 58%),
-    radial-gradient(circle at 82% 18%, rgba(255,255,255,.10), transparent 60%),
-    radial-gradient(circle at 35% 92%, rgba(0,0,0,.04), transparent 62%),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 2px, rgba(0,0,0,.02) 2px 4px);
-  mix-blend-mode: overlay;
-  opacity:.45;
-}
-
-body > *{ position: relative; z-index:1; }
 
 /* Fonts switch */
 body[data-font="yomogi"]{ font-family: "Yomogi", cursive; }
@@ -67,6 +48,22 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 
 .muted{ color: var(--muted); }
 .small{ font-size: 12px; }
+
+/* texture + décor saisonnier discret */
+body::before{
+  content:"";
+  position: fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(circle at 18% 22%, var(--decoA), transparent 58%),
+    radial-gradient(circle at 82% 18%, var(--decoB), transparent 60%),
+    radial-gradient(circle at 35% 92%, rgba(0,0,0,.04), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 2px, rgba(0,0,0,.02) 2px 4px);
+  mix-blend-mode: overlay;
+  opacity:.55;
+}
 
 /* ---------- Topbar ---------- */
 #topBar{
@@ -103,50 +100,32 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 
 .tb-nav{
   display:flex;
-  gap:12px;
+  gap:10px;
   align-items:center;
 }
 
 .tb-sep{ opacity:.55; }
 
-/* ✅ plus de contour : mots seuls, style “onglets” */
-.tb-link{
+/* ✅ pas de soulignement : surbrillance “nuage” */
+.tb-chip{
   border:none;
   background: transparent;
-  padding: 0;
+  padding: 8px 10px;
+  border-radius: 999px;
   cursor:pointer;
   font-family: inherit;
   font-weight: 900;
   color: var(--fg);
-  opacity:.86;
-  text-decoration: none;
+  opacity:.92;
+  transition: background .15s ease, transform .12s ease;
 }
-.tb-link:hover{
-  opacity: 1;
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 6px;
-}
+.tb-chip:hover{ background: var(--accent); opacity: 1; }
+.tb-chip:active{ transform: translateY(1px); }
 
-/* Focus : ressort différemment (sans bouton “Windows 95”) */
-.tb-link.tb-focus{
-  position: relative;
-  opacity: .95;
-}
-.tb-link.tb-focus.active{
-  opacity: 1;
-}
-.tb-link.tb-focus.active::after{
-  content:"";
-  position:absolute;
-  left: -6px;
-  right: -6px;
-  bottom: -8px;
-  height: 10px;
-  border-radius: 999px;
+.tb-chip-quiet{ opacity:.78; }
+.tb-chip.active{
   background: var(--accent2);
-  filter: blur(0.2px);
-  opacity: .65;
+  opacity:1;
 }
 
 /* ---------- Hub ---------- */
@@ -159,28 +138,27 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
 
 #hub-inner{
   width: min(980px, 94vw);
-  padding: 34px 18px 56px; /* ✅ un peu moins haut */
+  padding: 30px 18px 56px;
   text-align:center;
 }
 
 #appTitle{
   font-family: "Baloo 2", cursive;
-  font-size: clamp(86px, 9.5vw, 128px);
+  font-size: clamp(88px, 9.6vw, 132px);
   font-weight: 900;
   letter-spacing: .06em;
-  margin: 6px 0 0;
+  margin: 8px 0 0;
+
+  /* léger relief “encré” */
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.45),
+    0 16px 26px rgba(0,0,0,.14);
 }
 
 .subtitle{
-  margin: 4px 0 10px;  /* ✅ remonte */
+  margin: 6px 0 14px;
   color: var(--muted);
   font-size: 15px;
-}
-
-.statusLine{
-  margin: 0 0 14px;
-  font-size: 13px;
-  min-height: 18px;
 }
 
 /* ---------- Progression ---------- */
@@ -221,58 +199,6 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   pointer-events:none;
 }
 
-/* ---------- Pomodoro (masquable) ---------- */
-#pomodoro{
-  margin: 10px 0 14px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height: 56px;
-  gap: 10px;
-}
-
-.pomoTomato{
-  border:none;
-  background: transparent;
-  cursor:pointer;
-  font-size: 22px;
-  opacity: .84;
-}
-.pomoTomato:hover{ opacity: 1; }
-
-.pomoBox{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap: 6px;
-}
-.pomoTime{
-  font-size: 30px;
-  letter-spacing: .02em;
-  font-weight: 900;
-  cursor: pointer;
-  user-select:none;
-}
-.pomoMiniRow{
-  display:flex;
-  gap: 10px;
-  align-items:center;
-  justify-content:center;
-}
-.pomoMini{
-  border:none;
-  background: transparent;
-  cursor:pointer;
-  font-family: inherit;
-  font-weight: 900;
-  font-size: 16px;
-  color: var(--fg);
-  opacity:.75;
-  padding: 0;
-}
-.pomoMini:hover{ opacity: 1; }
-.pomoMini:active{ transform: translateY(1px); }
-
 /* ---------- Mission Card ---------- */
 .missionCard{
   margin: 6px auto 10px;
@@ -283,21 +209,14 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   padding: 14px 16px 12px;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  position: relative;
-  overflow: hidden;
   text-align:left;
 }
 
-.missionCard::before{
-  content:"";
-  position:absolute;
-  inset:-30px;
-  background:
-    radial-gradient(circle at 18% 20%, var(--decoA), transparent 55%),
-    radial-gradient(circle at 82% 25%, var(--decoB), transparent 60%),
-    radial-gradient(circle at 40% 95%, var(--decoB), transparent 60%);
-  pointer-events:none;
-  opacity:.90;
+.missionTopRow{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 12px;
 }
 
 .missionLine{
@@ -305,34 +224,81 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   font-weight: 900;
   color: var(--muted);
   opacity:.92;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
-/* ✅ titre de tâche centré + police “titre” + ultra gras */
+.missionRight{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.pomoInline{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  opacity:.92;
+}
+
+.pomoTimeInline{
+  font-weight: 900;
+  font-size: 12px;
+  color: var(--fg);
+  cursor:pointer;
+  user-select:none;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.pomoTimeInline:hover{ background: var(--accent); }
+
+.pomoEditInline{
+  border:none;
+  background: transparent;
+  cursor:pointer;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 13px;
+  color: var(--fg);
+  opacity:.75;
+  padding: 4px 6px;
+  border-radius: 999px;
+}
+.pomoEditInline:hover{ background: var(--accent); opacity:1; }
+
+.statusSpot{
+  min-height: 14px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  text-align:right;
+  max-width: 320px;
+}
+
+/* ✅ titre de tâche centré + ultra gras */
 .missionTitle{
   text-align:center;
   font-family: "Baloo 2", cursive;
   font-size: clamp(36px, 4.2vw, 58px);
   font-weight: 900;
   line-height: 1.08;
-  margin: 6px 0 6px;
+  margin: 8px 0 4px;
   text-shadow: 0 12px 18px rgba(0,0,0,.12);
 }
 
 .missionMeta{ margin-top: 6px; text-align:center; }
 
-/* ✅ Actions horizontales */
+/* ✅ Actions horizontales, ordre strict, bien centré */
 .missionActionsRow{
-  display:grid;
-  grid-template-columns: 1fr auto 1fr;
+  display:flex;
   align-items:center;
+  justify-content:space-between;
   gap: 12px;
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding: 8px 0 6px;
 }
 
 .actionPill{
-  justify-self: start;
   border: 1px solid var(--line);
   background: rgba(255,255,255,.14);
   border-radius: 999px;
@@ -344,18 +310,24 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   display:flex;
   align-items:center;
   gap: 8px;
+  min-width: 170px;
+  justify-content:center;
 }
 .actionPill span{ font-size: 12px; color: var(--muted); font-weight: 900; }
-.actionPill.bomb{ justify-self: end; background: var(--accent); border-color: var(--accent2); }
+
+.actionPill.bomb{
+  background: var(--accent);
+  border-color: var(--accent2);
+}
 
 .rouletteBtn{
-  justify-self:center;
   width: 166px;
   height: 166px;
   border: none;
   background: transparent;
   padding: 0;
   cursor: pointer;
+  flex: 0 0 auto;
 }
 
 .rouletteWheel{
@@ -374,6 +346,7 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   transform: rotate(0deg);
   will-change: transform;
 }
+
 .rouletteCenterText{
   font-weight: 900;
   font-size: 18px;
@@ -382,7 +355,6 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   text-shadow: 0 2px 0 rgba(255,255,255,.55);
 }
 
-/* mini links : mots sans contour */
 .miniLinks{
   display:flex;
   gap: 14px;
@@ -399,26 +371,12 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   font-weight: 900;
   color: var(--fg);
   opacity:.90;
-  padding: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  transition: background .15s ease;
 }
-.miniLink:hover{
-  opacity: 1;
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 6px;
-}
+.miniLink:hover{ background: var(--accent); opacity:1; }
 .mutedLink{ opacity: .70; }
-
-/* Toast */
-.toast{
-  margin: 14px auto 0;
-  max-width: 560px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255,255,255,.34);
-  border: 1px solid var(--line);
-  color: var(--fg);
-}
 
 /* ---------- Panels ---------- */
 #panelBack{
@@ -445,8 +403,6 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   transition: transform .25s ease;
   display:flex;
   flex-direction:column;
-
-  /* ✅ lisibilité */
   color: var(--fg);
 }
 
@@ -497,29 +453,25 @@ body[data-font="kurenaido"]{ font-family: "Zen Kurenaido", sans-serif; }
   border:none;
   background: transparent;
   padding: 6px 10px;
-  color: var(--fg);     /* ✅ plus foncé (plus lisible) */
+  color: var(--fg);
   opacity: .92;
   cursor:pointer;
   font-family: inherit;
   font-weight: 900;
-}
-.tabBtn.active{
-  background: var(--accent);
   border-radius: 999px;
+}
+.tabBtn:hover{ background: var(--accent); }
+.tabBtn.active{
+  background: var(--accent2);
   opacity: 1;
 }
 
 .panel-content{
   padding: 14px 12px 18px;
   overflow:auto;
-  color: rgba(0,0,0,.88); /* ✅ mieux en clair */
 }
 
-/* En sombre, on garde la lisibilité */
-body[data-mode="sombre"] .panel-content{
-  color: rgba(255,255,255,.92);
-}
-
+/* Tab pages */
 .tabPage{ display:none; }
 .tabPage.show{ display:block; }
 
@@ -579,12 +531,11 @@ body[data-mode="sombre"] .panel-content{
   justify-content:space-between;
   gap: 10px;
 }
-
 .cardLeft{ display:flex; flex-direction:column; gap: 2px; min-width: 0; }
 .cardTitle{ font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cardSub{ font-size: 12px; color: var(--muted); }
-
 .cardBtns{ display:flex; gap: 8px; }
+
 .iconBtn{
   width: 36px; height: 34px;
   border-radius: 12px;
@@ -599,9 +550,50 @@ body[data-mode="sombre"] .panel-content{
 .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .grid2 .span2{ grid-column: 1 / -1; }
 
+/* ---------- Modal ---------- */
+.modalBack{
+  position: fixed;
+  inset:0;
+  z-index: 8000;
+  background: rgba(0,0,0,.20);
+}
+
+.modal{
+  position: fixed;
+  z-index: 8100;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, 92vw);
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--panelBg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+.modalHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.modalTitle{ font-weight: 900; color: var(--fg); }
+.modalClose{
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.14);
+  border-radius: 12px;
+  width: 40px;
+  height: 34px;
+  cursor:pointer;
+  font-size: 18px;
+  color: var(--fg);
+}
+.modalBody{ padding: 12px; }
+
 @media (max-width: 720px){
-  .missionActionsRow{ grid-template-columns: 1fr; gap: 10px; }
-  .actionPill{ justify-self:center; }
-  .actionPill.bomb{ justify-self:center; }
-  .rouletteBtn{ justify-self:center; }
+  .missionActionsRow{ flex-direction:column; }
+  .actionPill{ min-width: auto; width: 100%; }
 }
