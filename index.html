@@ -8,8 +8,6 @@
   <!-- Polices “Ghibli-ish” -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <!-- ✅ FIX: lien propre (plus de texte parasite) -->
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Zen+Maru+Gothic:wght@400;500;700&family=Yomogi&family=Kiwi+Maru:wght@400;500;700&family=Zen+Kurenaido&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styles.css">
@@ -20,33 +18,34 @@
   <!-- TOP BAR FIXE -->
   <header id="topBar">
     <div class="tb-left">
-      <button id="btnLeft" class="tb-btn" title="Menu gauche" aria-label="Menu gauche">≡</button>
+      <button id="btnLeft" class="tb-icon" title="Menu gauche" aria-label="Menu gauche">≡</button>
     </div>
 
     <div class="tb-center">
       <div class="tb-visuals">
-        <select id="quickMode" class="select topSel" aria-label="Mode">
-          <option value="clair">Clair</option>
-          <option value="fonce">Foncé</option>
-        </select>
+        <!-- ✅ Toggle cliquable (pas un select) -->
+        <button id="modeToggle" class="tb-chip" type="button" aria-label="Basculer mode clair/foncé">
+          Clair
+        </button>
 
-        <select id="quickSeason" class="select topSel" aria-label="Saison">
+        <select id="quickSeason" class="tb-select" aria-label="Saison">
           <option value="printemps">Printemps</option>
           <option value="ete">Été</option>
           <option value="automne">Automne</option>
           <option value="hiver">Hiver</option>
           <option value="noirblanc">Noir & blanc</option>
         </select>
-      </div>
 
-      <div class="topActions">
-        <button id="focusBtn" class="topBtn" type="button">Mode focus</button>
-        <button id="countersBtn" class="topBtn" type="button">Compteurs</button>
+        <div class="tb-spacer"></div>
+
+        <!-- ✅ Pastilles discrètes (plus Windows95) -->
+        <button id="focusBtn" class="tb-chip subtle" type="button">Focus</button>
+        <button id="countersBtn" class="tb-chip subtle" type="button">Compteurs</button>
       </div>
     </div>
 
     <div class="tb-right">
-      <button id="btnRight" class="tb-btn" title="Panneau droit" aria-label="Panneau droit">▦</button>
+      <button id="btnRight" class="tb-icon" title="Panneau droit" aria-label="Panneau droit">▦</button>
     </div>
   </header>
 
@@ -70,7 +69,6 @@
     </nav>
 
     <div class="panel-content">
-      <!-- INBOX -->
       <section class="tabPage show" id="left-inbox">
         <h3>Inbox</h3>
         <p class="muted small">
@@ -96,7 +94,6 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <!-- TASKS -->
       <section class="tabPage" id="left-tasks">
         <h3>Tâches</h3>
 
@@ -115,7 +112,6 @@ Lire article - 2"></textarea>
         <div class="list" id="taskList"></div>
       </section>
 
-      <!-- KIFFANCE -->
       <section class="tabPage" id="left-kiffance">
         <h3>Kiffance</h3>
         <p class="muted small">Récompenses surprises (base éditable).</p>
@@ -127,7 +123,6 @@ Lire article - 2"></textarea>
         <div class="list" id="kiffList"></div>
       </section>
 
-      <!-- PREFS -->
       <section class="tabPage" id="left-prefs">
         <h3>Préférences</h3>
 
@@ -154,9 +149,10 @@ Lire article - 2"></textarea>
           <div>
             <label class="muted small">Police</label>
             <select id="fontSel" class="select">
+              <option value="zen">Zen Maru Gothic</option>
               <option value="yomogi">Yomogi</option>
-              <option value="zen">Zen Kurenaido</option>
               <option value="kiwi">Kiwi Maru</option>
+              <option value="kurenaido">Zen Kurenaido</option>
             </select>
           </div>
 
@@ -169,7 +165,6 @@ Lire article - 2"></textarea>
         <p class="muted small">Chaud en clair, doux en foncé, lisible sans forcer.</p>
       </section>
 
-      <!-- EXPORT -->
       <section class="tabPage" id="left-export">
         <h3>Export</h3>
         <p class="muted small">Export JSON simple.</p>
@@ -205,72 +200,65 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <!-- ✅ UNE SEULE ROULETTE (dessinée) -->
-      <div class="rouletteWrap">
-        <button id="rouletteBtn" class="rouletteBtn" type="button" aria-label="Roulette">
-          <div class="rouletteWheel" id="rouletteWheel">
-            <div class="rouletteCenterText">Roulette</div>
+      <!-- ✅ UN SEUL CADRE COMMUN (roulette incluse) -->
+      <section id="missionCard" class="missionCard" aria-label="Mission">
+        <div class="missionTop">
+          <div class="missionKicker">
+            <span class="muted">Tâche en cours</span>
+            <span class="chip" id="taskFraction">0/0</span>
+            <button id="taskInfoBtn" class="tinyBtn" type="button" title="Afficher/masquer détails" aria-label="Afficher/masquer détails">i</button>
           </div>
-        </button>
-        <div class="rouletteLegend">Tirage</div>
+
+          <div class="missionTitle" id="taskTitle">Aucune tâche sélectionnée</div>
+
+          <div class="missionMeta muted" id="taskMetaDetails" hidden>
+            Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
+          </div>
+        </div>
+
+        <div class="divider soft"></div>
+
+        <div class="missionListHead">
+          <div class="missionListTitle">Tâches en cours</div>
+          <div class="missionListMeta" id="taskMetaHud"></div>
+        </div>
+
+        <div id="tasksList" class="hubList"></div>
+
+        <div class="divider soft"></div>
+
+        <!-- ✅ Actions centrées dans le même cadre -->
+        <div class="missionActions">
+          <div class="actionCol">
+            <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">↶</button>
+            <div class="actionLbl">Retour</div>
+          </div>
+
+          <div class="actionCol actionCenter">
+            <button id="rouletteBtn" class="rouletteBtn" type="button" aria-label="Roulette">
+              <div class="rouletteWheel" id="rouletteWheel">
+                <div class="rouletteCenterText">Roulette</div>
+              </div>
+            </button>
+            <div class="actionLbl">Tirage</div>
+          </div>
+
+          <div class="actionCol">
+            <button id="bombBtn" class="roundBtn primary" type="button" title="Dégommer 1 Éthorion" aria-label="Dégommer 1 Éthorion">💣</button>
+            <div class="actionLbl">Dégommer 1 Éthorion</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ✅ Rangée en dessous du cadre, centrée -->
+      <div class="quickLinks below">
+        <button class="ql" type="button" id="openNotes">Notes</button>
+        <button class="ql" type="button" id="openTyphonse">Typhonse</button>
+        <button class="ql" type="button" id="openKiffance">Kiffance</button>
+        <button class="ql" type="button" id="openStats">Stats</button>
       </div>
 
-      <!-- BOTTOM CARD -->
-      <section class="bottomCard" id="bottomCard">
-        <div class="bottomHeader">
-          <div class="bottomTitle">Tâches en cours</div>
-          <!-- ✅ ID unique -->
-          <div class="bottomMeta" id="taskMetaHud"></div>
-        </div>
-
-        <div id="tasksList"></div>
-
-        <div class="quickLinks">
-          <button class="ql" type="button" id="openNotes">Notes</button>
-          <button class="ql" type="button" id="openTyphonse">Typhonse</button>
-          <button class="ql" type="button" id="openKiffance">Kiffance</button>
-          <button class="ql" type="button" id="openStats">Stats</button>
-        </div>
-      </section>
-
-      <!-- TÂCHE EN COURS -->
-      <section id="currentTask" aria-label="Tâche en cours">
-        <div class="taskLine">
-          <span class="taskLabel">Tâche en cours</span>
-          <span class="taskFraction" id="taskFraction">0/0</span>
-
-          <button id="taskInfoBtn" class="tinyBtn" type="button" title="Afficher/masquer les détails" aria-label="Afficher/masquer les détails">i</button>
-        </div>
-
-        <div class="taskTitle" id="taskTitle">Aucune tâche sélectionnée</div>
-
-        <!-- ✅ ID unique -->
-        <div class="taskMeta muted" id="taskMetaDetails" hidden>
-          Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
-        </div>
-      </section>
-
-      <!-- ACTIONS -->
-      <section id="actions" aria-label="Actions">
-        <div class="actionCol">
-          <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">↶</button>
-          <div class="actionLbl">Retour</div>
-        </div>
-
-        <div class="actionCol">
-          <button id="bombBtn" class="roundBtn primary" type="button" title="Dégommer 1 Éthorion" aria-label="Dégommer 1 Éthorion">💣</button>
-          <div class="actionLbl">Dégommer 1 Éthorion</div>
-        </div>
-
-        <div class="actionCol">
-          <button id="rouletteQuick" class="roundBtn" type="button" title="Tirage roulette" aria-label="Tirage roulette">🎡</button>
-          <div class="actionLbl">Roulette</div>
-        </div>
-      </section>
-
-      <!-- FEEDBACK -->
       <div id="toast" class="toast" aria-live="polite" aria-atomic="true" hidden></div>
-
     </div>
   </main>
 
