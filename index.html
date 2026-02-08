@@ -8,7 +8,7 @@
   <!-- Polices “Ghibli-ish” -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Kurenaido&family=Kiwi+Maru&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Kurenaido&family=Kiwi+Maru:wght@300;400;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -54,8 +54,7 @@
       <section class="tabPage show" id="left-inbox">
         <h3>Inbox</h3>
         <p class="muted small">
-          Colle des tâches. Une ligne = une tâche.
-          Ligne en MAJUSCULES = catégorie.
+          Une ligne = une tâche. Ligne en MAJUSCULES = catégorie.
           “Titre - 6” ou “Titre 6” = 6 Éthorions.
         </p>
 
@@ -99,7 +98,7 @@ Lire article - 2"></textarea>
       <!-- KIFFANCE -->
       <section class="tabPage" id="left-kiffance">
         <h3>Kiffance</h3>
-        <p class="muted small">Récompenses surprises. (Étape 2 : base éditable.)</p>
+        <p class="muted small">Récompenses surprises (base éditable).</p>
 
         <div class="row wrap">
           <input id="kiffNew" class="input" placeholder="Ajouter une kiffance…" />
@@ -142,20 +141,20 @@ Lire article - 2"></textarea>
           </div>
 
           <div>
-            <label class="muted small">Intensité</label>
-            <input id="intensity" type="range" min="0.85" max="1.12" step="0.01" />
+            <label class="muted small">Taille (UI)</label>
+            <input id="uiScale" type="range" min="14" max="18" step="1" />
           </div>
         </div>
 
         <p class="muted small">
-          Objectif : lisible, chaud en clair, doux en foncé. Sans “noir sale”.
+          Objectif : chaud en clair, doux en foncé, lisible sans forcer.
         </p>
       </section>
 
       <!-- EXPORT -->
       <section class="tabPage" id="left-export">
         <h3>Export</h3>
-        <p class="muted small">Étape 2 : export JSON simple.</p>
+        <p class="muted small">Export JSON simple.</p>
         <div class="row wrap">
           <button id="exportBtn" class="btn ghost">Copier JSON</button>
           <button id="wipeBtn" class="btn danger">Reset total</button>
@@ -183,10 +182,12 @@ Lire article - 2"></textarea>
 
       <!-- POMODORO -->
       <section id="pomodoro" aria-label="Pomodoro">
-        <div id="pomoTime">25:00</div>
-        <button id="pomoEdit" class="iconLink" type="button" title="Modifier le pomodoro" aria-label="Modifier le pomodoro">
-          ✎
-        </button>
+        <div class="pomoRow">
+          <div id="pomoTime">25:00</div>
+          <button id="pomoEdit" class="iconLink" type="button" title="Modifier le pomodoro" aria-label="Modifier le pomodoro">
+            ✎
+          </button>
+        </div>
       </section>
 
       <!-- TÂCHE EN COURS -->
@@ -209,24 +210,33 @@ Lire article - 2"></textarea>
 
       <!-- ACTIONS -->
       <section id="actions" aria-label="Actions">
-        <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">
-          ↶
-        </button>
+        <div class="actionCol">
+          <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">
+            ↶
+          </button>
+          <div class="actionLbl">Retour</div>
+        </div>
 
-        <button id="roulette" class="rouletteBtn" type="button" title="Roulette" aria-label="Roulette">
-          <span class="rouletteFace" aria-hidden="true"></span>
-          <span class="rouletteCenter">
-            <span class="rouletteWord">roulette</span>
-          </span>
-          <span class="rouletteNeedle" aria-hidden="true"></span>
-        </button>
+        <div class="actionCol">
+          <button id="roulette" class="rouletteBtn" type="button" title="Roulette" aria-label="Roulette">
+            <span class="rouletteFace" aria-hidden="true"></span>
+            <span class="rouletteCenter" aria-hidden="true">
+              <span class="rouletteWord">roulette</span>
+            </span>
+            <span class="rouletteNeedle" aria-hidden="true"></span>
+          </button>
+          <div class="actionLbl">Roulette</div>
+        </div>
 
-        <button id="bombBtn" class="roundBtn primary" type="button" title="Dégommer 1 Éthorion" aria-label="Dégommer 1 Éthorion">
-          💣
-        </button>
+        <div class="actionCol">
+          <button id="bombBtn" class="roundBtn primary" type="button" title="Dégommer 1 Éthorion" aria-label="Dégommer 1 Éthorion">
+            💣
+          </button>
+          <div class="actionLbl">Dégommer 1 Éthorion</div>
+        </div>
       </section>
 
-      <!-- PETIT FEEDBACK (sobre) -->
+      <!-- FEEDBACK -->
       <div id="toast" class="toast" aria-live="polite" aria-atomic="true" hidden></div>
 
     </div>
@@ -249,37 +259,35 @@ Lire article - 2"></textarea>
     </nav>
 
     <div class="panel-content">
-
       <section class="tabPage show" id="right-sets">
         <h3>Sets</h3>
-        <p class="muted small">Structure prête. (Étape 3+ : édition + play + progression set.)</p>
+        <p class="muted small">Structure prête (édition + play au module suivant).</p>
       </section>
 
       <section class="tabPage" id="right-habits">
         <h3>Habitudes</h3>
-        <p class="muted small">Structure prête. (Étape 3+ : lignes compactes + cases colorées.)</p>
+        <p class="muted small">Structure prête (lignes compactes au module suivant).</p>
       </section>
 
       <section class="tabPage" id="right-mood">
         <h3>Mood</h3>
-        <p class="muted small">Étape 4+ : journal émotionnel TCC avec fenêtres contextuelles.</p>
+        <p class="muted small">Module expert émotions TCC (fenêtres contextuelles) au module suivant.</p>
       </section>
 
       <section class="tabPage" id="right-calendar">
         <h3>Calendrier</h3>
-        <p class="muted small">Étape 4+ : calendrier + vue timeline.</p>
+        <p class="muted small">Calendrier + timeline au module suivant.</p>
       </section>
 
       <section class="tabPage" id="right-notes">
         <h3>Notes & Rappels</h3>
-        <p class="muted small">Étape 4+ : notes + aide-mémoire + rappels.</p>
+        <p class="muted small">Notes + aide-mémoire + rappels au module suivant.</p>
       </section>
 
       <section class="tabPage" id="right-stats">
         <h3>Stats</h3>
-        <p class="muted small">Étape 5+ : infographies + export.</p>
+        <p class="muted small">Infographies au module suivant.</p>
       </section>
-
     </div>
   </aside>
 
