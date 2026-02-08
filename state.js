@@ -1,14 +1,10 @@
 /* ============================================================
-   ELIMINATOR — Étape 2
-   - panneaux + onglets
-   - inbox ajoute sans effacer
-   - tâches + catégories + sélection
-   - progression pleine qui décroît
-   - roulette fluide
-   - 💣 enlève 1 Éthorion
-   - ↶ undo (snapshots)
-   - préférences (mode/saison/police/intensité)
-   - persistance localStorage
+   ELIMINATOR — Étape 2 (patch panels + UI)
+   Fix majeur : on NE scale plus le body (ça casse fixed/overlays).
+   - panels fiables
+   - barre progression plus chaude
+   - titres plus gras
+   - roulette label centré + animation moins chelou
 ============================================================ */
 
 const $ = (id)=>document.getElementById(id);
@@ -22,66 +18,35 @@ const LS_KEY = "eliminator_step2";
 /* ---------- Thèmes (5 saisons) ---------- */
 const THEMES = {
   printemps:{
-    clair:{ bg:"#FBF4E8", fg:"#15120F", muted:"#6A5D53", accent:"#6EBE96", barFill:"#D38A5C" },
-    fonce:{ bg:"#121413", fg:"#FAF7F0", muted:"#CFC8BC", accent:"#6EBE96", barFill:"#D7B08E" }
+    clair:{ bg:"#FBF4E8", fg:"#15120F", muted:"#6A5D53", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 215, 175, .28)" },
+    fonce:{ bg:"#121413", fg:"#FAF7F0", muted:"#CFC8BC", barFill:"#D7B08E", panel:"rgba(22,22,22,.62)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
   },
   ete:{
-    clair:{ bg:"#FFF3DF", fg:"#16120F", muted:"#6C5E52", accent:"#5AAAD2", barFill:"#D38A5C" },
-    fonce:{ bg:"#0E1217", fg:"#F6FBFF", muted:"#C8D2DA", accent:"#5AAAD2", barFill:"#D7B08E" }
+    clair:{ bg:"#FFF3DF", fg:"#16120F", muted:"#6C5E52", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 215, 175, .28)" },
+    fonce:{ bg:"#0E1217", fg:"#F6FBFF", muted:"#C8D2DA", barFill:"#D7B08E", panel:"rgba(18,24,34,.62)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
   },
   automne:{
-    clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", accent:"#CD783C", barFill:"#D38A5C" },
-    fonce:{ bg:"#14110D", fg:"#FFF5E8", muted:"#D9C9B7", accent:"#CD783C", barFill:"#D7B08E" }
+    clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 210, 165, .28)" },
+    fonce:{ bg:"#14110D", fg:"#FFF5E8", muted:"#D9C9B7", barFill:"#D7B08E", panel:"rgba(26,20,14,.62)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
   },
   hiver:{
-    clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", accent:"#78A0C8", barFill:"#78A0C8" },
-    fonce:{ bg:"#0D1116", fg:"#F2FDFF", muted:"#BFD2D6", accent:"#78A0C8", barFill:"#9DB8D5" }
+    clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", empty:"rgba(210, 235, 255, .28)" },
+    fonce:{ bg:"#0D1116", fg:"#F2FDFF", muted:"#BFD2D6", barFill:"#9DB8D5", panel:"rgba(16,22,28,.62)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
   },
   noirblanc:{
-    clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", accent:"#222222", barFill:"#444444" },
-    fonce:{ bg:"#0F0F10", fg:"#F7F7F7", muted:"#CFCFCF", accent:"#FFFFFF", barFill:"#BBBBBB" }
+    clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#444444", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", empty:"rgba(0,0,0,.10)" },
+    fonce:{ bg:"#0F0F10", fg:"#F7F7F7", muted:"#CFCFCF", barFill:"#BBBBBB", panel:"rgba(22,22,22,.66)", line:"rgba(255,255,255,.12)", empty:"rgba(255,255,255,.10)" }
   }
 };
 
-function applyTheme(){
-  const season = state.ui.season in THEMES ? state.ui.season : "automne";
-  const mode = state.ui.mode === "fonce" ? "fonce" : "clair";
-  const t = THEMES[season][mode];
-
-  document.documentElement.style.setProperty("--bg", t.bg);
-  document.documentElement.style.setProperty("--fg", t.fg);
-  document.documentElement.style.setProperty("--muted", t.muted);
-
-  // accent: on l’utilise surtout comme surbrillance
-  const accentSoft = mode==="fonce" ? "rgba(255,255,255,.10)" : "rgba(211,138,92,.22)";
-  document.documentElement.style.setProperty("--accent", t.accent);
-  document.documentElement.style.setProperty("--accentSoft", accentSoft);
-
-  // barre: on limite les noirs
-  document.documentElement.style.setProperty("--barFill", t.barFill);
-  document.documentElement.style.setProperty("--barEmpty", mode==="fonce" ? "rgba(255,255,255,.10)" : "rgba(0,0,0,.10)");
-  document.documentElement.style.setProperty("--barEdge", "rgba(255,255,255,.82)");
-  document.documentElement.style.setProperty("--line", mode==="fonce" ? "rgba(255,255,255,.12)" : "rgba(0,0,0,.10)");
-  document.documentElement.style.setProperty("--panelBg", mode==="fonce" ? "rgba(22,22,22,.62)" : "rgba(255,255,255,.70)");
-
-  // intensité (scale globale)
-  document.documentElement.style.setProperty("--intensity", String(clamp(state.ui.intensity,0.85,1.12)));
-
-  // police
-  document.body.setAttribute("data-font", state.ui.font);
-}
-
-/* ---------- State ---------- */
 const defaultState = {
   ui:{
     mode:"clair",
     season:"automne",
     font:"yomogi",
-    intensity: 1.00
+    baseSize: 16
   },
-  baseline:{
-    totalTasks: 0
-  },
+  baseline:{ totalTasks: 0 },
   tasks:[],
   currentTaskId:null,
   undo:[],
@@ -99,7 +64,6 @@ function deepAssign(t,s){
     else t[k]=s[k];
   }
 }
-
 function loadState(){
   try{
     const raw = localStorage.getItem(LS_KEY);
@@ -112,13 +76,29 @@ function loadState(){
     return structuredClone(defaultState);
   }
 }
-
 let state = loadState();
-function saveState(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){}
+function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){} }
+
+/* ---------- Theme ---------- */
+function applyTheme(){
+  const season = (state.ui.season in THEMES) ? state.ui.season : "automne";
+  const mode = state.ui.mode === "fonce" ? "fonce" : "clair";
+  const t = THEMES[season][mode];
+
+  document.documentElement.style.setProperty("--bg", t.bg);
+  document.documentElement.style.setProperty("--fg", t.fg);
+  document.documentElement.style.setProperty("--muted", t.muted);
+  document.documentElement.style.setProperty("--barFill", t.barFill);
+  document.documentElement.style.setProperty("--barEmpty", t.empty);
+  document.documentElement.style.setProperty("--panelBg", t.panel);
+  document.documentElement.style.setProperty("--line", t.line);
+
+  document.documentElement.style.setProperty("--baseSize", `${clamp(state.ui.baseSize, 14, 18)}px`);
+
+  document.body.setAttribute("data-font", state.ui.font);
 }
 
-/* ---------- Panels ---------- */
+/* ---------- Panels (robustes) ---------- */
 function openPanel(which){
   $("panelBack").classList.add("show");
   document.body.style.overflow = "hidden";
@@ -139,7 +119,6 @@ function closePanels(){
 
 /* ---------- Tabs ---------- */
 function bindTabs(){
-  // gauche
   $$(".panel-left .tabBtn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       $$(".panel-left .tabBtn").forEach(b=>b.classList.remove("active"));
@@ -147,7 +126,6 @@ function bindTabs(){
       const key = btn.dataset.lefttab;
       $$("#leftPanel .tabPage").forEach(p=>p.classList.remove("show"));
       $("left-"+key).classList.add("show");
-      // rerender zone concernée
       if(key==="tasks") renderTasksPanel();
       if(key==="kiffance") renderKiffance();
       if(key==="prefs") renderPrefsUI();
@@ -155,7 +133,6 @@ function bindTabs(){
     });
   });
 
-  // droite
   $$(".panel-right .tabBtn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       $$(".panel-right .tabBtn").forEach(b=>b.classList.remove("active"));
@@ -175,7 +152,6 @@ function isAllCapsLine(line){
   if(!hasLetters) return false;
   return t === t.toUpperCase() && t.length <= 90;
 }
-
 function parseTaskLine(line){
   const raw = (line||"").trim();
   if(!raw) return null;
@@ -184,8 +160,6 @@ function parseTaskLine(line){
 
   let et = null;
   let title = cleaned;
-
-  // "titre - 6" ou "titre 6"
   const m = cleaned.match(/^(.*?)(?:\s*[-–—]\s*|\s+)(\d+)\s*$/);
   if(m){
     title = m[1].trim();
@@ -193,16 +167,13 @@ function parseTaskLine(line){
   }
   title = title.replace(/\s+/g," ").trim();
   if(!title) return null;
-
   if(et!==null) et = clamp(et, 1, 99);
   return { title, etorions: et ?? 1 };
 }
-
 function importFromInbox(text){
   const lines = String(text||"").split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
   let cat = "Inbox";
   const out = [];
-
   for(const line of lines){
     if(isAllCapsLine(line)){ cat=line.trim(); continue; }
     const p = parseTaskLine(line);
@@ -227,41 +198,26 @@ const doneTasks = ()=>state.tasks.filter(t=>t.done);
 const getTask = (id)=>state.tasks.find(t=>t.id===id) || null;
 
 function ensureBaseline(){
-  // baseline = nombre de tâches actives au moment où on “démarre un run”
-  // Ici : si baseline vide, on la crée dès qu’on a des tâches actives.
   if(state.baseline.totalTasks <= 0){
     const n = activeTasks().length;
     if(n>0) state.baseline.totalTasks = n;
   }
 }
-
 function ensureCurrentTask(){
   const act = activeTasks();
-  if(act.length===0){
-    state.currentTaskId = null;
-    return;
-  }
+  if(act.length===0){ state.currentTaskId = null; return; }
   const cur = getTask(state.currentTaskId);
-  if(!cur || cur.done){
-    // prend la première active
-    state.currentTaskId = act[0].id;
-  }
+  if(!cur || cur.done) state.currentTaskId = act[0].id;
 }
 
-/* ---------- Progress (reste%) ---------- */
+/* ---------- Progress = reste% ---------- */
 function computeRemainingPct(){
   ensureBaseline();
   const base = state.baseline.totalTasks || 0;
   const rem = activeTasks().length;
-
-  if(base<=0){
-    return 100;
-  }
-  // barre = “reste” => 100% au début, décroît vers 0
-  const pct = clamp(Math.round((rem/base)*100), 0, 100);
-  return pct;
+  if(base<=0) return 100;
+  return clamp(Math.round((rem/base)*100), 0, 100);
 }
-
 function renderProgress(){
   const pct = computeRemainingPct();
   $("progressFill").style.width = `${pct}%`;
@@ -285,10 +241,9 @@ function pushUndo(label){
   state.undo = state.undo.slice(0, 25);
   saveState();
 }
-
 function doUndo(){
   const snap = state.undo.shift();
-  if(!snap) return toast("Rien à annuler. La réalité est implacable.");
+  if(!snap) return toast("Rien à annuler. Le passé résiste.");
   const p = snap.payload;
   state.tasks = p.tasks;
   state.baseline = p.baseline;
@@ -298,10 +253,10 @@ function doUndo(){
   saveState();
   applyTheme();
   renderAll();
-  toast("Retour arrière : destin réécrit.");
+  toast("Retour : timeline réécrite.");
 }
 
-/* ---------- Actions : sélectionner / dégommage ---------- */
+/* ---------- Actions ---------- */
 function selectTask(id){
   const t = getTask(id);
   if(!t || t.done) return;
@@ -325,25 +280,22 @@ function completeTask(id){
 
 function degommerOne(){
   const t = getTask(state.currentTaskId);
-  if(!t || t.done) return toast("Aucune tâche à dégomm… euh… à traiter.");
+  if(!t || t.done) return toast("Aucune tâche à dég… euh… traiter.");
   pushUndo("degomme");
-
   t.etorionsLeft = clamp((t.etorionsLeft||1) - 1, 0, 99);
-
   if(t.etorionsLeft <= 0){
     t.done = true;
     t.doneAt = nowISO();
     toast("CHAOS TERRASSÉ. Mission accomplie.");
     ensureCurrentTask();
   }else{
-    toast("💣 ÉTHORION dégommé. Encore un.");
+    toast("💣 Éthorion dégommé. Encore un.");
   }
-
   saveState();
   renderAll();
 }
 
-/* ---------- Roulette fluide : pioche une tâche active ---------- */
+/* ---------- Roulette animation plus clean ---------- */
 let spinning = false;
 let currentRotation = 0;
 
@@ -351,20 +303,19 @@ function spinRoulette(){
   if(spinning) return;
 
   const act = activeTasks();
-  if(act.length===0) return toast("Pas de tâches. La paix… ou le vide cosmique.");
+  if(act.length===0) return toast("Pas de tâches. Repos… ou vide cosmique.");
 
   spinning = true;
-  const btn = $("roulette");
-  const face = btn.querySelector(".rouletteFace");
+  const face = $("roulette").querySelector(".rouletteFace");
 
-  const turns = 3 + Math.random()*5;
-  const extra = Math.random()*180;
+  const turns = 3 + Math.random()*4.5;
+  const extra = Math.random()*220;
   const target = currentRotation + turns*360 + extra;
-  const duration = 1500;
+  const duration = 1400 + Math.random()*250;
 
   face.animate(
     [{ transform:`rotate(${currentRotation}deg)` }, { transform:`rotate(${target}deg)` }],
-    { duration, easing:"cubic-bezier(.12,.78,.18,1)" }
+    { duration, easing:"cubic-bezier(.10,.85,.18,1)" }
   );
 
   setTimeout(()=>{
@@ -372,28 +323,23 @@ function spinRoulette(){
     currentRotation = target;
     spinning = false;
 
-    // Tirage : pick aléatoire et sélectionne
     const pick = act[Math.floor(Math.random()*act.length)];
     selectTask(pick.id);
     toast(`Tirage : "${pick.title}"`);
   }, duration);
 }
 
-/* ---------- UI: hub task render ---------- */
+/* ---------- Hub render ---------- */
 function renderHubTask(){
   ensureCurrentTask();
   const t = getTask(state.currentTaskId);
 
-  const act = activeTasks();
-  const done = doneTasks();
+  $("statActive").textContent = String(activeTasks().length);
+  $("statDone").textContent = String(doneTasks().length);
 
-  $("statActive").textContent = String(act.length);
-  $("statDone").textContent = String(done.length);
-
-  // fraction “tâches restantes / baseline”
   ensureBaseline();
   const base = state.baseline.totalTasks || 0;
-  $("taskFraction").textContent = `${act.length}/${base || act.length || 0}`;
+  $("taskFraction").textContent = `${activeTasks().length}/${base || activeTasks().length || 0}`;
 
   if(!t){
     $("taskTitle").textContent = "Aucune tâche sélectionnée";
@@ -407,14 +353,13 @@ function renderHubTask(){
   $("metaEt").textContent = `${t.etorionsLeft}/${t.etorionsTotal}`;
 }
 
-/* ---------- Left panel: tasks list + filters ---------- */
+/* ---------- Tasks panel ---------- */
 function categories(){
   const set = new Set(state.tasks.map(t=>t.cat||"Inbox"));
   const out = Array.from(set).sort((a,b)=>a.localeCompare(b));
   out.unshift("Toutes");
   return out;
 }
-
 function renderCatFilter(){
   const sel = $("catFilter");
   const prev = sel.value || "Toutes";
@@ -439,7 +384,6 @@ function renderTasksPanel(){
   if(view==="done") list = list.filter(t=>t.done);
   if(cat && cat!=="Toutes") list = list.filter(t=>(t.cat||"Inbox")===cat);
 
-  // tri : actives d’abord, puis récent
   list.sort((a,b)=>{
     if(a.done && !b.done) return 1;
     if(!a.done && b.done) return -1;
@@ -470,9 +414,7 @@ function renderTasksPanel(){
 
     const sub = document.createElement("div");
     sub.className = "cardSub";
-    const catTxt = t.cat || "Inbox";
-    const etTxt = `${t.etorionsLeft}/${t.etorionsTotal} Éthorions`;
-    sub.textContent = `${catTxt} · ${etTxt}${t.done ? " · Fini" : ""}`;
+    sub.textContent = `${t.cat||"Inbox"} · ${t.etorionsLeft}/${t.etorionsTotal} Éthorions${t.done ? " · Fini" : ""}`;
 
     left.appendChild(title);
     left.appendChild(sub);
@@ -497,17 +439,16 @@ function renderTasksPanel(){
     }else{
       const restore = document.createElement("button");
       restore.className = "iconBtn";
-      restore.title = "Restaurer (revient active)";
+      restore.title = "Restaurer";
       restore.textContent = "↩";
       restore.onclick = ()=>{
         pushUndo("restore");
         t.done = false;
         t.doneAt = null;
-        // si baseline vide, on ne la touche pas; sinon ça reste cohérent pour ce run
         ensureCurrentTask();
         saveState();
         renderAll();
-        toast("Ressuscitée. Oui, c’est illégal, mais utile.");
+        toast("Ressuscitée. Pratique. Suspect. Efficace.");
       };
       btns.appendChild(restore);
     }
@@ -520,7 +461,6 @@ function renderTasksPanel(){
       pushUndo("delete");
       state.tasks = state.tasks.filter(x=>x.id!==t.id);
       if(state.currentTaskId===t.id) state.currentTaskId = null;
-      // si on supprime, on recalc baseline si elle est “vide” ou incohérente
       if(activeTasks().length===0) state.baseline.totalTasks = 0;
       saveState();
       renderAll();
@@ -530,7 +470,6 @@ function renderTasksPanel(){
 
     row.appendChild(left);
     row.appendChild(btns);
-
     root.appendChild(row);
   }
 }
@@ -543,7 +482,7 @@ function renderKiffance(){
   if(state.kiffances.length===0){
     const d = document.createElement("div");
     d.className = "muted small";
-    d.textContent = "Aucune kiffance. C’est… tragiquement sérieux.";
+    d.textContent = "Aucune kiffance. C’est tragiquement sérieux.";
     root.appendChild(d);
     return;
   }
@@ -588,49 +527,39 @@ function renderKiffance(){
   });
 }
 
-/* ---------- Prefs UI ---------- */
+/* ---------- Prefs ---------- */
 function renderPrefsUI(){
   $("modeSel").value = state.ui.mode;
   $("seasonSel").value = state.ui.season;
   $("fontSel").value = state.ui.font;
-  $("intensity").value = String(state.ui.intensity);
+  $("uiScale").value = String(clamp(state.ui.baseSize, 14, 18));
 }
-
 function bindPrefs(){
   $("modeSel").addEventListener("change", ()=>{
     state.ui.mode = $("modeSel").value;
-    saveState();
-    applyTheme();
+    saveState(); applyTheme();
   });
   $("seasonSel").addEventListener("change", ()=>{
     state.ui.season = $("seasonSel").value;
-    saveState();
-    applyTheme();
+    saveState(); applyTheme();
   });
   $("fontSel").addEventListener("change", ()=>{
     state.ui.font = $("fontSel").value;
-    saveState();
-    applyTheme();
+    saveState(); applyTheme();
   });
-  $("intensity").addEventListener("input", ()=>{
-    state.ui.intensity = parseFloat($("intensity").value);
-    saveState();
-    applyTheme();
+  $("uiScale").addEventListener("input", ()=>{
+    state.ui.baseSize = parseInt($("uiScale").value, 10);
+    saveState(); applyTheme();
   });
 }
 
-/* ---------- Export / Reset ---------- */
+/* ---------- Export ---------- */
 function renderExport(){
   $("exportOut").value = JSON.stringify(state, null, 2);
 }
-
 async function copyText(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    toast("JSON copié.");
-  }catch(_){
-    toast("Impossible de copier (clipboard).");
-  }
+  try{ await navigator.clipboard.writeText(text); toast("JSON copié."); }
+  catch(_){ toast("Impossible de copier (clipboard)."); }
 }
 
 /* ---------- Toast ---------- */
@@ -663,13 +592,11 @@ function editPomodoro(){
 function inboxAdd(){
   const text = $("inboxText").value || "";
   const parsed = importFromInbox(text);
-  if(parsed.length===0) return toast("Rien à ajouter. Même pas un micro-Éthorion.");
+  if(parsed.length===0) return toast("Rien à ajouter.");
 
   pushUndo("inboxAdd");
-  // IMPORTANT : on ajoute sans effacer
   state.tasks.push(...parsed);
 
-  // baseline : si c’est un nouveau run (baseline 0), on la crée
   if(state.baseline.totalTasks<=0){
     state.baseline.totalTasks = activeTasks().length;
   }
@@ -679,13 +606,12 @@ function inboxAdd(){
   renderAll();
   toast(`Ajout : ${parsed.length} tâche(s).`);
 }
-
 function inboxClear(){
   $("inboxText").value = "";
   toast("Champ effacé.");
 }
 
-/* ---------- Hub details toggle ---------- */
+/* ---------- Hub details ---------- */
 function toggleTaskMeta(){
   const meta = $("taskMeta");
   meta.hidden = !meta.hidden;
@@ -710,7 +636,6 @@ function renderAll(){
 
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", ()=>{
-  // panels
   $("btnLeft").onclick = ()=>openPanel("left");
   $("btnRight").onclick = ()=>openPanel("right");
   $("leftClose").onclick = closePanels;
@@ -719,30 +644,23 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   bindTabs();
 
-  // inbox
   $("inboxAdd").onclick = inboxAdd;
   $("inboxClear").onclick = inboxClear;
 
-  // tasks actions
   $("roulette").onclick = spinRoulette;
   $("bombBtn").onclick = degommerOne;
   $("undoBtn").onclick = doUndo;
 
-  // hub
   $("taskInfoBtn").onclick = toggleTaskMeta;
 
-  // pomodoro
   $("pomoEdit").onclick = editPomodoro;
   renderPomodoro();
 
-  // prefs
   bindPrefs();
   renderPrefsUI();
 
-  // filters
   bindTaskFilters();
 
-  // export
   $("exportBtn").onclick = ()=>copyText(JSON.stringify(state, null, 2));
   $("wipeBtn").onclick = ()=>{
     if(!confirm("Reset total ? (tout effacer)")) return;
@@ -753,7 +671,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
     toast("Reset complet. Le monde repart à zéro.");
   };
 
-  // kiffance
   $("kiffAdd").onclick = ()=>{
     const v = ($("kiffNew").value||"").trim();
     if(!v) return;
