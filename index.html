@@ -23,21 +23,10 @@
 
     <div class="tb-center">
       <div class="tb-visuals">
-
-        <!-- ✅ Toggle cliquable -->
-        <button id="modeToggle" class="tb-chip" type="button" aria-pressed="false" aria-label="Basculer clair/foncé">
-          Clair
-        </button>
-
-        <!-- ✅ Saison = bouton qui cycle -->
-        <button id="seasonCycle" class="tb-chip" type="button" aria-label="Changer de saison">
-          Automne
-        </button>
-
-        <div class="tb-spacer"></div>
-
-        <!-- ✅ Focus plus visible -->
-        <button id="focusBtn" class="tb-chip focus" type="button">Focus</button>
+        <button id="modeToggle" class="tb-chip" type="button" aria-pressed="false" aria-label="Basculer clair/foncé">Clair</button>
+        <button id="seasonCycle" class="tb-chip" type="button" aria-label="Changer de saison">Automne</button>
+        <span class="tb-dot" aria-hidden="true"></span>
+        <button id="focusBtn" class="tb-chip subtle" type="button">Focus</button>
         <button id="countersBtn" class="tb-chip subtle" type="button">Compteurs</button>
       </div>
     </div>
@@ -67,8 +56,8 @@
     </nav>
 
     <div class="panel-content">
-      <section class="tabPage show" id="left-inbox">
-        <h3>Inbox</h3>
+      <!-- INBOX -->
+      <section class="tabPage show" id="left-inbox" aria-label="Inbox">
         <p class="muted small">
           Une ligne = une tâche. Ligne en MAJUSCULES = catégorie.
           “Titre - 6” ou “Titre 6” = 6 Éthorions.
@@ -92,9 +81,8 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <section class="tabPage" id="left-tasks">
-        <h3>Tâches</h3>
-
+      <!-- TASKS -->
+      <section class="tabPage" id="left-tasks" aria-label="Tâches">
         <div class="row wrap">
           <label class="muted small">Catégorie</label>
           <select id="catFilter" class="select"></select>
@@ -110,8 +98,8 @@ Lire article - 2"></textarea>
         <div class="list" id="taskList"></div>
       </section>
 
-      <section class="tabPage" id="left-kiffance">
-        <h3>Kiffance</h3>
+      <!-- KIFFANCE -->
+      <section class="tabPage" id="left-kiffance" aria-label="Kiffance">
         <p class="muted small">Récompenses surprises (base éditable).</p>
 
         <div class="row wrap">
@@ -121,9 +109,8 @@ Lire article - 2"></textarea>
         <div class="list" id="kiffList"></div>
       </section>
 
-      <section class="tabPage" id="left-prefs">
-        <h3>Préférences</h3>
-
+      <!-- PREFS -->
+      <section class="tabPage" id="left-prefs" aria-label="Préférences">
         <div class="grid2">
           <div>
             <label class="muted small">Mode</label>
@@ -147,8 +134,8 @@ Lire article - 2"></textarea>
           <div>
             <label class="muted small">Police</label>
             <select id="fontSel" class="select">
+              <option value="yomogi">Yomogi (manuscrite)</option>
               <option value="zen">Zen Maru Gothic</option>
-              <option value="yomogi">Yomogi</option>
               <option value="kiwi">Kiwi Maru</option>
               <option value="kurenaido">Zen Kurenaido</option>
             </select>
@@ -160,11 +147,16 @@ Lire article - 2"></textarea>
           </div>
         </div>
 
-        <p class="muted small">Chaud en clair, doux en foncé, lisible sans forcer.</p>
+        <div class="row">
+          <button id="prefsApply" class="btn primary">Appliquer</button>
+          <button id="prefsReset" class="btn ghost">Reset prefs</button>
+        </div>
+
+        <p class="muted small">Tu changes ici, puis “Appliquer”.</p>
       </section>
 
-      <section class="tabPage" id="left-export">
-        <h3>Export</h3>
+      <!-- EXPORT -->
+      <section class="tabPage" id="left-export" aria-label="Export">
         <p class="muted small">Export JSON simple.</p>
         <div class="row wrap">
           <button id="exportBtn" class="btn ghost">Copier JSON</button>
@@ -190,79 +182,57 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <!-- POMODORO -->
+      <!-- POMODORO (discret) -->
       <section id="pomodoro" aria-label="Pomodoro">
         <div class="pomoRow">
-          <div id="pomoTime">25:00</div>
-
-          <button id="pomoPlay" class="pomoBtn" type="button" title="Démarrer" aria-label="Démarrer">▶</button>
-          <button id="pomoPause" class="pomoBtn" type="button" title="Pause" aria-label="Pause">⏸</button>
-          <button id="pomoStop" class="pomoBtn" type="button" title="Stop" aria-label="Stop">■</button>
-
-          <button id="pomoEdit" class="iconLink" type="button" title="Modifier le pomodoro" aria-label="Modifier le pomodoro">✎</button>
+          <div id="pomoTime" class="pomoTime" title="Cliquer = play/pause">25:00</div>
+          <button id="pomoToggle" class="pomoIcon" type="button" aria-label="Play/Pause" title="Play/Pause">▶</button>
+          <button id="pomoStop" class="pomoIcon subtle" type="button" aria-label="Stop" title="Stop">■</button>
+          <button id="pomoEdit" class="pomoIcon pencil" type="button" aria-label="Modifier" title="Modifier">✎</button>
         </div>
       </section>
 
       <!-- CADRE COMMUN -->
       <section id="missionCard" class="missionCard" aria-label="Mission">
+        <!-- ligne info discrète -->
+        <div class="missionLine">
+          <div class="missionLeft" id="missionLineLeft">Tâches en cours (0)</div>
+          <div class="missionRight" id="missionLineRight">0 finies · 0/0</div>
+        </div>
 
-        <!-- ✅ “Tâche en cours” discret en haut à droite -->
-        <div class="cornerHint muted">Tâche en cours</div>
-
-        <div class="missionTop">
-          <div class="missionKicker">
-            <span class="chip" id="taskFraction">0/0</span>
-            <button id="taskInfoBtn" class="tinyBtn" type="button" title="Afficher/masquer détails" aria-label="Afficher/masquer détails">i</button>
-          </div>
-
-          <div class="missionTitle" id="taskTitle">Aucune tâche sélectionnée</div>
-
-          <div class="missionMeta muted" id="taskMetaDetails" hidden>
-            Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
-          </div>
+        <div class="missionTitle" id="taskTitle">Aucune tâche sélectionnée</div>
+        <div class="missionMeta muted" id="taskMetaDetails" hidden>
+          Catégorie : <span id="metaCat">—</span> · Éthorions : <span id="metaEt">—</span>
         </div>
 
         <div class="divider soft"></div>
-
-        <div class="missionListHead">
-          <div class="missionListTitle">Tâches en cours</div>
-          <div class="missionListMeta" id="taskMetaHud"></div>
-        </div>
 
         <div id="tasksList" class="hubList"></div>
 
         <div class="divider soft"></div>
 
-        <!-- ✅ Actions HORIZONTALES -->
+        <!-- actions -->
         <div class="missionActionsRow">
-          <div class="actionCol">
-            <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">↶</button>
-            <div class="actionLbl">Retour</div>
-          </div>
+          <button id="undoBtn" class="actionPill" type="button" title="Retour arrière">↶ <span>Retour</span></button>
 
-          <div class="actionCol actionCenter">
-            <button id="rouletteBtn" class="rouletteBtn" type="button" aria-label="Roulette">
-              <div class="rouletteWheel" id="rouletteWheel">
-                <div class="rouletteCenterText">Roulette</div>
-              </div>
-            </button>
-            <div class="actionLbl">Tirage</div>
-          </div>
+          <button id="rouletteBtn" class="rouletteBtn" type="button" aria-label="Roulette">
+            <div class="rouletteWheel" id="rouletteWheel">
+              <div class="rouletteCenterText">Roulette</div>
+            </div>
+          </button>
 
-          <div class="actionCol">
-            <button id="bombBtn" class="roundBtn primary" type="button" title="Dégommer 1 Éthorion" aria-label="Dégommer 1 Éthorion">💣</button>
-            <div class="actionLbl">Dégommer 1 Éthorion</div>
-          </div>
+          <button id="bombBtn" class="actionPill bomb" type="button" title="Dégommer 1 Éthorion">💣 <span>Dégommer 1 Éthorion</span></button>
+        </div>
+
+        <!-- liens internes DANS le cadre, sans contour -->
+        <div class="miniLinks" role="navigation" aria-label="Accès rapides">
+          <button class="miniLink" type="button" id="openNotes">Notes</button>
+          <button class="miniLink" type="button" id="openTyphonse">Typhonse</button>
+          <button class="miniLink" type="button" id="openKiffance">Kiffance</button>
+          <button class="miniLink" type="button" id="openStats">Stats</button>
+          <button class="miniLink mutedLink" type="button" id="taskInfoBtn">Détails</button>
         </div>
       </section>
-
-      <!-- Quicklinks centrés sous le cadre -->
-      <div class="quickLinks below">
-        <button class="ql" type="button" id="openNotes">Notes</button>
-        <button class="ql" type="button" id="openTyphonse">Typhonse</button>
-        <button class="ql" type="button" id="openKiffance">Kiffance</button>
-        <button class="ql" type="button" id="openStats">Stats</button>
-      </div>
 
       <div id="toast" class="toast" aria-live="polite" aria-atomic="true" hidden></div>
     </div>
@@ -286,33 +256,27 @@ Lire article - 2"></textarea>
     </nav>
 
     <div class="panel-content">
-      <section class="tabPage show" id="right-sets">
-        <h3>Sets</h3>
+      <section class="tabPage show" id="right-sets" aria-label="Sets">
         <p class="muted small">Structure prête (édition + play au module suivant).</p>
       </section>
 
-      <section class="tabPage" id="right-habits">
-        <h3>Habitudes</h3>
+      <section class="tabPage" id="right-habits" aria-label="Habitudes">
         <p class="muted small">Structure prête (lignes compactes au module suivant).</p>
       </section>
 
-      <section class="tabPage" id="right-mood">
-        <h3>Mood</h3>
+      <section class="tabPage" id="right-mood" aria-label="Mood">
         <p class="muted small">Module expert émotions TCC (fenêtres contextuelles) au module suivant.</p>
       </section>
 
-      <section class="tabPage" id="right-calendar">
-        <h3>Calendrier</h3>
+      <section class="tabPage" id="right-calendar" aria-label="Calendrier">
         <p class="muted small">Calendrier + timeline au module suivant.</p>
       </section>
 
-      <section class="tabPage" id="right-notes">
-        <h3>Notes & Rappels</h3>
+      <section class="tabPage" id="right-notes" aria-label="Notes">
         <p class="muted small">Notes + aide-mémoire + rappels au module suivant.</p>
       </section>
 
-      <section class="tabPage" id="right-stats">
-        <h3>Stats</h3>
+      <section class="tabPage" id="right-stats" aria-label="Stats">
         <p class="muted small">Infographies au module suivant.</p>
       </section>
     </div>
