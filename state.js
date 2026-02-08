@@ -306,7 +306,7 @@ function spinRoulette(){
   if(act.length===0) return toast("Pas de tâches. Repos… ou vide cosmique.");
 
   spinning = true;
-  const face = $("roulette").querySelector(".rouletteFace");
+  const face = $("roulette").classList.add("spinning");
 
   const turns = 3 + Math.random()*4.5;
   const extra = Math.random()*220;
