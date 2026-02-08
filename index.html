@@ -39,8 +39,44 @@
   <!-- HUB CENTRAL -->
   <main id="hub">
     <div id="hub-inner">
+
       <h1 id="appTitle">ELIMINATOR</h1>
       <p id="subtitle">Une quête après l’autre.</p>
+
+      <!-- BARRE DE PROGRESSION -->
+      <div id="progressWrap">
+        <div id="progressBar">
+          <div id="progressFill"></div>
+        </div>
+        <div id="progressPct">0%</div>
+      </div>
+
+      <!-- POMODORO -->
+      <div id="pomodoro">
+        <span id="pomoTime">25:00</span>
+        <button id="pomoEdit">modifier</button>
+      </div>
+
+      <!-- TÂCHE EN COURS -->
+      <div id="currentTask">
+        <span class="taskTitle">Aucune tâche sélectionnée</span>
+        <span class="taskFraction">–</span>
+      </div>
+
+      <!-- ACTIONS CENTRALES -->
+      <div id="actions">
+        <button id="bombBtn">💣</button>
+
+        <div id="rouletteWrap">
+          <div id="roulette">
+            <div class="wheel"></div>
+          </div>
+          <span class="rouletteLabel">roulette</span>
+        </div>
+
+        <button id="swordBtn">⚔︎</button>
+      </div>
+
     </div>
   </main>
 
@@ -53,7 +89,6 @@
     </div>
   </aside>
 
-  <!-- JS -->
   <script src="state.js" defer></script>
 </body>
 </html>
