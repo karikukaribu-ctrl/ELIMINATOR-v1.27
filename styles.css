@@ -9,16 +9,16 @@
   --barEmpty: rgba(0,0,0,.10);
   --barFill: rgba(211,138,92,.92);
   --barEdge: rgba(255,255,255,.82);
+  --line: rgba(0,0,0,.10);
 
   --panelBg: rgba(255,255,255,.70);
-  --line: rgba(0,0,0,.10);
 
   --leftW:360px;
   --rightW:420px;
 }
 
-/* reset */
 *{ box-sizing:border-box; }
+
 body{
   margin:0;
   background: var(--bg);
@@ -28,7 +28,7 @@ body{
 
 .muted{ color: var(--muted); }
 
-/* TOPBAR FIXE (vraiment fixe) */
+/* TOPBAR FIXE */
 #topBar{
   position: fixed;
   top:0; left:0; right:0;
@@ -43,7 +43,6 @@ body{
   background: rgba(255,255,255,.62);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-
   border-bottom: 1px solid var(--line);
 }
 
@@ -71,31 +70,31 @@ body{
 /* HUB */
 #hub{
   min-height: 100vh;
-  padding-top: 56px; /* pour ne pas passer sous la topbar */
+  padding-top: 56px;
   display:flex;
   justify-content:center;
 }
 
 #hub-inner{
   width: min(900px, 92vw);
-  padding: 48px 18px 56px;
+  padding: 44px 18px 56px;
   text-align:center;
 }
 
 /* TITRE */
 #appTitle{
-  font-size: clamp(60px, 7vw, 88px);
+  font-size: clamp(60px, 7vw, 92px);
   margin: 10px 0 4px;
   letter-spacing: .08em;
 }
 
 #subtitle{
-  margin: 0 0 30px;
+  margin: 0 0 26px;
   color: var(--muted);
   font-size: 15px;
 }
 
-/* PROGRESSION (plein -> décroît) */
+/* PROGRESSION — PLUS ÉPAISSE */
 #progressWrap{
   margin: 0 auto 18px;
   width: 100%;
@@ -104,8 +103,8 @@ body{
 #progressBar{
   position: relative;
   width: 100%;
-  height: 30px;
-  border-radius: 16px;
+  height: 72px;                 /* <- barre doublée/triplée */
+  border-radius: 22px;
   overflow: hidden;
   background: var(--barEmpty);
   border: 1px solid var(--line);
@@ -116,9 +115,9 @@ body{
   top:0; left:0; bottom:0;
   width: 100%;
   background:
-    linear-gradient(180deg, rgba(255,255,255,.25), transparent 40%),
-    linear-gradient(90deg, var(--barFill), rgba(0,0,0,.08));
-  box-shadow: inset -2px 0 0 var(--barEdge); /* délimitation plus forte */
+    linear-gradient(180deg, rgba(255,255,255,.26), transparent 45%),
+    linear-gradient(90deg, var(--barFill), rgba(0,0,0,.10));
+  box-shadow: inset -3px 0 0 var(--barEdge);  /* délimitation plus marquée */
   transition: width .55s cubic-bezier(.2,.8,.2,1);
 }
 
@@ -128,55 +127,49 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(0,0,0,.72);
+  font-size: 18px;
+  font-weight: 800;
+  color: rgba(0,0,0,.70);
   text-shadow: 0 1px 0 rgba(255,255,255,.55);
   pointer-events:none;
 }
 
-#progressHint{
-  margin-top: 8px;
-  font-size: 12px;
-}
-
-/* POMODORO */
+/* POMODORO (temps puis “edit” dessous) */
 #pomodoro{
-  margin: 6px 0 22px;
+  margin: 12px 0 22px;
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap: 6px;
+  gap: 8px;
 }
 
 #pomoTime{
-  font-size: 28px;
+  font-size: 30px;
   letter-spacing: .02em;
 }
 
-.linkBtn{
+.iconLink{
+  border:none;
   background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+  cursor:pointer;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 18px;
   color: var(--muted);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  padding: 0 6px;
+  line-height: 1;
 }
 
 /* TÂCHE EN COURS */
 #currentTask{
-  margin: 8px 0 30px;
+  margin: 6px 0 26px;
 }
 
 .taskLine{
   display:flex;
   justify-content:center;
   gap: 10px;
-  align-items: baseline;
-  margin-bottom: 6px;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .taskLabel{
@@ -193,159 +186,87 @@ body{
   padding: 2px 8px;
 }
 
-.taskTitle{
-  font-size: 26px;
-  line-height: 1.14;
-  margin: 6px 0 6px;
-  text-shadow: 0 2px 0 rgba(0,0,0,.08); /* relief léger (pas d’ombre lourde) */
+.tinyBtn{
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.35);
+  cursor:pointer;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--muted);
 }
 
-.taskMeta{
-  font-size: 12px;
+.taskTitle{
+  font-size: clamp(30px, 3.2vw, 44px); /* <- plus gros */
+  font-weight: 800;                    /* <- bien en gras */
+  line-height: 1.10;
+  margin: 6px 0 0;
+  text-shadow: 0 10px 18px rgba(0,0,0,.10); /* <- relief (pas du “noir sale”) */
 }
 
 /* ACTIONS */
 #actions{
   display:flex;
   justify-content:center;
-  align-items:flex-end;
+  align-items:center;
   gap: 18px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
-.actionBtn{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap: 6px;
-
-  width: 110px;
-  padding: 12px 10px;
-
-  border-radius: 16px;
+/* Boutons ronds (undo + bombe) */
+.roundBtn{
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
   border: 1px solid var(--line);
   background: rgba(255,255,255,.45);
   cursor:pointer;
   font-family: inherit;
+  font-size: 26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition: transform 160ms ease;
+}
+.roundBtn:active{ transform: translateY(1px) scale(.99); }
+
+.roundBtn.ghost{
+  background: rgba(255,255,255,.30);
 }
 
-.actionBtn .ic{
-  font-size: 22px;
-  line-height: 1;
-}
-
-.actionBtn .lbl{
-  font-size: 13px;
-  color: var(--fg);
-}
-
-.actionBtn.primary{
+.roundBtn.primary{
   background: rgba(211,138,92,.18);
   border-color: rgba(211,138,92,.30);
 }
 
-/* ROULETTE (texte dedans) */
+/* ROULETTE DESSINÉE */
 .rouletteBtn{
-  width: 140px;
-  height: 140px;
+  width: 160px;
+  height: 160px;
   border-radius: 999px;
-
   border: 2px solid rgba(211,138,92,.55);
-  background:
-    radial-gradient(circle at 30% 28%, rgba(255,255,255,.62), transparent 52%),
-    radial-gradient(circle at 70% 75%, rgba(211,138,92,.22), transparent 60%),
-    rgba(255,255,255,.40);
-
-  cursor:pointer;
-  font-family: inherit;
-
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-
-  transition: transform 180ms ease;
-}
-
-.rouletteBtn:active{ transform: translateY(1px) scale(.99); }
-
-.rouletteText{
-  font-size: 14px;
-  letter-spacing: .10em;
-  text-transform: lowercase;
-  color: rgba(0,0,0,.74);
-}
-
-.rouletteSub{
-  font-size: 12px;
-  margin-top: 2px;
-}
-
-/* LEGEND */
-#miniLegend{
-  margin-top: 14px;
-  font-size: 12px;
-}
-
-/* PANELS + BACKDROP */
-#panelBack{
-  position: fixed;
-  inset: 0;
-  z-index: 2500;
-  background: rgba(0,0,0,.22);
-  opacity: 0;
-  pointer-events:none;
-  transition: opacity .25s ease;
-}
-
-#panelBack.show{
-  opacity: 1;
-  pointer-events:auto;
-}
-
-.panel{
-  position: fixed;
-  top:0; bottom:0;
-  z-index: 2600;
-
-  background: var(--panelBg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-
-  border: 1px solid var(--line);
-  overflow:auto;
-  transition: transform .25s ease;
-}
-
-.panel-left{
-  left:0;
-  width: var(--leftW);
-  transform: translateX(-100%);
-  border-right: 1px solid var(--line);
-}
-
-.panel-right{
-  right:0;
-  width: var(--rightW);
-  transform: translateX(100%);
-  border-left: 1px solid var(--line);
-}
-
-.panel.open{ transform: translateX(0); }
-
-.panel-content{
-  padding: 22px 20px;
-}
-
-.closeBtn{
-  position:absolute;
-  top: 10px;
-  right: 12px;
-  width: 40px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
   background: rgba(255,255,255,.35);
   cursor:pointer;
-  font-size: 18px;
+  font-family: inherit;
+  position: relative;
+  display:grid;
+  place-items:center;
+  overflow: visible;
+  transition: transform 180ms ease;
 }
+.rouletteBtn:active{ transform: translateY(1px) scale(.99); }
+
+/* Face tournante (segments) */
+.rouletteFace{
+  width: 142px;
+  height: 142px;
+  border-radius: 999px;
+  display:block;
+  border: 1px solid rgba(0,0,0,.08);
+  background:
+    conic-gradient(
+      from 0deg,
+      rgba(211,138,92,.35) 0 20deg,
+      rgba(255,255,255,.55)
