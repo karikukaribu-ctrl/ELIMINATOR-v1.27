@@ -1,10 +1,11 @@
+/* ===== state.v7.js ===== */
 const $ = (id)=>document.getElementById(id);
 const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
 const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
 const uid = ()=>Math.random().toString(36).slice(2,10)+"_"+Date.now().toString(36);
 const nowISO = ()=>new Date().toISOString();
 
-const LS_KEY = "eliminator_step2_v6";
+const LS_KEY = "eliminator_v7";
 const SEASONS = ["printemps","ete","automne","hiver","noirblanc"];
 
 const seasonLabel = (s)=>{
@@ -21,13 +22,10 @@ const SUBLINES = [
 ];
 const pickSubline = ()=>SUBLINES[Math.floor(Math.random()*SUBLINES.length)];
 
-/* ----------- doodles (SVG repeat, légers) ----------- */
 function svgUrl(svg){
-  const enc = encodeURIComponent(svg)
-    .replace(/'/g,"%27").replace(/"/g,"%22");
+  const enc = encodeURIComponent(svg).replace(/'/g,"%27").replace(/"/g,"%22");
   return `url("data:image/svg+xml,${enc}")`;
 }
-
 const DOODLES = {
   printemps: svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520"><g fill="none" stroke="rgba(255,120,170,0.55)" stroke-width="2" stroke-linecap="round"><path d="M90 120c30-30 65-30 95 0-30 30-65 30-95 0z"/><path d="M360 110c28-22 60-22 88 0-28 22-60 22-88 0z"/></g><g fill="none" stroke="rgba(120,207,168,0.50)" stroke-width="2" stroke-linecap="round"><path d="M120 360c28-26 58-26 86 0-28 26-58 26-86 0z"/><path d="M330 360c22-34 44-48 70-52-6 26-26 48-70 52z"/></g></svg>`),
   ete: svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520"><g fill="none" stroke="rgba(242,178,75,0.55)" stroke-width="2" stroke-linecap="round"><circle cx="120" cy="120" r="22"/><path d="M120 86v-18M120 172v18M86 120H68M172 120h18"/></g><g fill="none" stroke="rgba(90,190,200,0.45)" stroke-width="2" stroke-linecap="round"><path d="M300 120c30-20 62-20 92 0-30 20-62 20-92 0z"/><path d="M90 360c40 20 80 20 120 0"/></g></svg>`),
@@ -36,7 +34,6 @@ const DOODLES = {
   noirblanc: svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520"><g fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round"><path d="M110 140c40-20 70-10 90 10-20 30-60 40-90 10z"/><path d="M360 140c40-20 70-10 90 10-20 30-60 40-90 10z"/></g></svg>`)
 };
 
-/* ---------- Thèmes ---------- */
 const THEMES = {
   printemps:{
     clair:{ bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54", barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)", accent:"rgba(255,162,190,.14)", accent2:"rgba(124,207,168,.30)", panel:"rgba(255,255,255,.72)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)" },
@@ -60,7 +57,6 @@ const THEMES = {
   }
 };
 
-/* ---------- State ---------- */
 const defaultState = {
   ui:{
     mode:"clair",
@@ -80,17 +76,11 @@ const defaultState = {
     "Range 10 objets comme un ninja du tri.",
     "Bois une gorgée d’eau : potion de clarté mentale."
   ],
-  pomodoro:{
-    workMin: 25,
-    breakMin: 5,
-    autoStart: "auto",
-    phase: "work"
-  },
-  overlays:{
-    notes: "",
-    typhonse: "",
-    statsStub: true
-  }
+  pomodoro:{ workMin: 25, breakMin: 5, autoStart: "auto", phase: "work" },
+  notes: "",
+  typhonse: "",
+  reminders: [],   // {id,text,dueDateISO,done}
+  projects: []     // {id,title,dueDateISO}
 };
 
 function deepAssign(t,s){
@@ -107,26 +97,22 @@ function loadState(){
     const merged = structuredClone(defaultState);
     deepAssign(merged, parsed);
     return merged;
-  }catch(_){
-    return structuredClone(defaultState);
-  }
+  }catch(_){ return structuredClone(defaultState); }
 }
 let state = loadState();
 function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){} }
 
-/* ---------- Status spot ---------- */
+/* Status */
 let statusTimer = null;
 function status(msg, ms=5000){
   const el = $("statusSpot");
   if(!el) return;
   el.textContent = msg || "";
   if(statusTimer) clearTimeout(statusTimer);
-  if(msg){
-    statusTimer = setTimeout(()=>{ el.textContent = ""; }, ms);
-  }
+  if(msg) statusTimer = setTimeout(()=>{ el.textContent = ""; }, ms);
 }
 
-/* ---------- Theme apply ---------- */
+/* Theme */
 function applyTheme(){
   const season = (state.ui.season in THEMES) ? state.ui.season : "automne";
   const mode = (state.ui.mode === "sombre") ? "sombre" : "clair";
@@ -165,8 +151,7 @@ function applyTheme(){
     setVar("--progressBorder", "1px solid var(--line)");
   }
 
-  const doodle = DOODLES[season] || DOODLES.automne;
-  setVar("--doodle", doodle);
+  setVar("--doodle", DOODLES[season] || DOODLES.automne);
   setVar("--doodleOpacity", (mode==="sombre") ? ".16" : ".22");
 
   document.body.setAttribute("data-font", state.ui.font);
@@ -181,7 +166,7 @@ function applyTheme(){
   if(sc) sc.textContent = seasonLabel(state.ui.season);
 }
 
-/* ---------- Panels ---------- */
+/* Panels */
 function openPanel(which){
   $("panelBack")?.classList.add("show");
   document.body.style.overflow = "hidden";
@@ -200,7 +185,7 @@ function closePanels(){
   document.body.style.overflow = "";
 }
 
-/* ---------- Resizers ---------- */
+/* Resizers */
 function initResizer(handleId, which){
   const h = $(handleId);
   if(!h) return;
@@ -232,7 +217,7 @@ function initResizer(handleId, which){
   window.addEventListener("touchend", up);
 }
 
-/* ---------- Tabs ---------- */
+/* Tabs */
 function bindTabs(){
   $$(".panel-left .tabBtn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
@@ -255,11 +240,13 @@ function bindTabs(){
       const key = btn.dataset.righttab;
       $$("#rightPanel .tabPage").forEach(p=>p.classList.remove("show"));
       $("right-"+key)?.classList.add("show");
+      if(key==="calendar") renderCalendar();
+      if(key==="notes") renderNotesRight();
     });
   });
 }
 
-/* ---------- Inbox parsing ---------- */
+/* Inbox parsing */
 function isAllCapsLine(line){
   const t = (line||"").trim();
   if(!t) return false;
@@ -305,7 +292,7 @@ function importFromInbox(text){
   return out;
 }
 
-/* ---------- Tasks helpers ---------- */
+/* Tasks helpers */
 const activeTasks = ()=>state.tasks.filter(t=>!t.done);
 const doneTasks = ()=>state.tasks.filter(t=>t.done);
 const getTask = (id)=>state.tasks.find(t=>t.id===id) || null;
@@ -323,7 +310,7 @@ function ensureCurrentTask(){
   if(!cur || cur.done) state.currentTaskId = act[0].id;
 }
 
-/* ---------- Progress = reste% ---------- */
+/* Progress = remaining% */
 function computeRemainingPct(){
   ensureBaseline();
   const base = state.baseline.totalTasks || 0;
@@ -333,19 +320,13 @@ function computeRemainingPct(){
 }
 function renderProgress(){
   const pct = computeRemainingPct();
-  const fill = $("progressFill");
-  const pctEl = $("progressPctIn");
-  const bar = $("progressBar");
-
-  if(fill) fill.style.width = `${pct}%`;
-  if(pctEl) pctEl.textContent = `${pct}%`;
-  if(bar) bar.setAttribute("aria-valuenow", String(pct));
-
-  // ✅ alimente le séparateur lumineux CSS
+  $("progressFill").style.width = `${pct}%`;
+  $("progressPctIn").textContent = `${pct}%`;
+  $("progressBar").setAttribute("aria-valuenow", String(pct));
   document.documentElement.style.setProperty("--progressPct", String(pct));
 }
 
-/* ---------- Undo ---------- */
+/* Undo */
 function pushUndo(label){
   state.undo.unshift({ label, at: Date.now(), payload: structuredClone(state) });
   state.undo = state.undo.slice(0, 25);
@@ -360,7 +341,7 @@ function doUndo(){
   status("Retour : timeline réécrite.");
 }
 
-/* ---------- Hub render ---------- */
+/* Hub render */
 function renderHub(){
   const act = activeTasks();
   const done = doneTasks();
@@ -369,8 +350,7 @@ function renderHub(){
   $("statActive").textContent = String(act.length);
   $("statDone").textContent = String(done.length);
 
-  const ml = $("missionLineLeft");
-  if(ml) ml.textContent = `Tâches en cours (${done.length} finies · ${act.length}/${base || act.length || 0})`;
+  $("missionLineLeft").textContent = `Tâches en cours (${done.length} finies · ${act.length}/${base || act.length || 0})`;
 
   const cur = getTask(state.currentTaskId);
   if(!cur){
@@ -383,35 +363,12 @@ function renderHub(){
     $("metaEt").textContent = `${cur.etorionsLeft}/${cur.etorionsTotal}`;
   }
 }
-
 function toggleTaskMeta(){
   const m = $("taskMetaDetails");
-  if(!m) return;
   m.hidden = !m.hidden;
 }
 
-/* ---------- Actions ---------- */
-function selectTask(id){
-  const t = getTask(id);
-  if(!t || t.done) return;
-  state.currentTaskId = id;
-  saveState();
-  renderHub();
-  renderTasksPanel();
-}
-
-function completeTask(id){
-  const t = getTask(id);
-  if(!t || t.done) return;
-  pushUndo("complete");
-  t.done = true;
-  t.doneAt = nowISO();
-  ensureCurrentTask();
-  saveState();
-  renderAll();
-  status("GLORIEUX. Une menace de moins.");
-}
-
+/* Actions */
 function degommerOne(){
   const t = getTask(state.currentTaskId);
   if(!t || t.done) return status("Aucune tâche à dég… euh… traiter.");
@@ -429,16 +386,15 @@ function degommerOne(){
   renderAll();
 }
 
-/* ---------- Roulette ---------- */
+/* Roulette */
 let spinning = false;
 function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
-
 function onRouletteStop(){
   const act = activeTasks();
   if(act.length===0){
     if(state.kiffances.length){
       status("🎁 Kiffance : " + state.kiffances[Math.floor(Math.random()*state.kiffances.length)]);
-    }else status("Roulette : rien à tirer. Même le destin hésite.");
+    }else status("Roulette : rien à tirer.");
     return;
   }
   const roll = Math.random();
@@ -452,7 +408,6 @@ function onRouletteStop(){
   renderHub();
   status("🎡 Tirage : " + pick.title);
 }
-
 function spinRoulette(){
   if(spinning) return;
   const wheel = $("rouletteWheel");
@@ -485,7 +440,7 @@ function spinRoulette(){
   requestAnimationFrame(frame);
 }
 
-/* ---------- Tasks panel ---------- */
+/* Tasks panel */
 function categories(){
   const set = new Set(state.tasks.map(t=>t.cat||"Inbox"));
   const out = Array.from(set).sort((a,b)=>a.localeCompare(b));
@@ -505,11 +460,9 @@ function renderCatFilter(){
   }
   sel.value = cats.includes(prev) ? prev : "Toutes";
 }
-
 function renderTasksPanel(){
   renderCatFilter();
   const root = $("taskList");
-
   const cat = $("catFilter").value;
   const view = $("viewFilter").value;
 
@@ -559,30 +512,28 @@ function renderTasksPanel(){
       selBtn.className = "iconBtn";
       selBtn.title = "Sélectionner";
       selBtn.textContent = (t.id===state.currentTaskId) ? "★" : "▶";
-      selBtn.onclick = ()=>selectTask(t.id);
+      selBtn.onclick = ()=>{
+        state.currentTaskId = t.id;
+        saveState();
+        renderAll();
+        status("Sélection : " + t.title);
+      };
       btns.appendChild(selBtn);
 
       const doneBtn = document.createElement("button");
       doneBtn.className = "iconBtn";
       doneBtn.title = "Terminer";
       doneBtn.textContent = "✓";
-      doneBtn.onclick = ()=>completeTask(t.id);
-      btns.appendChild(doneBtn);
-    }else{
-      const restore = document.createElement("button");
-      restore.className = "iconBtn";
-      restore.title = "Restaurer";
-      restore.textContent = "↩";
-      restore.onclick = ()=>{
-        pushUndo("restore");
-        t.done = false;
-        t.doneAt = null;
+      doneBtn.onclick = ()=>{
+        pushUndo("complete");
+        t.done = true;
+        t.doneAt = nowISO();
         ensureCurrentTask();
         saveState();
         renderAll();
-        status("Ressuscitée. Pratique. Suspect. Efficace.");
+        status("GLORIEUX. Une menace de moins.");
       };
-      btns.appendChild(restore);
+      btns.appendChild(doneBtn);
     }
 
     const delBtn = document.createElement("button");
@@ -606,11 +557,10 @@ function renderTasksPanel(){
   }
 }
 
-/* ---------- Kiffance ---------- */
+/* Kiffance */
 function renderKiffance(){
   const root = $("kiffList");
   root.innerHTML = "";
-
   if(state.kiffances.length===0){
     const d = document.createElement("div");
     d.className = "muted small";
@@ -618,7 +568,6 @@ function renderKiffance(){
     root.appendChild(d);
     return;
   }
-
   state.kiffances.forEach((k, idx)=>{
     const row = document.createElement("div");
     row.className = "cardRow";
@@ -630,12 +579,7 @@ function renderKiffance(){
     title.className = "cardTitle";
     title.textContent = k;
 
-    const sub = document.createElement("div");
-    sub.className = "cardSub";
-    sub.textContent = "Récompense";
-
     left.appendChild(title);
-    left.appendChild(sub);
 
     const btns = document.createElement("div");
     btns.className = "cardBtns";
@@ -649,28 +593,27 @@ function renderKiffance(){
       state.kiffances.splice(idx,1);
       saveState();
       renderKiffance();
-      status("Kiffance supprimée. Le destin est rude.");
+      status("Kiffance supprimée.");
     };
-
     btns.appendChild(del);
+
     row.appendChild(left);
     row.appendChild(btns);
     root.appendChild(row);
   });
 }
 
-/* ---------- Export ---------- */
+/* Export */
 function renderExport(){ $("exportOut").value = JSON.stringify(state, null, 2); }
 async function copyText(text){
   try{ await navigator.clipboard.writeText(text); status("JSON copié."); }
-  catch(_){ status("Impossible de copier (clipboard)."); }
+  catch(_){ status("Impossible de copier."); }
 }
 
-/* ---------- Pomodoro ---------- */
+/* Pomodoro */
 let pomoTimer = null;
 let pomoRunning = false;
 let remainingMs = 0;
-
 function pad2(n){ return String(n).padStart(2,"0"); }
 function fmtMMSS(ms){
   const s = Math.max(0, Math.floor(ms/1000));
@@ -686,14 +629,15 @@ function resetPhase(){
 function startPomo(){
   if(pomoRunning) return;
   pomoRunning = true;
-  $("pomoTime")?.classList.add("running");
+  $("pomoTime").classList.add("running");
   if(!pomoTimer) pomoTimer = setInterval(tick, 250);
 }
 function pausePomo(){
   pomoRunning = false;
-  $("pomoTime")?.classList.remove("running");
+  $("pomoTime").classList.remove("running");
 }
 function togglePomo(){
+  if(remainingMs <= 0) resetPhase();
   if(pomoRunning) pausePomo();
   else startPomo();
 }
@@ -710,15 +654,12 @@ function tick(){
 
     const phaseLabel = state.pomodoro.phase === "work" ? "Pomodoro" : "Pause";
     status(`⏰ ${phaseLabel} : terminé.`);
-
     resetPhase();
     if(state.pomodoro.autoStart === "auto") startPomo();
     return;
   }
   $("pomoTime").textContent = fmtMMSS(remainingMs);
 }
-
-/* ---------- Modal Pomodoro (déjà dans ton HTML v5) ---------- */
 function openModal(){
   $("modalBack").hidden = false;
   $("pomoModal").hidden = false;
@@ -734,18 +675,16 @@ function applyPomoSettings(){
   const w = clamp(parseInt($("pomoMinutes").value,10) || 25, 5, 90);
   const b = clamp(parseInt($("breakMinutes").value,10) || 5, 1, 30);
   const a = $("autoStartSel").value === "manual" ? "manual" : "auto";
-
   state.pomodoro.workMin = w;
   state.pomodoro.breakMin = b;
   state.pomodoro.autoStart = a;
-
   saveState();
   resetPhase();
   status("Pomodoro réglé.");
   closeModal();
 }
 
-/* ---------- Topbar ---------- */
+/* Topbar */
 function bindTopbar(){
   $("modeToggle").addEventListener("click", ()=>{
     state.ui.mode = (state.ui.mode === "clair") ? "sombre" : "clair";
@@ -771,7 +710,7 @@ function bindTopbar(){
   });
 }
 
-/* ---------- Prefs ---------- */
+/* Prefs */
 function syncPrefsUI(){
   $("modeSel").value = state.ui.mode;
   $("seasonSel").value = state.ui.season;
@@ -816,7 +755,7 @@ function bindPrefs(){
   });
 }
 
-/* ---------- Inbox add ---------- */
+/* Inbox add */
 function inboxAdd(){
   const text = $("inboxText").value || "";
   const parsed = importFromInbox(text);
@@ -836,7 +775,7 @@ function inboxAdd(){
 }
 function inboxClear(){ $("inboxText").value = ""; status("Champ effacé."); }
 
-/* ---------- Export buttons ---------- */
+/* Export bind */
 function bindExport(){
   $("exportBtn").onclick = ()=>copyText(JSON.stringify(state, null, 2));
   $("wipeBtn").onclick = ()=>{
@@ -845,187 +784,277 @@ function bindExport(){
     state = structuredClone(defaultState);
     saveState();
     renderAll();
-    status("Reset complet. Le monde repart à zéro.");
+    status("Reset complet.");
   };
 }
 
-/* ---------- Central overlays minimal (Notes / Typhonse / Stats / Kiffance) ---------- */
-function ensureCentralOverlayDOM(){
-  // si tu ne veux pas modifier ton HTML maintenant, on le crée à la volée.
-  if($("centralOverlay")) return;
-
-  const back = document.createElement("div");
-  back.id = "centralBack";
-  back.className = "modalBack";
-  back.hidden = true;
-
-  const modal = document.createElement("div");
-  modal.id = "centralOverlay";
-  modal.className = "modal";
-  modal.hidden = true;
-  modal.setAttribute("role","dialog");
-  modal.setAttribute("aria-modal","true");
-
-  modal.innerHTML = `
-    <div class="modalHead">
-      <div class="modalTitle" id="centralTitle">—</div>
-      <button class="modalClose" id="centralClose" type="button" aria-label="Fermer">×</button>
-    </div>
-    <div class="modalBody">
-      <div class="overlayTabs" id="centralTabs"></div>
-      <div class="overlayGrid" id="centralBody"></div>
-    </div>
-  `;
-
-  document.body.appendChild(back);
-  document.body.appendChild(modal);
-
-  back.addEventListener("click", closeCentralOverlay);
-  $("centralClose").addEventListener("click", closeCentralOverlay);
-  window.addEventListener("keydown",(e)=>{
-    if(e.key === "Escape" && !$("centralOverlay").hidden) closeCentralOverlay();
-  });
+/* ====== Notes & Rappels (panneau droit + overlay futur) ====== */
+function ymd(d){
+  const dt = (d instanceof Date) ? d : new Date(d);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth()+1).padStart(2,"0");
+  const dd = String(dt.getDate()).padStart(2,"0");
+  return `${y}-${m}-${dd}`;
+}
+function isTodayDateISO(dateISO){
+  const today = ymd(new Date());
+  return (dateISO || "").slice(0,10) === today;
+}
+function isTomorrowDateISO(dateISO){
+  const t = new Date();
+  t.setDate(t.getDate()+1);
+  return (dateISO || "").slice(0,10) === ymd(t);
 }
 
-function openCentralOverlay(kind){
-  ensureCentralOverlayDOM();
-  $("centralBack").hidden = false;
-  $("centralOverlay").hidden = false;
-
-  const titleMap = { notes:"Notes", typhonse:"Typhonse", stats:"Stats", kiffance:"Kiffance" };
-  $("centralTitle").textContent = titleMap[kind] || "—";
-
-  // tabs
-  const tabs = $("centralTabs");
-  tabs.innerHTML = "";
-  const order = ["notes","typhonse","stats","kiffance"];
-  order.forEach(k=>{
-    const b = document.createElement("button");
-    b.className = "overlayTab" + (k===kind ? " active":"");
-    b.textContent = titleMap[k];
-    b.onclick = ()=>openCentralOverlay(k);
-    tabs.appendChild(b);
-  });
-
-  // body
-  const body = $("centralBody");
-  body.innerHTML = "";
-
-  if(kind === "notes"){
-    const hint = document.createElement("div");
-    hint.className = "overlayHint";
-    hint.textContent = "Notes rapides. (Sauvegarde automatique)";
-    const ta = document.createElement("textarea");
-    ta.className = "area";
-    ta.rows = 12;
-    ta.value = state.overlays.notes || "";
-    ta.addEventListener("input", ()=>{
-      state.overlays.notes = ta.value;
+function renderNotesRight(){
+  const ta = $("notesRight");
+  if(ta){
+    ta.value = state.notes || "";
+    ta.oninput = ()=>{
+      state.notes = ta.value;
       saveState();
-    });
-    body.appendChild(hint);
-    body.appendChild(ta);
-  }
-
-  if(kind === "typhonse"){
-    const hint = document.createElement("div");
-    hint.className = "overlayHint";
-    hint.textContent = "Typhonse (placeholder). Ici on mettra la liste / la logique plus tard.";
-    const ta = document.createElement("textarea");
-    ta.className = "area";
-    ta.rows = 10;
-    ta.value = state.overlays.typhonse || "";
-    ta.placeholder = "Liste Typhonse, idées, trucs à ne pas oublier…";
-    ta.addEventListener("input", ()=>{
-      state.overlays.typhonse = ta.value;
-      saveState();
-    });
-    body.appendChild(hint);
-    body.appendChild(ta);
-  }
-
-  if(kind === "stats"){
-    const hint = document.createElement("div");
-    hint.className = "overlayHint";
-    hint.textContent = "Stats (placeholder). On mettra les infographies au module Stats.";
-    const p = document.createElement("div");
-    p.className = "muted small";
-    const done = doneTasks().length;
-    const act = activeTasks().length;
-    const base = state.baseline.totalTasks || (done+act);
-    p.textContent = `Finies : ${done} · Actives : ${act} · Total base : ${base}`;
-    body.appendChild(hint);
-    body.appendChild(p);
-  }
-
-  if(kind === "kiffance"){
-    const hint = document.createElement("div");
-    hint.className = "overlayHint";
-    hint.textContent = "Banque de kiffances (édition).";
-    const list = document.createElement("div");
-    list.className = "list";
-    state.kiffances.forEach((k, idx)=>{
-      const row = document.createElement("div");
-      row.className = "cardRow";
-      const left = document.createElement("div");
-      left.className = "cardLeft";
-      const title = document.createElement("div");
-      title.className = "cardTitle";
-      title.textContent = k;
-      left.appendChild(title);
-
-      const btns = document.createElement("div");
-      btns.className = "cardBtns";
-      const del = document.createElement("button");
-      del.className = "iconBtn";
-      del.textContent = "×";
-      del.title = "Supprimer";
-      del.onclick = ()=>{
-        pushUndo("kiffdel");
-        state.kiffances.splice(idx,1);
-        saveState();
-        openCentralOverlay("kiffance");
-        status("Kiffance supprimée.");
-      };
-      btns.appendChild(del);
-
-      row.appendChild(left);
-      row.appendChild(btns);
-      list.appendChild(row);
-    });
-
-    const addRow = document.createElement("div");
-    addRow.className = "row wrap";
-    addRow.innerHTML = `
-      <input id="kiffOverlayNew" class="input" placeholder="Ajouter une kiffance…" />
-      <button id="kiffOverlayAdd" class="btn primary">+</button>
-    `;
-
-    body.appendChild(hint);
-    body.appendChild(addRow);
-    body.appendChild(list);
-
-    $("kiffOverlayAdd").onclick = ()=>{
-      const v = ($("kiffOverlayNew").value||"").trim();
-      if(!v) return;
-      pushUndo("kiffAdd");
-      state.kiffances.unshift(v);
-      saveState();
-      openCentralOverlay("kiffance");
-      status("Kiffance ajoutée.");
     };
   }
+  renderReminders();
 }
 
-function closeCentralOverlay(){
-  const b = $("centralBack");
-  const m = $("centralOverlay");
-  if(b) b.hidden = true;
-  if(m) m.hidden = true;
+function addReminder(text, dateStr){
+  const t = (text||"").trim();
+  if(!t) return;
+  const due = dateStr ? new Date(dateStr) : new Date();
+  const iso = new Date(due.getFullYear(), due.getMonth(), due.getDate(), 9,0,0).toISOString();
+  pushUndo("remAdd");
+  state.reminders.unshift({ id: uid(), text: t, dueDateISO: iso, done:false });
+  saveState();
+  renderReminders();
+  status("Rappel ajouté.");
 }
 
-/* ---------- Render all ---------- */
-function renderExport(){ $("exportOut").value = JSON.stringify(state, null, 2); }
+function toggleReminder(id){
+  const r = state.reminders.find(x=>x.id===id);
+  if(!r) return;
+  pushUndo("remToggle");
+  r.done = !r.done;
+  saveState();
+  renderReminders();
+  status(r.done ? "Rappel coché." : "Rappel décoché.");
+}
+
+function deleteReminder(id){
+  pushUndo("remDel");
+  state.reminders = state.reminders.filter(x=>x.id!==id);
+  saveState();
+  renderReminders();
+  status("Rappel supprimé.");
+}
+
+function renderReminders(){
+  const root = $("remList");
+  if(!root) return;
+
+  // tri : non faits d’abord, puis date
+  const list = state.reminders.slice().sort((a,b)=>{
+    if(a.done && !b.done) return 1;
+    if(!a.done && b.done) return -1;
+    return String(a.dueDateISO||"").localeCompare(String(b.dueDateISO||""));
+  });
+
+  root.innerHTML = "";
+  if(list.length === 0){
+    const d = document.createElement("div");
+    d.className = "muted small";
+    d.textContent = "Aucun rappel. Le cerveau peut souffler (rare moment).";
+    root.appendChild(d);
+    return;
+  }
+
+  list.forEach(r=>{
+    const row = document.createElement("div");
+    row.className = "cardRow";
+
+    const left = document.createElement("div");
+    left.className = "cardLeft";
+
+    const title = document.createElement("div");
+    title.className = "cardTitle" + (r.done ? " remDone" : "");
+    title.textContent = r.text;
+
+    const due = (r.dueDateISO || "").slice(0,10);
+    const badge = document.createElement("div");
+    badge.className = "remBadge";
+    const t = isTodayDateISO(r.dueDateISO) ? "Aujourd’hui" : (isTomorrowDateISO(r.dueDateISO) ? "Demain" : due);
+    badge.textContent = `⏳ ${t}`;
+
+    left.appendChild(title);
+    left.appendChild(badge);
+
+    const btns = document.createElement("div");
+    btns.className = "cardBtns";
+
+    const chk = document.createElement("button");
+    chk.className = "iconBtn";
+    chk.title = "Cocher / décocher";
+    chk.textContent = r.done ? "↩" : "✓";
+    chk.onclick = ()=>toggleReminder(r.id);
+
+    const del = document.createElement("button");
+    del.className = "iconBtn";
+    del.title = "Supprimer";
+    del.textContent = "×";
+    del.onclick = ()=>deleteReminder(r.id);
+
+    btns.appendChild(chk);
+    btns.appendChild(del);
+
+    row.appendChild(left);
+    row.appendChild(btns);
+    root.appendChild(row);
+  });
+}
+
+function showStartOfDayReminders(){
+  const due = state.reminders.filter(r=>!r.done && (isTodayDateISO(r.dueDateISO) || isTomorrowDateISO(r.dueDateISO)));
+  if(due.length === 0) return;
+  const nToday = due.filter(r=>isTodayDateISO(r.dueDateISO)).length;
+  const nTomorrow = due.filter(r=>isTomorrowDateISO(r.dueDateISO)).length;
+  status(`🧠 Mémo: ${nToday} aujourd’hui${nTomorrow ? ` · ${nTomorrow} demain` : ""}.`);
+}
+
+/* ====== Calendrier + Timeline ====== */
+let calCursor = new Date();
+calCursor.setDate(1);
+
+function monthLabel(d){
+  const m = d.toLocaleString("fr-FR", { month:"long" });
+  return `${m.charAt(0).toUpperCase()+m.slice(1)} ${d.getFullYear()}`;
+}
+
+function renderCalendar(){
+  const grid = $("calGrid");
+  const label = $("calLabel");
+  if(!grid || !label) return;
+
+  label.textContent = monthLabel(calCursor);
+
+  const firstDay = new Date(calCursor.getFullYear(), calCursor.getMonth(), 1);
+  const startDow = (firstDay.getDay() + 6) % 7; // lundi=0
+  const start = new Date(firstDay);
+  start.setDate(firstDay.getDate() - startDow);
+
+  const today = ymd(new Date());
+  grid.innerHTML = "";
+
+  // Map reminders/projects per date
+  const hasDot = new Set();
+  state.reminders.forEach(r=>{
+    const d = (r.dueDateISO||"").slice(0,10);
+    if(d) hasDot.add(d);
+  });
+  state.projects.forEach(p=>{
+    const d = (p.dueDateISO||"").slice(0,10);
+    if(d) hasDot.add(d);
+  });
+
+  for(let i=0;i<42;i++){
+    const d = new Date(start);
+    d.setDate(start.getDate()+i);
+    const cell = document.createElement("div");
+    cell.className = "calCell";
+
+    const dstr = ymd(d);
+    const inMonth = d.getMonth() === calCursor.getMonth();
+    if(!inMonth) cell.classList.add("dim");
+    if(dstr === today) cell.classList.add("today");
+
+    const num = document.createElement("div");
+    num.className = "calNum";
+    num.textContent = String(d.getDate());
+
+    cell.appendChild(num);
+
+    if(hasDot.has(dstr)){
+      const dot = document.createElement("div");
+      dot.className = "calDot";
+      cell.appendChild(dot);
+    }
+
+    // click = pré-remplir date reminder/projet
+    cell.onclick = ()=>{
+      if($("remDate")) $("remDate").value = dstr;
+      if($("projDate")) $("projDate").value = dstr;
+      status(`Date sélectionnée : ${dstr}`);
+    };
+
+    grid.appendChild(cell);
+  }
+
+  renderTimeline();
+}
+
+function addProject(title, dateStr){
+  const t = (title||"").trim();
+  if(!t) return;
+  const due = dateStr ? new Date(dateStr) : new Date();
+  const iso = new Date(due.getFullYear(), due.getMonth(), due.getDate(), 9,0,0).toISOString();
+  pushUndo("projAdd");
+  state.projects.unshift({ id: uid(), title: t, dueDateISO: iso });
+  saveState();
+  renderTimeline();
+  renderCalendar();
+  status("Projet ajouté.");
+}
+
+function deleteProject(id){
+  pushUndo("projDel");
+  state.projects = state.projects.filter(p=>p.id!==id);
+  saveState();
+  renderTimeline();
+  renderCalendar();
+  status("Projet supprimé.");
+}
+
+function renderTimeline(){
+  const root = $("timeline");
+  if(!root) return;
+  const list = state.projects.slice().sort((a,b)=>String(a.dueDateISO||"").localeCompare(String(b.dueDateISO||"")));
+  root.innerHTML = "";
+  if(list.length===0){
+    const d = document.createElement("div");
+    d.className = "muted small";
+    d.textContent = "Aucun projet. Le futur attend sagement.";
+    root.appendChild(d);
+    return;
+  }
+  list.forEach(p=>{
+    const row = document.createElement("div");
+    row.className = "tItem";
+    const left = document.createElement("div");
+    left.className = "tLeft";
+    const title = document.createElement("div");
+    title.className = "tTitle";
+    title.textContent = p.title;
+    const date = document.createElement("div");
+    date.className = "tDate";
+    date.textContent = (p.dueDateISO||"").slice(0,10);
+    left.appendChild(title);
+    left.appendChild(date);
+
+    const btns = document.createElement("div");
+    btns.className = "tBtns";
+    const del = document.createElement("button");
+    del.className = "iconBtn";
+    del.title = "Supprimer";
+    del.textContent = "×";
+    del.onclick = ()=>deleteProject(p.id);
+
+    btns.appendChild(del);
+    row.appendChild(left);
+    row.appendChild(btns);
+    root.appendChild(row);
+  });
+}
+
+/* Render all */
 function renderAll(){
   applyTheme();
   ensureCurrentTask();
@@ -1035,9 +1064,11 @@ function renderAll(){
   renderKiffance();
   renderExport();
   syncPrefsUI();
+  renderNotesRight();
+  renderCalendar();
 }
 
-/* ---------- Init ---------- */
+/* Init */
 document.addEventListener("DOMContentLoaded", ()=>{
   $("subtitle").textContent = pickSubline();
   setInterval(()=>{ $("subtitle").textContent = pickSubline(); }, 45000);
@@ -1078,34 +1109,43 @@ document.addEventListener("DOMContentLoaded", ()=>{
     status("Kiffance ajoutée.");
   };
 
-  // pomodoro
-  if(!state.pomodoro.phase) state.pomodoro.phase = "work";
+  // Pomodoro
   resetPhase();
-
-  $("pomoTime").onclick = ()=>{
-    if(remainingMs <= 0) resetPhase();
-    togglePomo();
-  };
-  $("pomoEdit").onclick = (e)=>{
-    e.preventDefault();
-    e.stopPropagation();
-    openModal();
-  };
-
+  $("pomoTime").onclick = togglePomo;
+  $("pomoEdit").onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); openModal(); };
   $("modalBack").onclick = closeModal;
   $("modalClose").onclick = closeModal;
   $("pomoApply").onclick = applyPomoSettings;
-  $("pomoReset").onclick = ()=>{
-    pausePomo();
-    resetPhase();
-    status("Timer reset.");
+  $("pomoReset").onclick = ()=>{ pausePomo(); resetPhase(); status("Timer reset."); };
+
+  // Rappels
+  $("remAdd").onclick = ()=>{
+    addReminder($("remText").value, $("remDate").value);
+    $("remText").value = "";
   };
 
-  // ✅ boutons bas: ouvrent l’overlay central
-  $("openNotes").onclick = ()=>openCentralOverlay("notes");
-  $("openTyphonse").onclick = ()=>openCentralOverlay("typhonse");
-  $("openStats").onclick = ()=>openCentralOverlay("stats");
-  $("openKiffance").onclick = ()=>openCentralOverlay("kiffance");
+  // Projets
+  $("projAdd").onclick = ()=>{
+    addProject($("projTitle").value, $("projDate").value);
+    $("projTitle").value = "";
+  };
+
+  // Calendrier nav
+  $("calPrev").onclick = ()=>{
+    calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth()-1, 1);
+    renderCalendar();
+  };
+  $("calNext").onclick = ()=>{
+    calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth()+1, 1);
+    renderCalendar();
+  };
+
+  // Raccourcis bas : ouvrent directement onglet notes (panneau droit)
+  $("openNotes").onclick = ()=>{ openPanel("right"); $$(`.panel-right .tabBtn`).forEach(b=>b.classList.remove("active")); document.querySelector(`[data-righttab="notes"]`)?.classList.add("active"); $$("#rightPanel .tabPage").forEach(p=>p.classList.remove("show")); $("right-notes")?.classList.add("show"); renderNotesRight(); };
+  $("openTyphonse").onclick = ()=>{ status("Typhonse : arrive bientôt (overlay dédié)."); openPanel("right"); };
+  $("openStats").onclick = ()=>{ status("Stats : module suivant (infographies)."); openPanel("right"); };
+  $("openKiffance").onclick = ()=>{ status("Kiffance : banque à gauche, tirage via roulette."); };
 
   renderAll();
+  showStartOfDayReminders();
 });
