@@ -1,0 +1,160 @@
+/* ================================
+   VARIABLES GLOBALES
+================================ */
+
+:root {
+  --bg: #fbf4e8;
+  --fg: #14120f;
+  --muted: #6a5d53;
+
+  --accent: #d38a5c;
+  --accent-soft: rgba(211,138,92,0.25);
+
+  --panel-bg: rgba(255,255,255,0.65);
+  --line: rgba(0,0,0,0.08);
+
+  --left-width: 360px;
+  --right-width: 420px;
+}
+
+/* ================================
+   RESET SIMPLE
+================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-main);
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* ================================
+   TYPOGRAPHIES
+================================ */
+
+body[data-font="yomogi"] {
+  --font-main: "Yomogi", cursive;
+}
+
+body[data-font="zen"] {
+  --font-main: "Zen Kurenaido", sans-serif;
+}
+
+body[data-font="kiwi"] {
+  --font-main: "Kiwi Maru", serif;
+}
+
+/* ================================
+   MENU SUPÉRIEUR
+================================ */
+
+#topBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 16px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(10px);
+
+  z-index: 100;
+}
+
+#topBar button {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--fg);
+}
+
+/* ================================
+   LAYOUT PRINCIPAL
+================================ */
+
+#leftPanel,
+#rightPanel {
+  position: fixed;
+  top: 56px;
+  bottom: 0;
+  width: var(--left-width);
+  background: var(--panel-bg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  z-index: 50;
+}
+
+#leftPanel {
+  left: 0;
+  transform: translateX(-100%);
+}
+
+#rightPanel {
+  right: 0;
+  width: var(--right-width);
+  transform: translateX(100%);
+}
+
+.panel-content {
+  padding: 16px;
+}
+
+.panel-title {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+/* ================================
+   HUB CENTRAL
+================================ */
+
+#hub {
+  padding-top: 56px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+#hub-inner {
+  max-width: 720px;
+  width: 100%;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+#appTitle {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+#subtitle {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+/* ================================
+   OVERLAY
+================================ */
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 40;
+}
