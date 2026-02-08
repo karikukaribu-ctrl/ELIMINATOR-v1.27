@@ -12,7 +12,15 @@
   body, button, input, select, textarea{
   font-family: var(--font-ui);
   }
+  body.focusMode .panelToggleLeft,
+  body.focusMode .panelToggleRight{
+  display:none;
+   }
 
+/* masque la zone compteurs si tu as une #hudCounters */
+body.hideCounters #hudCounters{
+  display:none;
+}
   /* Le gros titre uniquement */
  #appTitle{
   font-family: var(--font-title);
