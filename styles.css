@@ -146,7 +146,34 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   background: var(--barEmpty);
   border: 1px solid var(--line);
 }
+.progressBar{
+  height: 34px;              /* ↑ plus haute */
+  border-radius: 999px;
+  background: var(--barA);
+  border: 2px solid rgba(255,255,255,.65);   /* délimitation claire */
+  box-shadow: 0 10px 24px rgba(0,0,0,.10);   /* léger, pas halo énorme */
+  position: relative;
+  overflow: hidden;
+}
 
+.progressFill{
+  height: 100%;
+  background: var(--barB);   /* évite le noir pur : barB doit être brun/ardoise */
+  border-radius: 999px;
+  transition: width .35s ease;
+}
+
+.progressPct{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  font-weight: 900;
+  font-size: 14px;
+  color: rgba(255,255,255,.85); /* discret, lisible */
+  mix-blend-mode: normal;
+  pointer-events:none;
+}
 #progressFill{
   position:absolute;
   top:0; left:0; bottom:0;
@@ -205,7 +232,53 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 #currentTask{
   margin: 6px 0 22px;
 }
+.bottomCard{
+  margin-top: 18px;
+  background: var(--card);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 18px;
+  padding: 14px 14px 10px;
+  backdrop-filter: blur(10px);
+}
 
+.bottomHeader{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 10px;
+}
+
+.bottomTitle{
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: .01em;
+  text-shadow: 0 2px 0 rgba(255,255,255,.5);
+}
+
+.bottomMeta{
+  font-weight: 700;
+  opacity: .70;
+}
+
+.quickLinks{
+  display:flex;
+  gap:10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+
+.ql{
+  border:none;
+  background: rgba(255,255,255,.35);
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor:pointer;
+}
+.ql:hover{ background: rgba(255,255,255,.55); }
 .taskLine{
   display:flex;
   justify-content:center;
