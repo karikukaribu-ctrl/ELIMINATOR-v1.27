@@ -8,66 +8,59 @@
   --font-ui: "Zen Maru Gothic", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   --font-title: "Baloo 2", cursive;
 
-  /* Tout le reste de l’app */
-  body, button, input, select, textarea{
-  font-family: var(--font-ui);
-  }
-  body.focusMode .panelToggleLeft,
-  body.focusMode .panelToggleRight{
-  display:none;
-   }
+  /* Panels + cartes */
+  --panelBg: rgba(255,255,255,.70);
+  --card: rgba(255,255,255,.52);
+  --line: rgba(0,0,0,.10);
 
-/* masque la zone compteurs si tu as une #hudCounters */
-body.hideCounters #hudCounters{
-  display:none;
-}
-  /* Le gros titre uniquement */
- #appTitle{
-  font-family: var(--font-title);
-  font-weight: 900;
-  }
-  /* barre : pas grise, plus chaude */
+  /* Progress */
   --barEmpty: rgba(255, 210, 165, .28);
   --barFill: rgba(211,138,92,.92);
   --barEdge: rgba(255,255,255,.82);
 
-  --line: rgba(0,0,0,.10);
-  --panelBg: rgba(255,255,255,.70);
-
+  /* Largeurs panneaux (pilotées aussi par JS via --leftW/--rightW) */
   --leftW:360px;
   --rightW:420px;
 
-  /* taille globale (au lieu de transform scale sur body) */
+  /* taille globale (pas de scale body) */
   --baseSize: 16px;
+
+  /* z-index (net, sans contradictions) */
+  --z-topbar: 4000;
+  --z-backdrop: 6500;
+  --z-panels: 7000;
 }
 
-/* ---------- Base ---------- */
 *{ box-sizing:border-box; }
-
 html, body{ height:100%; }
-
 html{ font-size: var(--baseSize); }
 
 body{
   margin:0;
   background: var(--bg);
   color: var(--fg);
-  font-family: "Yomogi", cursive;
+  font-family: var(--font-ui);
 }
 
-body[data-font="yomogi"]{ font-family: "Yomogi", cursive; }
-body[data-font="zen"]{ font-family: "Zen Kurenaido", sans-serif; }
-body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
+/* Fonts switch (via JS data-font) */
+body[data-font="yomogi"]{ font-family: "Yomogi", var(--font-ui); }
+body[data-font="zen"]{ font-family: "Zen Kurenaido", var(--font-ui); }
+body[data-font="kiwi"]{ font-family: "Kiwi Maru", var(--font-ui); }
 
 .muted{ color: var(--muted); }
 .small{ font-size: 12px; }
+
+/* Focus/counters helpers */
+body.focusMode .panelToggleLeft,
+body.focusMode .panelToggleRight{ display:none; }
+body.hideCounters #hudCounters{ display:none; }
 
 /* ---------- Topbar fixe ---------- */
 #topBar{
   position: fixed;
   top:0; left:0; right:0;
   height:56px;
-  z-index: 4000;
+  z-index: var(--z-topbar);
 
   display:grid;
   grid-template-columns: 1fr auto 1fr;
@@ -84,12 +77,6 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 .tb-center{ justify-self:center; }
 .tb-right{ justify-self:end; }
 
-.tb-brand{
-  font-size: 14px;
-  letter-spacing: .04em;
-  color: var(--muted);
-}
-
 .tb-btn{
   border: 1px solid var(--line);
   background: rgba(255,255,255,.35);
@@ -100,17 +87,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   font-family: inherit;
   font-size: 18px;
 }
-#topBar{
-  z-index: 4000; /* ↓ */
-}
 
-.panel{
-  z-index: 6000; /* ↑ */
-}
-
-#panelBack{
-  z-index: 5900;
-}
 /* ---------- Hub ---------- */
 #hub{
   min-height: 100vh;
@@ -125,9 +102,9 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   text-align:center;
 }
 
-/* Titre : plus gras */
+/* Titre */
 #appTitle{
-  font-family: "Baloo 2", cursive;
+  font-family: var(--font-title);
   font-size: clamp(72px, 8vw, 112px);
   font-weight: 900;
   letter-spacing: .06em;
@@ -139,7 +116,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   font-size: 15px;
 }
 
-/* ---------- Progression (encore plus haute) ---------- */
+/* ---------- Progression ---------- */
 #progressWrap{
   margin: 0 auto 18px;
   width: 100%;
@@ -148,40 +125,13 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 #progressBar{
   position: relative;
   width: 100%;
-  height: 104px; /* ↑ plus haut */
+  height: 104px;
   border-radius: 26px;
   overflow: hidden;
   background: var(--barEmpty);
   border: 1px solid var(--line);
 }
-.progressBar{
-  height: 34px;              /* ↑ plus haute */
-  border-radius: 999px;
-  background: var(--barA);
-  border: 2px solid rgba(255,255,255,.65);   /* délimitation claire */
-  box-shadow: 0 10px 24px rgba(0,0,0,.10);   /* léger, pas halo énorme */
-  position: relative;
-  overflow: hidden;
-}
 
-.progressFill{
-  height: 100%;
-  background: var(--barB);   /* évite le noir pur : barB doit être brun/ardoise */
-  border-radius: 999px;
-  transition: width .35s ease;
-}
-
-.progressPct{
-  position:absolute;
-  inset:0;
-  display:grid;
-  place-items:center;
-  font-weight: 900;
-  font-size: 14px;
-  color: rgba(255,255,255,.85); /* discret, lisible */
-  mix-blend-mode: normal;
-  pointer-events:none;
-}
 #progressFill{
   position:absolute;
   top:0; left:0; bottom:0;
@@ -199,7 +149,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   display:flex;
   justify-content:center;
   align-items:center;
-  font-size: 16px; /* plus discret */
+  font-size: 16px;
   font-weight: 700;
   color: rgba(255,255,255,.92);
   text-shadow: 0 2px 10px rgba(0,0,0,.22);
@@ -236,10 +186,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   line-height: 1;
 }
 
-/* ---------- Tâche en cours ---------- */
-#currentTask{
-  margin: 6px 0 22px;
-}
+/* ---------- Bottom card: tâches en cours + quick links ---------- */
 .bottomCard{
   margin-top: 18px;
   background: var(--card);
@@ -247,6 +194,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   border-radius: 18px;
   padding: 14px 14px 10px;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .bottomHeader{
@@ -269,6 +217,28 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   opacity: .70;
 }
 
+#tasksList{
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+}
+
+.hubTaskRow{
+  width: 100%;
+  text-align:left;
+  border: 1px solid rgba(0,0,0,.08);
+  background: rgba(255,255,255,.35);
+  border-radius: 14px;
+  padding: 10px 10px;
+  cursor:pointer;
+  font-family: inherit;
+  font-weight: 800;
+}
+.hubTaskRow.active{
+  background: rgba(211,138,92,.22);
+  border-color: rgba(211,138,92,.35);
+}
+
 .quickLinks{
   display:flex;
   gap:10px;
@@ -285,8 +255,13 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   border-radius: 999px;
   font-weight: 800;
   cursor:pointer;
+  font-family: inherit;
 }
 .ql:hover{ background: rgba(255,255,255,.55); }
+
+/* ---------- Tâche en cours ---------- */
+#currentTask{ margin: 6px 0 22px; }
+
 .taskLine{
   display:flex;
   justify-content:center;
@@ -321,7 +296,6 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   color: var(--muted);
 }
 
-/* tâche sélectionnée : plus gras */
 .taskTitle{
   font-size: clamp(34px, 3.6vw, 50px);
   font-weight: 900;
@@ -330,11 +304,9 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   text-shadow: 0 12px 20px rgba(0,0,0,.11);
 }
 
-.taskMeta{
-  margin-top: 10px;
-}
+.taskMeta{ margin-top: 10px; }
 
-/* ---------- Actions + labels ---------- */
+/* ---------- Actions ---------- */
 #actions{
   display:grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -370,28 +342,14 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   transition: transform 160ms ease;
 }
 .roundBtn:active{ transform: translateY(1px) scale(.99); }
-
 .roundBtn.ghost{ background: rgba(255,255,255,.30); }
+
 .roundBtn.primary{
   background: rgba(211,138,92,.18);
   border-color: rgba(211,138,92,.30);
 }
 
-/* ---------- Roulette (texte centré, plus stable) ---------- */
-.rouletteBtn{
-  width: 172px;
-  height: 172px;
-  border-radius: 999px;
-  border: 2px solid rgba(211,138,92,.55);
-  background: rgba(255,255,255,.35);
-  cursor:pointer;
-  font-family: inherit;
-  position: relative;
-  display:grid;
-  place-items:center;
-  overflow: visible;
-  transition: transform 180ms ease;
-}
+/* ---------- Roulette (une seule version, stable) ---------- */
 .rouletteWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
 
 .rouletteBtn{
@@ -401,6 +359,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   background: transparent;
   padding: 0;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .rouletteWheel{
@@ -423,7 +382,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   font-weight: 800;
   font-size: 18px;
   letter-spacing: .02em;
-  color: rgba(20,18,15,.80);
+  color: rgba(20,18,15,.82);
   text-shadow: 0 2px 0 rgba(255,255,255,.55);
 }
 
@@ -431,73 +390,6 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   font-size: 14px;
   font-weight: 700;
   opacity: .78;
-}
-
-.rouletteFace{
-  width: 152px;
-  height: 152px;
-  border-radius: 999px;
-  display:block;
-  border: 1px solid rgba(0,0,0,.08);
-  background:
-    conic-gradient(
-      from 0deg,
-      rgba(211,138,92,.34) 0 20deg,
-      rgba(255,255,255,.56) 20deg 40deg,
-      rgba(211,138,92,.26) 40deg 60deg,
-      rgba(255,255,255,.48) 60deg 80deg,
-      rgba(211,138,92,.30) 80deg 100deg,
-      rgba(255,255,255,.52) 100deg 120deg,
-      rgba(211,138,92,.28) 120deg 140deg,
-      rgba(255,255,255,.50) 140deg 160deg,
-      rgba(211,138,92,.32) 160deg 180deg,
-      rgba(255,255,255,.55) 180deg 200deg,
-      rgba(211,138,92,.26) 200deg 220deg,
-      rgba(255,255,255,.48) 220deg 240deg,
-      rgba(211,138,92,.30) 240deg 260deg,
-      rgba(255,255,255,.52) 260deg 280deg,
-      rgba(211,138,92,.28) 280deg 300deg,
-      rgba(255,255,255,.50) 300deg 320deg,
-      rgba(211,138,92,.32) 320deg 340deg,
-      rgba(255,255,255,.54) 340deg 360deg
-    );
-  box-shadow:
-    inset 0 10px 18px rgba(255,255,255,.35),
-    inset 0 -12px 20px rgba(0,0,0,.06);
-  transform: rotate(0deg);
-  will-change: transform;
-}
-
-.rouletteCenter{
-  position:absolute;
-  width: 92px;
-  height: 92px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.70);
-  border: 1px solid rgba(0,0,0,.08);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow: 0 12px 24px rgba(0,0,0,.07);
-}
-
-.rouletteWord{
-  font-size: 14px;
-  letter-spacing: .10em;
-  color: rgba(0,0,0,.72);
-  text-transform: lowercase;
-  transform: translateY(1px);
-}
-
-.rouletteNeedle{
-  position:absolute;
-  top: -6px;
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 18px solid rgba(0,0,0,.18);
-  filter: drop-shadow(0 6px 8px rgba(0,0,0,.10));
 }
 
 /* ---------- Toast ---------- */
@@ -511,11 +403,11 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   color: rgba(0,0,0,.70);
 }
 
-/* ---------- Panels (FIXÉS + z-index correct) ---------- */
+/* ---------- Backdrop + Panels (AU-DESSUS de la topbar) ---------- */
 #panelBack{
   position: fixed;
   inset: 0;
-  z-index: 4000;
+  z-index: var(--z-backdrop);
   background: rgba(0,0,0,.22);
   opacity: 0;
   pointer-events:none;
@@ -525,23 +417,26 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   opacity: 1;
   pointer-events:auto;
 }
-.panel-content{
-  color: rgba(0,0,0,.78);
-}
+
 .panel{
   position: fixed;
   top: 0;
   bottom: 0;
-  z-index: 4500;
+  z-index: var(--z-panels);
+
   background: var(--panelBg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--line);
   overflow:auto;
+
   transition: transform .25s ease;
   display:flex;
   flex-direction:column;
 }
+
+/* IMPORTANT: texte panel lisible (pas gris fantôme) */
+.panel, .panel-content{ color: rgba(20,18,15,.86); }
 
 .panel-left{
   left:0;
@@ -556,20 +451,23 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   transform: translateX(110%);
   border-left: 1px solid var(--line);
 }
+
+.panel.open{ transform: translateX(0); }
+
+/* Resizers */
 .panelResizer{
   position:absolute;
   top:0;
   bottom:0;
-  width: 10px;
+  width: 12px;
   cursor: ew-resize;
   opacity: .0;
 }
 .panelResizer:hover{ opacity: .18; }
-
 .panelResizer.left{ right:0; }
-.panelResizer.right{ left:0; } 
-.panel.open{ transform: translateX(0); }
+.panelResizer.right{ left:0; }
 
+/* Panel chrome */
 .panel-top{
   display:flex;
   justify-content:space-between;
@@ -606,13 +504,15 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   border:none;
   background: transparent;
   padding: 6px 8px;
-  color: rgba(0,0,0,.72);
+  color: rgba(20,18,15,.78);
+  font-family: inherit;
+  cursor:pointer;
 }
 
 .tabBtn.active{
   background: rgba(211,138,92,.22);
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .panel-content{
@@ -671,9 +571,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   background: rgba(211,138,92,.22);
   border-color: rgba(211,138,92,.35);
 }
-.btn.ghost{
-  background: rgba(255,255,255,.25);
-}
+.btn.ghost{ background: rgba(255,255,255,.25); }
 .btn.danger{
   background: rgba(255,120,120,.20);
   border-color: rgba(255,120,120,.35);
