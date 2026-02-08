@@ -2,64 +2,58 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eliminator</title>
 
-  <!-- Google Fonts – Ghibli-friendly -->
+  <!-- Polices Ghibli -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Kurenaido&family=Kiwi+Maru&display=swap" rel="stylesheet">
 
-  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Kurenaido&family=Kiwi+Maru:wght@300;400;500&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 
-<body data-mode="clair" data-season="automne" data-font="yomogi">
+<body data-font="yomogi">
 
-  <!-- ===== MENU SUPÉRIEUR FIXE ===== -->
+  <!-- MENU SUPÉRIEUR -->
   <header id="topBar">
-    <div class="top-left">
-      <span class="app-name">Eliminator</span>
-    </div>
-
+    <div class="top-left">Eliminator</div>
     <div class="top-right">
-      <button id="toggleLeft">Menu</button>
-      <button id="toggleRight">Panneau</button>
+      <button id="btnLeft">Menu</button>
+      <button id="btnRight">Panneau</button>
     </div>
   </header>
 
-  <!-- ===== PANNEAU GAUCHE ===== -->
-  <aside id="leftPanel">
+  <!-- BACKDROP -->
+  <div id="panelBack"></div>
+
+  <!-- PANNEAU GAUCHE -->
+  <aside id="leftPanel" class="panel">
+    <button class="closeBtn" id="leftClose">×</button>
     <div class="panel-content">
-      <p class="panel-title">Actions</p>
-      <!-- vide pour l’instant -->
+      <h3>Menu gauche</h3>
+      <p>Inbox, tâches, préférences…</p>
     </div>
-    <div class="panel-resizer" id="resizeLeft"></div>
   </aside>
 
-  <!-- ===== HUB CENTRAL ===== -->
+  <!-- HUB CENTRAL -->
   <main id="hub">
     <div id="hub-inner">
       <h1 id="appTitle">ELIMINATOR</h1>
       <p id="subtitle">Une quête après l’autre.</p>
-
-      <!-- contenu viendra à l’étape 1 -->
     </div>
   </main>
 
-  <!-- ===== PANNEAU DROIT ===== -->
-  <aside id="rightPanel">
-    <div class="panel-resizer" id="resizeRight"></div>
+  <!-- PANNEAU DROIT -->
+  <aside id="rightPanel" class="panel">
+    <button class="closeBtn" id="rightClose">×</button>
     <div class="panel-content">
-      <p class="panel-title">Suivi</p>
-      <!-- vide pour l’instant -->
+      <h3>Panneau droit</h3>
+      <p>Sets, habitudes, mood, calendrier…</p>
     </div>
   </aside>
 
-  <!-- ===== BACKDROP ===== -->
-  <div id="overlay"></div>
-
   <!-- JS -->
-  <script src="state.js"></script>
+  <script src="state.js" defer></script>
 </body>
 </html>
