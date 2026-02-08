@@ -23,23 +23,21 @@
 
     <div class="tb-center">
       <div class="tb-visuals">
-        <!-- ✅ Toggle cliquable (pas un select) -->
-        <button id="modeToggle" class="tb-chip" type="button" aria-label="Basculer mode clair/foncé">
+
+        <!-- ✅ Toggle cliquable -->
+        <button id="modeToggle" class="tb-chip" type="button" aria-pressed="false" aria-label="Basculer clair/foncé">
           Clair
         </button>
 
-        <select id="quickSeason" class="tb-select" aria-label="Saison">
-          <option value="printemps">Printemps</option>
-          <option value="ete">Été</option>
-          <option value="automne">Automne</option>
-          <option value="hiver">Hiver</option>
-          <option value="noirblanc">Noir & blanc</option>
-        </select>
+        <!-- ✅ Saison = bouton qui cycle -->
+        <button id="seasonCycle" class="tb-chip" type="button" aria-label="Changer de saison">
+          Automne
+        </button>
 
         <div class="tb-spacer"></div>
 
-        <!-- ✅ Pastilles discrètes (plus Windows95) -->
-        <button id="focusBtn" class="tb-chip subtle" type="button">Focus</button>
+        <!-- ✅ Focus plus visible -->
+        <button id="focusBtn" class="tb-chip focus" type="button">Focus</button>
         <button id="countersBtn" class="tb-chip subtle" type="button">Compteurs</button>
       </div>
     </div>
@@ -196,15 +194,23 @@ Lire article - 2"></textarea>
       <section id="pomodoro" aria-label="Pomodoro">
         <div class="pomoRow">
           <div id="pomoTime">25:00</div>
+
+          <button id="pomoPlay" class="pomoBtn" type="button" title="Démarrer" aria-label="Démarrer">▶</button>
+          <button id="pomoPause" class="pomoBtn" type="button" title="Pause" aria-label="Pause">⏸</button>
+          <button id="pomoStop" class="pomoBtn" type="button" title="Stop" aria-label="Stop">■</button>
+
           <button id="pomoEdit" class="iconLink" type="button" title="Modifier le pomodoro" aria-label="Modifier le pomodoro">✎</button>
         </div>
       </section>
 
-      <!-- ✅ UN SEUL CADRE COMMUN (roulette incluse) -->
+      <!-- CADRE COMMUN -->
       <section id="missionCard" class="missionCard" aria-label="Mission">
+
+        <!-- ✅ “Tâche en cours” discret en haut à droite -->
+        <div class="cornerHint muted">Tâche en cours</div>
+
         <div class="missionTop">
           <div class="missionKicker">
-            <span class="muted">Tâche en cours</span>
             <span class="chip" id="taskFraction">0/0</span>
             <button id="taskInfoBtn" class="tinyBtn" type="button" title="Afficher/masquer détails" aria-label="Afficher/masquer détails">i</button>
           </div>
@@ -227,8 +233,8 @@ Lire article - 2"></textarea>
 
         <div class="divider soft"></div>
 
-        <!-- ✅ Actions centrées dans le même cadre -->
-        <div class="missionActions">
+        <!-- ✅ Actions HORIZONTALES -->
+        <div class="missionActionsRow">
           <div class="actionCol">
             <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">↶</button>
             <div class="actionLbl">Retour</div>
@@ -250,7 +256,7 @@ Lire article - 2"></textarea>
         </div>
       </section>
 
-      <!-- ✅ Rangée en dessous du cadre, centrée -->
+      <!-- Quicklinks centrés sous le cadre -->
       <div class="quickLinks below">
         <button class="ql" type="button" id="openNotes">Notes</button>
         <button class="ql" type="button" id="openTyphonse">Typhonse</button>
