@@ -1,14 +1,10 @@
-/* ============================================================
-   ELIMINATOR — Étape 2.2 (dark pastel + season cycle + pomodoro controls)
-============================================================ */
-
 const $ = (id)=>document.getElementById(id);
 const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
 const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
 const uid = ()=>Math.random().toString(36).slice(2,10)+"_"+Date.now().toString(36);
 const nowISO = ()=>new Date().toISOString();
 
-const LS_KEY = "eliminator_step2_2";
+const LS_KEY = "eliminator_step2_3";
 
 const SEASONS = ["printemps","ete","automne","hiver","noirblanc"];
 const seasonLabel = (s)=>{
@@ -16,27 +12,97 @@ const seasonLabel = (s)=>{
   return map[s] || "Automne";
 };
 
-/* ---------- Thèmes : sombres pastel “crépuscule nuageux” ---------- */
+/* ✅ Palettes VRAIMENT distinctes + sombre pastel (pas noir) */
 const THEMES = {
   printemps:{
-    clair:{ bg:"#FBF4E8", fg:"#15120F", muted:"#6A5D53", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 215, 175, .28)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
-    fonce:{ bg:"#2B2B33", fg:"#F6F2EA", muted:"#D7D0C5", barFill:"#D7B08E", panel:"rgba(44,44,54,.62)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(60,60,76,.42)", glass2:"rgba(70,70,92,.30)" }
+    clair:{
+      bg:"#FBF4E8", fg:"#15120F", muted:"#6A5D53",
+      barFill:"#6EBE96", barEmpty:"rgba(110,190,150,.18)", barEdge:"rgba(255,255,255,.85)",
+      accent:"rgba(110,190,150,.18)", accent2:"rgba(110,190,150,.38)",
+      panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)",
+      glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)",
+      decoA:"rgba(110,190,150,.16)", decoB:"rgba(250,210,140,.14)"
+    },
+    fonce:{
+      bg:"#2A3440", fg:"#F6F2EA", muted:"#D7D0C5",
+      barFill:"#7FD3AC", barEmpty:"rgba(127,211,172,.14)", barEdge:"rgba(255,255,255,.26)",
+      accent:"rgba(127,211,172,.14)", accent2:"rgba(127,211,172,.28)",
+      panel:"rgba(44,58,70,.62)", line:"rgba(255,255,255,.14)",
+      glass:"rgba(54,72,92,.40)", glass2:"rgba(64,86,110,.26)",
+      decoA:"rgba(127,211,172,.12)", decoB:"rgba(255,220,170,.10)"
+    }
   },
   ete:{
-    clair:{ bg:"#FFF3DF", fg:"#16120F", muted:"#6C5E52", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 215, 175, .28)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
-    fonce:{ bg:"#26313A", fg:"#F0FAFF", muted:"#D2E0E8", barFill:"#CBB6A0", panel:"rgba(40,52,62,.62)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(50,70,82,.40)", glass2:"rgba(60,86,100,.28)" }
+    clair:{
+      bg:"#FFF3DF", fg:"#16120F", muted:"#6C5E52",
+      barFill:"#5AAAD2", barEmpty:"rgba(90,170,210,.18)", barEdge:"rgba(255,255,255,.85)",
+      accent:"rgba(90,170,210,.16)", accent2:"rgba(90,170,210,.34)",
+      panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)",
+      glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)",
+      decoA:"rgba(90,170,210,.14)", decoB:"rgba(255,215,120,.14)"
+    },
+    fonce:{
+      bg:"#253845", fg:"#F0FAFF", muted:"#D2E0E8",
+      barFill:"#86C7E8", barEmpty:"rgba(134,199,232,.12)", barEdge:"rgba(255,255,255,.22)",
+      accent:"rgba(134,199,232,.12)", accent2:"rgba(134,199,232,.26)",
+      panel:"rgba(40,58,72,.62)", line:"rgba(255,255,255,.14)",
+      glass:"rgba(50,76,92,.38)", glass2:"rgba(60,92,112,.24)",
+      decoA:"rgba(134,199,232,.10)", decoB:"rgba(255,230,170,.09)"
+    }
   },
   automne:{
-    clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", empty:"rgba(255, 210, 165, .28)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
-    fonce:{ bg:"#2E2826", fg:"#FFF3E6", muted:"#E3D3C4", barFill:"#D7B08E", panel:"rgba(52,44,40,.62)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(70,58,54,.42)", glass2:"rgba(86,72,66,.30)" }
+    clair:{
+      bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53",
+      barFill:"#D38A5C", barEmpty:"rgba(211,138,92,.18)", barEdge:"rgba(255,255,255,.85)",
+      accent:"rgba(211,138,92,.18)", accent2:"rgba(211,138,92,.36)",
+      panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)",
+      glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)",
+      decoA:"rgba(211,138,92,.14)", decoB:"rgba(255,210,160,.14)"
+    },
+    fonce:{
+      bg:"#2E3A33", fg:"#FFF3E6", muted:"#E3D3C4",
+      barFill:"#E0A77D", barEmpty:"rgba(224,167,125,.12)", barEdge:"rgba(255,255,255,.22)",
+      accent:"rgba(224,167,125,.12)", accent2:"rgba(224,167,125,.26)",
+      panel:"rgba(50,64,56,.62)", line:"rgba(255,255,255,.14)",
+      glass:"rgba(62,82,70,.38)", glass2:"rgba(74,98,84,.24)",
+      decoA:"rgba(224,167,125,.10)", decoB:"rgba(255,245,210,.09)"
+    }
   },
   hiver:{
-    clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", empty:"rgba(210, 235, 255, .28)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
-    fonce:{ bg:"#252C38", fg:"#F0FBFF", muted:"#D0DFE5", barFill:"#9DB8D5", panel:"rgba(38,48,62,.62)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(56,70,90,.40)", glass2:"rgba(66,86,110,.28)" }
+    clair:{
+      bg:"#F5F7FA", fg:"#141B22", muted:"#61707E",
+      barFill:"#78A0C8", barEmpty:"rgba(120,160,200,.18)", barEdge:"rgba(255,255,255,.88)",
+      accent:"rgba(120,160,200,.16)", accent2:"rgba(120,160,200,.34)",
+      panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)",
+      glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)",
+      decoA:"rgba(120,160,200,.14)", decoB:"rgba(220,240,255,.16)"
+    },
+    fonce:{
+      bg:"#273244", fg:"#F0FBFF", muted:"#D0DFE5",
+      barFill:"#9DB8D5", barEmpty:"rgba(157,184,213,.12)", barEdge:"rgba(255,255,255,.22)",
+      accent:"rgba(157,184,213,.12)", accent2:"rgba(157,184,213,.26)",
+      panel:"rgba(40,54,72,.62)", line:"rgba(255,255,255,.14)",
+      glass:"rgba(54,74,98,.38)", glass2:"rgba(66,92,120,.24)",
+      decoA:"rgba(157,184,213,.10)", decoB:"rgba(242,253,255,.08)"
+    }
   },
   noirblanc:{
-    clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#444444", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", empty:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)" },
-    fonce:{ bg:"#2A2A2E", fg:"#F4F4F4", muted:"#D5D5D8", barFill:"#BEBEBE", panel:"rgba(44,44,48,.66)", line:"rgba(255,255,255,.14)", empty:"rgba(255,255,255,.10)", glass:"rgba(60,60,66,.42)", glass2:"rgba(74,74,84,.30)" }
+    clair:{
+      bg:"#F7F4EE", fg:"#121212", muted:"#595959",
+      barFill:"#444444", barEmpty:"rgba(0,0,0,.08)", barEdge:"rgba(255,255,255,.82)",
+      accent:"rgba(0,0,0,.08)", accent2:"rgba(0,0,0,.14)",
+      panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)",
+      glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)",
+      decoA:"rgba(0,0,0,.06)", decoB:"rgba(0,0,0,.04)"
+    },
+    fonce:{
+      bg:"#2B2F38", fg:"#F4F4F4", muted:"#D5D5D8",
+      barFill:"#BEBEBE", barEmpty:"rgba(255,255,255,.10)", barEdge:"rgba(255,255,255,.20)",
+      accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.14)",
+      panel:"rgba(44,48,58,.66)", line:"rgba(255,255,255,.14)",
+      glass:"rgba(58,64,78,.40)", glass2:"rgba(72,80,98,.26)",
+      decoA:"rgba(255,255,255,.06)", decoB:"rgba(255,255,255,.04)"
+    }
   }
 };
 
@@ -44,7 +110,7 @@ const defaultState = {
   ui:{
     mode:"clair",
     season:"automne",
-    font:"zen",
+    font:"yomogi",
     baseSize: 16,
     leftW: 360,
     rightW: 420
@@ -59,9 +125,7 @@ const defaultState = {
     "Bois une gorgée d’eau : potion de clarté mentale.",
     "Étirement de dragon : 45 secondes."
   ],
-  pomodoro:{
-    minutes: 25
-  }
+  pomodoro:{ minutes: 25 }
 };
 
 function deepAssign(t,s){
@@ -83,41 +147,44 @@ function loadState(){
 let state = loadState();
 function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){} }
 
-/* ---------- Theme ---------- */
+/* ---------- Theme apply (et là, ça bouge VRAIMENT) ---------- */
 function applyTheme(){
   const season = (state.ui.season in THEMES) ? state.ui.season : "automne";
   const mode = state.ui.mode === "fonce" ? "fonce" : "clair";
   const t = THEMES[season][mode];
 
-  document.documentElement.style.setProperty("--bg", t.bg);
-  document.documentElement.style.setProperty("--fg", t.fg);
-  document.documentElement.style.setProperty("--muted", t.muted);
-  document.documentElement.style.setProperty("--barFill", t.barFill);
-  document.documentElement.style.setProperty("--barEmpty", t.empty);
-  document.documentElement.style.setProperty("--panelBg", t.panel);
-  document.documentElement.style.setProperty("--line", t.line);
-  document.documentElement.style.setProperty("--glass", t.glass);
-  document.documentElement.style.setProperty("--glass2", t.glass2);
+  const setVar = (k,v)=>document.documentElement.style.setProperty(k, v);
 
-  document.documentElement.style.setProperty("--baseSize", `${clamp(state.ui.baseSize, 14, 18)}px`);
-  document.documentElement.style.setProperty("--leftW", `${clamp(state.ui.leftW, 320, 980)}px`);
-  document.documentElement.style.setProperty("--rightW", `${clamp(state.ui.rightW, 320, 980)}px`);
+  setVar("--bg", t.bg);
+  setVar("--fg", t.fg);
+  setVar("--muted", t.muted);
+
+  setVar("--barFill", t.barFill);
+  setVar("--barEmpty", t.barEmpty);
+  setVar("--barEdge", t.barEdge);
+
+  setVar("--accent", t.accent);
+  setVar("--accent2", t.accent2);
+
+  setVar("--panelBg", t.panel);
+  setVar("--line", t.line);
+
+  setVar("--glass", t.glass);
+  setVar("--glass2", t.glass2);
+
+  setVar("--decoA", t.decoA);
+  setVar("--decoB", t.decoB);
+
+  setVar("--baseSize", `${clamp(state.ui.baseSize, 14, 18)}px`);
+  setVar("--leftW", `${clamp(state.ui.leftW, 320, 980)}px`);
+  setVar("--rightW", `${clamp(state.ui.rightW, 320, 980)}px`);
 
   document.body.setAttribute("data-font", state.ui.font);
 
-  // top bar sync
-  const modeBtn = $("modeToggle");
-  modeBtn.textContent = (state.ui.mode === "fonce") ? "Foncé" : "Clair";
-  modeBtn.setAttribute("aria-pressed", state.ui.mode === "fonce" ? "true" : "false");
-  modeBtn.classList.toggle("active", state.ui.mode === "fonce");
-
+  // top bar
+  $("modeToggle").textContent = (state.ui.mode === "fonce") ? "Foncé" : "Clair";
+  $("modeToggle").setAttribute("aria-pressed", state.ui.mode === "fonce" ? "true" : "false");
   $("seasonCycle").textContent = seasonLabel(state.ui.season);
-
-  // prefs sync
-  $("modeSel").value = state.ui.mode;
-  $("seasonSel").value = state.ui.season;
-  $("fontSel").value = state.ui.font;
-  $("uiScale").value = String(clamp(state.ui.baseSize, 14, 18));
 }
 
 /* ---------- Panels ---------- */
@@ -143,11 +210,10 @@ function closePanels(){
 function initResizer(handleId, which){
   const h = $(handleId);
   if(!h) return;
-
   let dragging=false, sx=0, sw=0;
+
   const down=(x)=>{
-    dragging=true;
-    sx=x;
+    dragging=true; sx=x;
     sw = which==="left" ? state.ui.leftW : state.ui.rightW;
   };
   const move=(x)=>{
@@ -215,10 +281,8 @@ function parseTaskLine(line){
   let et = null;
   let title = cleaned;
   const m = cleaned.match(/^(.*?)(?:\s*[-–—]\s*|\s+)(\d+)\s*$/);
-  if(m){
-    title = m[1].trim();
-    et = parseInt(m[2],10);
-  }
+  if(m){ title=m[1].trim(); et=parseInt(m[2],10); }
+
   title = title.replace(/\s+/g," ").trim();
   if(!title) return null;
   if(et!==null) et = clamp(et, 1, 99);
@@ -305,7 +369,6 @@ function doUndo(){
   state.kiffances = p.kiffances;
   state.ui = p.ui;
   saveState();
-  applyTheme();
   renderAll();
   toast("Retour : timeline réécrite.");
 }
@@ -324,23 +387,21 @@ function toast(msg){
 function renderHubTask(){
   const act = activeTasks();
   const done = doneTasks();
+  const base = state.baseline.totalTasks || 0;
 
   $("statActive").textContent = String(act.length);
   $("statDone").textContent = String(done.length);
 
+  $("missionLineLeft").textContent = `Tâches en cours (${act.length})`;
+  $("missionLineRight").textContent = `${done.length} finies · ${act.length}/${base || act.length || 0}`;
+
   const cur = getTask(state.currentTaskId);
-
-  const base = state.baseline.totalTasks || 0;
-  $("taskFraction").textContent = `${act.length}/${base || act.length || 0}`;
-
   if(!cur){
     $("taskTitle").textContent = "Aucune tâche sélectionnée";
-    $("taskMetaHud").textContent = act.length ? `${act.length} active(s)` : "0";
     $("metaCat").textContent = "—";
     $("metaEt").textContent = "—";
   }else{
     $("taskTitle").textContent = cur.title;
-    $("taskMetaHud").textContent = `${cur.etorionsLeft}/${cur.etorionsTotal} Éthorions`;
     $("metaCat").textContent = cur.cat || "Inbox";
     $("metaEt").textContent = `${cur.etorionsLeft}/${cur.etorionsTotal}`;
   }
@@ -359,7 +420,7 @@ function renderHubTask(){
     b.type = "button";
     b.className = "hubTaskRow" + (t.id===state.currentTaskId ? " active" : "");
     b.textContent = t.title;
-    b.onclick = ()=>{ selectTask(t.id); };
+    b.onclick = ()=>selectTask(t.id);
     list.appendChild(b);
   });
 }
@@ -417,9 +478,7 @@ function onRouletteStop(){
   if(act.length===0){
     if(state.kiffances.length){
       toast("🎁 Kiffance : " + state.kiffances[Math.floor(Math.random()*state.kiffances.length)]);
-    }else{
-      toast("Roulette : rien à tirer. Même le destin hésite.");
-    }
+    }else toast("Roulette : rien à tirer. Même le destin hésite.");
     return;
   }
 
@@ -458,10 +517,7 @@ function spinRoulette(){
     wheel._angle = a;
 
     if(t < 1) requestAnimationFrame(frame);
-    else{
-      spinning = false;
-      onRouletteStop();
-    }
+    else{ spinning = false; onRouletteStop(); }
   }
   requestAnimationFrame(frame);
 }
@@ -649,7 +705,7 @@ async function copyText(text){
   catch(_){ toast("Impossible de copier (clipboard)."); }
 }
 
-/* ---------- Pomodoro : play / pause / stop ---------- */
+/* ---------- Pomodoro discret : 1 toggle + stop + edit ---------- */
 let pomoTimer = null;
 let pomoRemainingMs = 0;
 let pomoRunning = false;
@@ -664,6 +720,7 @@ function pomoSetToMinutes(){
   state.pomodoro.minutes = m;
   pomoRemainingMs = m * 60 * 1000;
   $("pomoTime").textContent = fmtMMSS(pomoRemainingMs);
+  $("pomoToggle").textContent = "▶";
   saveState();
 }
 function pomoTick(){
@@ -680,17 +737,21 @@ function pomoPlay(){
   if(pomoRunning) return;
   if(pomoRemainingMs <= 0) pomoSetToMinutes();
   pomoRunning = true;
+  $("pomoToggle").textContent = "⏸";
   if(!pomoTimer) pomoTimer = setInterval(pomoTick, 250);
-  toast("▶ Pomodoro : en marche.");
 }
 function pomoPause(){
   pomoRunning = false;
-  toast("⏸ Pause.");
+  $("pomoToggle").textContent = "▶";
 }
 function pomoStop(){
   pomoRunning = false;
   pomoSetToMinutes();
-  toast("■ Stop. Reset.");
+  toast("■ Reset.");
+}
+function pomoToggle(){
+  if(pomoRunning) pomoPause();
+  else pomoPlay();
 }
 function pomoEdit(){
   const v = prompt("Durée pomodoro (minutes) :", String(state.pomodoro.minutes || 25));
@@ -721,10 +782,7 @@ function inboxAdd(){
   renderAll();
   toast(`Ajout : ${parsed.length} tâche(s).`);
 }
-function inboxClear(){
-  $("inboxText").value = "";
-  toast("Champ effacé.");
-}
+function inboxClear(){ $("inboxText").value = ""; toast("Champ effacé."); }
 
 /* ---------- Focus + counters ---------- */
 let focusMode = false;
@@ -749,38 +807,41 @@ function bindVisuals(){
   $("modeToggle").addEventListener("click", ()=>{
     state.ui.mode = (state.ui.mode === "clair") ? "fonce" : "clair";
     saveState();
-    applyTheme();
-    renderProgress();
+    renderAll();
   });
 
   $("seasonCycle").addEventListener("click", ()=>{
     const idx = Math.max(0, SEASONS.indexOf(state.ui.season));
     state.ui.season = SEASONS[(idx + 1) % SEASONS.length];
     saveState();
-    applyTheme();
+    renderAll();
+  });
+}
+
+/* ---------- Prefs apply (✅ ça change vraiment) ---------- */
+function bindPrefs(){
+  $("prefsApply").addEventListener("click", ()=>{
+    state.ui.mode = $("modeSel").value;
+    state.ui.season = $("seasonSel").value;
+    state.ui.font = $("fontSel").value;
+    state.ui.baseSize = parseInt($("uiScale").value, 10) || 16;
+    saveState();
+    renderAll();
+    toast("Préférences appliquées.");
   });
 
-  // prefs
-  $("modeSel").addEventListener("change", ()=>{
-    state.ui.mode = $("modeSel").value;
+  $("prefsReset").addEventListener("click", ()=>{
+    state.ui = structuredClone(defaultState.ui);
     saveState();
-    applyTheme();
+    renderAll();
+    toast("Préférences reset.");
   });
-  $("seasonSel").addEventListener("change", ()=>{
-    state.ui.season = $("seasonSel").value;
-    saveState();
-    applyTheme();
-  });
-  $("fontSel").addEventListener("change", ()=>{
-    state.ui.font = $("fontSel").value;
-    saveState();
-    applyTheme();
-  });
-  $("uiScale").addEventListener("input", ()=>{
-    state.ui.baseSize = parseInt($("uiScale").value, 10);
-    saveState();
-    applyTheme();
-  });
+
+  // sync UI inputs à l'ouverture / render
+  $("modeSel").value = state.ui.mode;
+  $("seasonSel").value = state.ui.season;
+  $("fontSel").value = state.ui.font;
+  $("uiScale").value = String(clamp(state.ui.baseSize,14,18));
 }
 
 /* ---------- Render all ---------- */
@@ -792,6 +853,12 @@ function renderAll(){
   renderTasksPanel();
   renderKiffance();
   renderExport();
+
+  // sync prefs controls (sans casser si panel fermé)
+  $("modeSel").value = state.ui.mode;
+  $("seasonSel").value = state.ui.season;
+  $("fontSel").value = state.ui.font;
+  $("uiScale").value = String(clamp(state.ui.baseSize,14,18));
 }
 
 /* ---------- Init ---------- */
@@ -816,15 +883,15 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   $("taskInfoBtn").onclick = toggleTaskMeta;
 
-  // Pomodoro controls
-  $("pomoPlay").onclick = pomoPlay;
-  $("pomoPause").onclick = pomoPause;
+  $("pomoToggle").onclick = pomoToggle;
   $("pomoStop").onclick = pomoStop;
   $("pomoEdit").onclick = pomoEdit;
+  $("pomoTime").onclick = pomoToggle;
   pomoSetToMinutes();
 
   bindTopActions();
   bindVisuals();
+  bindPrefs();
 
   $("catFilter").addEventListener("change", renderTasksPanel);
   $("viewFilter").addEventListener("change", renderTasksPanel);
