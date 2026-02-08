@@ -46,7 +46,7 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   position: fixed;
   top:0; left:0; right:0;
   height:56px;
-  z-index: 5000;
+  z-index: 4000;
 
   display:grid;
   grid-template-columns: 1fr auto 1fr;
@@ -79,7 +79,17 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   font-family: inherit;
   font-size: 18px;
 }
+#topBar{
+  z-index: 4000; /* ↓ */
+}
 
+.panel{
+  z-index: 6000; /* ↑ */
+}
+
+#panelBack{
+  z-index: 5900;
+}
 /* ---------- Hub ---------- */
 #hub{
   min-height: 100vh;
@@ -96,11 +106,10 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
 
 /* Titre : plus gras */
 #appTitle{
-  font-size: clamp(66px, 7.2vw, 100px);
-  margin: 10px 0 4px;
-  letter-spacing: .08em;
+  font-family: "Baloo 2", cursive;
+  font-size: clamp(72px, 8vw, 112px);
   font-weight: 900;
-  text-shadow: 0 10px 24px rgba(0,0,0,.10);
+  letter-spacing: .06em;
 }
 
 #subtitle{
