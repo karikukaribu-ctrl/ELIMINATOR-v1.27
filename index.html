@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eliminator</title>
 
-  <!-- Polices “Ghibli-ish” (choix plus tard dans l’UI) -->
+  <!-- Polices “Ghibli-ish” -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Kurenaido&family=Kiwi+Maru&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
   <!-- TOP BAR FIXE -->
   <header id="topBar">
     <div class="tb-left">
-      <button id="btnLeft" class="tb-btn" title="Ouvrir le menu gauche" aria-label="Menu gauche">≡</button>
+      <button id="btnLeft" class="tb-btn" title="Menu gauche" aria-label="Menu gauche">≡</button>
     </div>
 
     <div class="tb-center">
@@ -26,7 +26,7 @@
     </div>
 
     <div class="tb-right">
-      <button id="btnRight" class="tb-btn" title="Ouvrir le panneau droit" aria-label="Panneau droit">▦</button>
+      <button id="btnRight" class="tb-btn" title="Panneau droit" aria-label="Panneau droit">▦</button>
     </div>
   </header>
 
@@ -38,8 +38,7 @@
     <button class="closeBtn" id="leftClose" aria-label="Fermer le panneau gauche">×</button>
     <div class="panel-content">
       <h3>Menu gauche</h3>
-      <p>Inbox · Tâches/Catégories · Kiffance · Préférences · Export…</p>
-      <p class="muted">Étape 1 : contenu placeholder. Les onglets reviennent à l’étape 2.</p>
+      <p class="muted">Étape 1 : placeholder (Inbox / Tâches / Kiffance / Préférences / Export … arrivent ensuite).</p>
     </div>
   </aside>
 
@@ -50,57 +49,60 @@
       <h1 id="appTitle">ELIMINATOR</h1>
       <p id="subtitle">Une quête après l’autre.</p>
 
-      <!-- PROGRESSION (PLEINE -> DÉCROÎT) -->
+      <!-- PROGRESSION (PLEINE -> DÉCROÎT), PLUS ÉPAISSE -->
       <section id="progressWrap" aria-label="Progression">
         <div id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
           <div id="progressFill"></div>
           <div id="progressPctIn">100%</div>
         </div>
-        <div id="progressHint" class="muted">La jauge commence pleine et décroît à mesure que tu dégomme.</div>
       </section>
 
-      <!-- POMODORO CENTRÉ -->
+      <!-- POMODORO (temps puis édition en dessous) -->
       <section id="pomodoro" aria-label="Pomodoro">
         <div id="pomoTime">25:00</div>
-        <button id="pomoEdit" class="linkBtn" type="button">modifier</button>
+        <button id="pomoEdit" class="iconLink" type="button" title="Modifier le pomodoro" aria-label="Modifier le pomodoro">
+          ✎
+        </button>
       </section>
 
-      <!-- TÂCHE EN COURS (moins minimaliste) -->
+      <!-- TÂCHE EN COURS -->
       <section id="currentTask" aria-label="Tâche en cours">
         <div class="taskLine">
           <span class="taskLabel">Tâche en cours</span>
           <span class="taskFraction" id="taskFraction">0/0</span>
+
+          <!-- infos masquées par défaut -->
+          <button id="taskInfoBtn" class="tinyBtn" type="button" title="Afficher/masquer les détails" aria-label="Afficher/masquer les détails">
+            i
+          </button>
         </div>
+
         <div class="taskTitle" id="taskTitle">Aucune tâche sélectionnée</div>
-        <div class="taskMeta muted" id="taskMeta">Catégorie : — · Éthorions : —</div>
+
+        <!-- masqué par défaut (on le garde mais pas visible en permanence) -->
+        <div class="taskMeta muted" id="taskMeta" hidden>
+          Catégorie : — · Éthorions : —
+        </div>
       </section>
 
-      <!-- ACTIONS CENTRALES -->
+      <!-- ACTIONS (roulette + undo + bombe) -->
       <section id="actions" aria-label="Actions">
-
-        <!-- UNDO -->
-        <button id="undoBtn" class="actionBtn" type="button" title="Retour arrière">
-          <span class="ic">↶</span>
-          <span class="lbl">retour</span>
+        <button id="undoBtn" class="roundBtn ghost" type="button" title="Retour arrière" aria-label="Retour arrière">
+          ↶
         </button>
 
-        <!-- ROULETTE -->
-        <button id="roulette" class="rouletteBtn" type="button" title="Roulette (choix surprise)">
-          <span class="rouletteText">roulette</span>
-          <span class="rouletteSub muted">tirage</span>
+        <button id="roulette" class="rouletteBtn" type="button" title="Roulette" aria-label="Roulette">
+          <span class="rouletteFace" aria-hidden="true"></span>
+          <span class="rouletteCenter">
+            <span class="rouletteWord">roulette</span>
+          </span>
+          <span class="rouletteNeedle" aria-hidden="true"></span>
         </button>
 
-        <!-- BOMB -->
-        <button id="bombBtn" class="actionBtn primary" type="button" title="Dégommer 1 Éthorion">
-          <span class="ic">💣</span>
-          <span class="lbl">dégommer</span>
+        <button id="bombBtn" class="roundBtn primary" type="button" title="Dégommer 1 Éthorion" aria-label="Dégommer 1 Éthorion">
+          💣
         </button>
-
       </section>
-
-      <div class="muted" id="miniLegend">
-        Démo étape 1 : roulette ↓ progression · retour ↑ progression · dégommage ↓ progression
-      </div>
 
     </div>
   </main>
@@ -110,8 +112,7 @@
     <button class="closeBtn" id="rightClose" aria-label="Fermer le panneau droit">×</button>
     <div class="panel-content">
       <h3>Panneau droit</h3>
-      <p>Sets · Habitudes · Mood · Calendrier · Stats · Notes/Rappels…</p>
-      <p class="muted">Étape 1 : placeholder. Les modules reviennent ensuite.</p>
+      <p class="muted">Étape 1 : placeholder (Sets / Habitudes / Mood / Calendrier / Notes-Rappels / Stats … arrivent ensuite).</p>
     </div>
   </aside>
 
