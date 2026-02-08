@@ -1,25 +1,19 @@
-/* ================================
-   ELIMINATOR — ÉTAPE 0
-================================ */
-
 function $(id) {
   return document.getElementById(id);
 }
 
+/* PANNEAUX */
 function openPanel(side) {
   $("panelBack").classList.add("show");
+  document.body.style.overflow = "hidden";
 
   if (side === "left") {
     $("leftPanel").classList.add("open");
     $("rightPanel").classList.remove("open");
-  }
-
-  if (side === "right") {
+  } else {
     $("rightPanel").classList.add("open");
     $("leftPanel").classList.remove("open");
   }
-
-  document.body.style.overflow = "hidden";
 }
 
 function closePanels() {
@@ -29,15 +23,44 @@ function closePanels() {
   document.body.style.overflow = "";
 }
 
+/* HUB DEMO STATE */
+let progress = 0;
+let spinning = false;
+
+/* INIT */
 document.addEventListener("DOMContentLoaded", () => {
-  $("btnLeft").addEventListener("click", () => openPanel("left"));
-  $("btnRight").addEventListener("click", () => openPanel("right"));
+  $("btnLeft").onclick = () => openPanel("left");
+  $("btnRight").onclick = () => openPanel("right");
+  $("leftClose").onclick = closePanels;
+  $("rightClose").onclick = closePanels;
+  $("panelBack").onclick = closePanels;
 
-  $("leftClose").addEventListener("click", closePanels);
-  $("rightClose").addEventListener("click", closePanels);
-  $("panelBack").addEventListener("click", closePanels);
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closePanels();
-  });
+  $("roulette").onclick = spinRoulette;
 });
+
+/* ROULETTE VISUELLE */
+function spinRoulette() {
+  if (spinning) return;
+  spinning = true;
+
+  const wheel = document.querySelector(".wheel");
+  const turns = 3 + Math.random() * 3;
+  const duration = 1200;
+
+  wheel.animate(
+    [{ transform: "rotate(0deg)" }, { transform: `rotate(${turns * 360}deg)` }],
+    { duration, easing: "cubic-bezier(.2,.7,.2,1)" }
+  );
+
+  setTimeout(() => {
+    spinning = false;
+    incrementProgress();
+  }, duration);
+}
+
+/* PROGRESSION DEMO */
+function incrementProgress() {
+  progress = Math.min(progress + 10, 100);
+  $("progressFill").style.width = progress + "%";
+  $("progressPct").textContent = progress + "%";
+}
