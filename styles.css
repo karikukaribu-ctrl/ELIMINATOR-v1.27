@@ -548,7 +548,18 @@ body[data-font="kiwi"]{ font-family: "Kiwi Maru", serif; }
   transform: translateX(110%);
   border-left: 1px solid var(--line);
 }
+.panelResizer{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width: 10px;
+  cursor: ew-resize;
+  opacity: .0;
+}
+.panelResizer:hover{ opacity: .18; }
 
+.panelResizer.left{ right:0; }
+.panelResizer.right{ left:0; } 
 .panel.open{ transform: translateX(0); }
 
 .panel-top{
