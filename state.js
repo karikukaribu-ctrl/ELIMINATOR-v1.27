@@ -116,7 +116,30 @@ function closePanels(){
   $("rightPanel").classList.remove("open");
   document.body.style.overflow = "";
 }
+function initPanelResizers(){
+  const left = document.getElementById("leftResizer");
+  const right = document.getElementById("rightResizer");
+  if(left) initResizer("leftResizer","left");
+  if(right) initResizer("rightResizer","right");
+}
 
+// Appelle-le après le DOM ready
+document.addEventListener("DOMContentLoaded", initPanelResizers);
+
+let focusMode = false;
+let showCounters = true;
+
+document.getElementById("focusBtn")?.addEventListener("click", ()=>{
+  focusMode = !focusMode;
+  document.body.classList.toggle("focusMode", focusMode);
+  document.getElementById("focusBtn").classList.toggle("active", focusMode);
+});
+
+document.getElementById("countersBtn")?.addEventListener("click", ()=>{
+  showCounters = !showCounters;
+  document.body.classList.toggle("hideCounters", !showCounters);
+  document.getElementById("countersBtn").classList.toggle("active", showCounters);
+});
 /* ---------- Tabs ---------- */
 function bindTabs(){
   $$(".panel-left .tabBtn").forEach(btn=>{
