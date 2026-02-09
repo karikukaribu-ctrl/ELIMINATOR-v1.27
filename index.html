@@ -255,9 +255,11 @@ Lire article - 2"></textarea>
   </aside>
 
   <!-- Backdrop modales (pomo + overlay central) -->
+
+         <!-- Modals -->
   <div id="modalBack" class="modalBack" hidden></div>
 
-  <!-- Pomodoro modal (SEUL, pas d’imbrication) -->
+  <!-- ✅ Pomodoro modal -->
   <div id="pomoModal" class="modal" hidden role="dialog" aria-modal="true" aria-label="Paramètres pomodoro">
     <div class="modalHead">
       <div class="modalTitle">Paramètres Pomodoro</div>
@@ -290,7 +292,7 @@ Lire article - 2"></textarea>
     </div>
   </div>
 
-  <!-- Overlay central (Notes/Typhonse/Kiffance/Stats) -->
+  <!-- ✅ Overlay central : sibling (PAS enfant de pomoModal) -->
   <div id="overlayModal" class="modal modalOverlay" hidden role="dialog" aria-modal="true" aria-label="Fenêtre centrale">
     <div class="modalHead">
       <div class="modalTitle" id="overlayTitle">Fenêtre</div>
@@ -322,6 +324,7 @@ Lire article - 2"></textarea>
         <div class="list" id="typhonseList"></div>
 
         <div class="divider"></div>
+
         <button id="typhonseClearDone" class="btn ghost" type="button">Retirer les cochés</button>
       </section>
 
@@ -372,6 +375,9 @@ Lire article - 2"></textarea>
       </section>
     </div>
   </div>
+  
+
+        
 
   <!-- ✅ versionné pour casser le cache -->
   <script src="state.v5.js" defer></script>
