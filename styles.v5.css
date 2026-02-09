@@ -19,8 +19,8 @@
   --decoA: rgba(211,138,92,.12);
   --decoB: rgba(255,210,160,.12);
 
-  --doodle: none;         /* ✅ injecté par JS */
-  --doodleOpacity: .22;   /* ✅ injecté par JS */
+  --doodle: none;
+  --doodleOpacity: .22;
 
   --leftW:360px;
   --rightW:420px;
@@ -29,7 +29,7 @@
   --progressShadow: 0 18px 30px rgba(0,0,0,.10);
   --progressBorder: 1px solid var(--line);
 
-  --rouletteSize: 166px; /* ✅ responsive sans casser l’horizontal */
+  --rouletteSize: 166px;
 }
 
 *{ box-sizing:border-box; }
@@ -42,9 +42,6 @@ body{
   color: var(--fg);
   font-family: "Yomogi", cursive;
   overflow-x:hidden;
-
-  /* ✅ iOS/Android : évite l’effet "rubber-band" qui flingue le glass */
-  overscroll-behavior: none;
 }
 
 /* Fonts switch */
@@ -72,7 +69,6 @@ body::before{
   opacity:.55;
 }
 
-/* ✅ doodles saisonniers */
 body::after{
   content:"";
   position: fixed;
@@ -105,7 +101,7 @@ body::after{
 }
 
 .tb-left{ justify-self:start; }
-.tb-center{ justify-self:center; }
+.tb-center{ justify-self:center; max-width: 100%; overflow:hidden; } /* ✅ */
 .tb-right{ justify-self:end; }
 
 .tb-icon{
@@ -123,9 +119,15 @@ body::after{
   display:flex;
   gap:10px;
   align-items:center;
-}
 
-.tb-sep{ opacity:.55; }
+  max-width: 100%;             /* ✅ */
+  overflow-x: auto;            /* ✅ mobile */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tb-nav::-webkit-scrollbar{ display:none; }
+
+.tb-sep{ opacity:.55; flex: 0 0 auto; }
 
 .tb-chip{
   border:none;
@@ -138,13 +140,19 @@ body::after{
   color: var(--fg);
   opacity:.92;
   transition: background .15s ease, transform .12s ease;
+  flex: 0 0 auto; /* ✅ évite compression bizarre */
+  white-space: nowrap;
 }
 .tb-chip:hover{ background: var(--accent); opacity: 1; }
 .tb-chip:active{ transform: translateY(1px); }
 .tb-chip-quiet{ opacity:.78; }
-.tb-chip.active{
-  background: var(--accent2);
-  opacity:1;
+.tb-chip.active{ background: var(--accent2); opacity:1; }
+
+@media (max-width: 520px){
+  #topBar{ padding: 0 8px; }
+  .tb-nav{ gap: 6px; }
+  .tb-chip{ padding: 7px 8px; font-size: 13px; }
+  .tb-icon{ width: 40px; }
 }
 
 /* ---------- Hub ---------- */
@@ -161,9 +169,6 @@ body::after{
   width: min(980px, 94vw);
   padding: 30px 18px 56px;
   text-align:center;
-
-  /* ✅ sécurité : jamais de débordement horizontal */
-  max-width: 100%;
 }
 
 #appTitle{
@@ -322,6 +327,7 @@ body::after{
   gap: 12px;
   padding: 8px 0 6px;
   flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .actionPill{
@@ -388,11 +394,6 @@ body::after{
   text-shadow: 0 2px 0 rgba(255,255,255,.55);
 }
 
-.rouletteWheel.spinning{
-  filter: drop-shadow(0 14px 18px rgba(0,0,0,.12));
-}
-
-/* ✅ Responsive : on réduit sans empiler */
 @media (max-width: 720px){
   :root{ --rouletteSize: 150px; }
   .missionActionsRow{ gap: 10px; }
@@ -404,18 +405,6 @@ body::after{
   .missionActionsRow{ gap: 8px; }
   .actionPill{ padding: 8px 9px; }
   .actionPill span{ font-size: 10px; }
-}
-
-/* ✅ Ultra-petit : on COMPRESSE, mais on reste HORIZONTAL */
-@media (max-width: 360px){
-  :root{ --rouletteSize: 118px; }
-
-  .missionActionsRow{ gap: 6px; }
-
-  .actionPill{
-    padding: 7px 8px;
-    max-width: 140px;
-  }
 }
 
 /* Liens bas */
@@ -468,9 +457,6 @@ body::after{
   display:flex;
   flex-direction:column;
   color: var(--fg);
-
-  /* ✅ sécurité : évite les débordements horizontaux */
-  max-width: 100%;
 }
 
 .panel-left{ left:0; width: var(--leftW); transform: translateX(-110%); border-right: 1px solid var(--line); }
@@ -630,9 +616,6 @@ body::after{
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   overflow: hidden;
-
-  /* ✅ sécurité : pas de débordement horizontal */
-  max-width: 100%;
 }
 
 .modalHead{
@@ -655,58 +638,11 @@ body::after{
 }
 .modalBody{ padding: 12px; }
 
-/* ---------- Overlay central : plus grand mais même esthétique ---------- */
 .modalOverlay{
   width: min(920px, 94vw);
   max-height: 82vh;
 }
-
 .modalBodyScroll{
   max-height: calc(82vh - 52px);
   overflow: auto;
 }
-
-/* Pages internes */
-.overlayPage{
-  padding-bottom: 6px;
-}
-
-/* Typhonse : ligne compacte */
-.tyRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-.tyLeft{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  min-width:0;
-}
-.tyCheck{
-  width: 18px;
-  height: 18px;
-  accent-color: rgba(211,138,92,.65);
-}
-.tyText{
-  font-weight: 900;
-  white-space: nowrap;
-  overflow:hidden;
-  text-overflow: ellipsis;
-}
-.tyText.done{
-  opacity:.55;
-  text-decoration: line-through;
-}
-
-/* ===========================================
-   ✅ AJOUTS RESPONSIVE/TOUCH (sans changer le look)
-   =========================================== */
-
-/* ✅ tap mobile propre + évite les surlignages bleus */
-.tb-chip, .tb-icon, .actionPill, .rouletteBtn, .miniLink, .tabBtn, .closeBtn, .iconBtn{
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-```0
