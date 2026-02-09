@@ -673,4 +673,11 @@ body::after{
 .tyText.done{
   opacity:.55;
   text-decoration: line-through;
+} 
+/* ✅ sécurité : hidden doit être invisible et non cliquable, partout */
+[hidden]{ display:none !important; }
+
+/* ✅ évite les backdrops qui “mangent” la page quand hidden est mal interprété */
+.modalBack{
+  pointer-events: auto;
 }
