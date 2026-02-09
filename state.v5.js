@@ -1,3 +1,12 @@
+/* ===========================
+   ELIMINATOR — state.v5.js (fix)
+   - corrige SyntaxError (defaultState / notes / modals)
+   - prefs réellement appliquées
+   - pomodoro play/pause + modal réglages
+   - overlay central (notes/typhonse/kiffance/stats)
+   - roulette anim + tirage
+=========================== */
+
 const $ = (id)=>document.getElementById(id);
 const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
 const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
@@ -23,11 +32,9 @@ const pickSubline = ()=>SUBLINES[Math.floor(Math.random()*SUBLINES.length)];
 
 /* ----------- doodles (SVG repeat, légers) ----------- */
 function svgUrl(svg){
-  const enc = encodeURIComponent(svg)
-    .replace(/'/g,"%27").replace(/"/g,"%22");
+  const enc = encodeURIComponent(svg).replace(/'/g,"%27").replace(/"/g,"%22");
   return `url("data:image/svg+xml,${enc}")`;
 }
-
 const DOODLES = {
   printemps: svgUrl(`
     <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
@@ -93,8 +100,8 @@ const DOODLES = {
   `)
 };
 
-/* ---------- Thèmes (identiques à ta v4, on garde) ---------- */
-const THEMES = {
+/* ---------- Thèmes ---------- */
+const THEMES = /* (identique à ton code) */ ({
   printemps:{
     clair:{ bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54", barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)", accent:"rgba(255,162,190,.14)", accent2:"rgba(124,207,168,.30)", panel:"rgba(255,255,255,.72)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)" },
     sombre:{ bg:"#2A3A3A", fg:"#F6F2EA", muted:"#DAD2C6", barFill:"#8FE3BC", barEmpty:"rgba(143,227,188,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,170,200,.10)", accent2:"rgba(143,227,188,.20)", panel:"rgba(54,86,82,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(56,86,82,.40)", glass2:"rgba(72,110,104,.24)", decoA:"rgba(255,170,200,.08)", decoB:"rgba(255,235,180,.06)" }
@@ -115,8 +122,9 @@ const THEMES = {
     clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#4A4A4A", barEmpty:"rgba(0,0,0,.08)", barEdge:"rgba(255,255,255,.82)", accent:"rgba(0,0,0,.06)", accent2:"rgba(0,0,0,.12)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(0,0,0,.05)", decoB:"rgba(0,0,0,.03)" },
     sombre:{ bg:"#2B2F38", fg:"#F4F4F4", muted:"#D5D5D8", barFill:"#BEBEBE", barEmpty:"rgba(255,255,255,.10)", barEdge:"rgba(255,255,255,.18)", accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.14)", panel:"rgba(58,64,78,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(58,64,78,.40)", glass2:"rgba(72,80,98,.26)", decoA:"rgba(255,255,255,.06)", decoB:"rgba(255,255,255,.04)" }
   }
-};
+});
 
+/* ---------- State ---------- */
 const defaultState = {
   ui:{
     mode:"clair",
@@ -141,13 +149,13 @@ const defaultState = {
     breakMin: 5,
     autoStart: "auto",
     phase: "work"
-  }
-   
-};notes:{
+  },
+  notes:{
     text:"",
     reminders:"",
-    typhonse:[],   // {id,text,done}
-  },
+    typhonse:[]
+  }
+};
 
 function deepAssign(t,s){
   for(const k in s){
@@ -155,7 +163,6 @@ function deepAssign(t,s){
     else t[k]=s[k];
   }
 }
-
 function loadState(){
   try{
     const raw = localStorage.getItem(LS_KEY);
@@ -170,6 +177,12 @@ function loadState(){
 }
 let state = loadState();
 function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){} }
+
+/* ---------- helpers notes ---------- */
+function ensureNotes(){
+  if(!state.notes) state.notes = { text:"", reminders:"", typhonse:[] };
+  if(!Array.isArray(state.notes.typhonse)) state.notes.typhonse = [];
+}
 
 /* ---------- Status spot ---------- */
 let statusTimer = null;
@@ -211,8 +224,11 @@ function applyTheme(){
   setVar("--decoB", t.decoB);
 
   setVar("--baseSize", `${clamp(state.ui.baseSize, 14, 18)}px`);
-  setVar("--leftW", `${clamp(state.ui.leftW, 320, 980)}px`);
-  setVar("--rightW", `${clamp(state.ui.rightW, 320, 980)}px`);
+
+  // responsive panels : sur mobile on limite automatiquement
+  const maxPanel = Math.max(320, Math.min(window.innerWidth - 28, 520));
+  setVar("--leftW", `${clamp(state.ui.leftW, 320, maxPanel)}px`);
+  setVar("--rightW", `${clamp(state.ui.rightW, 320, maxPanel)}px`);
 
   if(state.ui.progressStyle === "anchored"){
     setVar("--progressShadow", "inset 0 12px 22px rgba(0,0,0,.12)");
@@ -222,7 +238,6 @@ function applyTheme(){
     setVar("--progressBorder", "1px solid var(--line)");
   }
 
-  // ✅ doodle saison
   const doodle = DOODLES[season] || DOODLES.automne;
   setVar("--doodle", doodle);
   setVar("--doodleOpacity", (mode==="sombre") ? ".16" : ".22");
@@ -421,8 +436,8 @@ function renderHub(){
   const done = doneTasks();
   const base = state.baseline.totalTasks || 0;
 
-  $("statActive").textContent = String(act.length);
-  $("statDone").textContent = String(done.length);
+  if($("statActive")) $("statActive").textContent = String(act.length);
+  if($("statDone")) $("statDone").textContent = String(done.length);
 
   const ml = $("missionLineLeft");
   if(ml) ml.textContent = `Tâches en cours (${done.length} finies · ${act.length}/${base || act.length || 0})`;
@@ -438,7 +453,6 @@ function renderHub(){
     $("metaEt").textContent = `${cur.etorionsLeft}/${cur.etorionsTotal}`;
   }
 }
-
 function toggleTaskMeta(){
   const m = $("taskMetaDetails");
   if(!m) return;
@@ -453,18 +467,6 @@ function selectTask(id){
   saveState();
   renderHub();
   renderTasksPanel();
-}
-
-function completeTask(id){
-  const t = getTask(id);
-  if(!t || t.done) return;
-  pushUndo("complete");
-  t.done = true;
-  t.doneAt = nowISO();
-  ensureCurrentTask();
-  saveState();
-  renderAll();
-  status("GLORIEUX. Une menace de moins.");
 }
 
 function degommerOne(){
@@ -514,7 +516,6 @@ function spinRoulette(){
   if(!wheel) return status("Roulette introuvable (bug DOM).");
 
   spinning = true;
-  wheel.classList.add("spinning");
 
   const turns = 4 + Math.random()*3;
   const extraDeg = Math.random()*360;
@@ -533,7 +534,6 @@ function spinRoulette(){
     if(t < 1) requestAnimationFrame(frame);
     else{
       spinning = false;
-      wheel.classList.remove("spinning");
       onRouletteStop();
     }
   }
@@ -549,6 +549,7 @@ function categories(){
 }
 function renderCatFilter(){
   const sel = $("catFilter");
+  if(!sel) return;
   const prev = sel.value || "Toutes";
   sel.innerHTML = "";
   const cats = categories();
@@ -564,9 +565,10 @@ function renderCatFilter(){
 function renderTasksPanel(){
   renderCatFilter();
   const root = $("taskList");
+  if(!root) return;
 
-  const cat = $("catFilter").value;
-  const view = $("viewFilter").value;
+  const cat = $("catFilter")?.value || "Toutes";
+  const view = $("viewFilter")?.value || "active";
 
   let list = state.tasks.slice();
   if(view==="active") list = list.filter(t=>!t.done);
@@ -616,28 +618,6 @@ function renderTasksPanel(){
       selBtn.textContent = (t.id===state.currentTaskId) ? "★" : "▶";
       selBtn.onclick = ()=>selectTask(t.id);
       btns.appendChild(selBtn);
-
-      const doneBtn = document.createElement("button");
-      doneBtn.className = "iconBtn";
-      doneBtn.title = "Terminer";
-      doneBtn.textContent = "✓";
-      doneBtn.onclick = ()=>completeTask(t.id);
-      btns.appendChild(doneBtn);
-    }else{
-      const restore = document.createElement("button");
-      restore.className = "iconBtn";
-      restore.title = "Restaurer";
-      restore.textContent = "↩";
-      restore.onclick = ()=>{
-        pushUndo("restore");
-        t.done = false;
-        t.doneAt = null;
-        ensureCurrentTask();
-        saveState();
-        renderAll();
-        status("Ressuscitée. Pratique. Suspect. Efficace.");
-      };
-      btns.appendChild(restore);
     }
 
     const delBtn = document.createElement("button");
@@ -661,9 +641,10 @@ function renderTasksPanel(){
   }
 }
 
-/* ---------- Kiffance ---------- */
+/* ---------- Kiffance (panel gauche) ---------- */
 function renderKiffance(){
   const root = $("kiffList");
+  if(!root) return;
   root.innerHTML = "";
 
   if(state.kiffances.length===0){
@@ -715,13 +696,16 @@ function renderKiffance(){
 }
 
 /* ---------- Export ---------- */
-function renderExport(){ $("exportOut").value = JSON.stringify(state, null, 2); }
+function renderExport(){
+  const out = $("exportOut");
+  if(out) out.value = JSON.stringify(state, null, 2);
+}
 async function copyText(text){
   try{ await navigator.clipboard.writeText(text); status("JSON copié."); }
   catch(_){ status("Impossible de copier (clipboard)."); }
 }
 
-/* ---------- Pomodoro ---------- */
+/* ---------- Pomodoro (inline) ---------- */
 let pomoTimer = null;
 let pomoRunning = false;
 let remainingMs = 0;
@@ -731,36 +715,20 @@ function fmtMMSS(ms){
   const s = Math.max(0, Math.floor(ms/1000));
   return `${pad2(Math.floor(s/60))}:${pad2(s%60)}`;
 }
-
 function currentPhaseMinutes(){
   return state.pomodoro.phase === "break" ? state.pomodoro.breakMin : state.pomodoro.workMin;
 }
 function resetPhase(){
   remainingMs = clamp(currentPhaseMinutes(), 1, 120) * 60 * 1000;
-  $("pomoTime").textContent = fmtMMSS(remainingMs);
-}
-function startPomo(){
-  if(pomoRunning) return;
-  pomoRunning = true;
-  $("pomoTime")?.classList.add("running");
-  if(!pomoTimer){
-    pomoTimer = setInterval(tick, 250);
-  }
-}
-function pausePomo(){
-  pomoRunning = false;
-  $("pomoTime")?.classList.remove("running");
-}
-function togglePomo(){
-  if(pomoRunning) pausePomo();
-  else startPomo();
+  const el = $("pomoTime");
+  if(el) el.textContent = fmtMMSS(remainingMs);
 }
 function tick(){
   if(!pomoRunning) return;
   remainingMs -= 250;
   if(remainingMs <= 0){
     remainingMs = 0;
-    $("pomoTime").textContent = "00:00";
+    if($("pomoTime")) $("pomoTime").textContent = "00:00";
     pausePomo();
 
     state.pomodoro.phase = (state.pomodoro.phase === "work") ? "break" : "work";
@@ -773,22 +741,48 @@ function tick(){
     if(state.pomodoro.autoStart === "auto") startPomo();
     return;
   }
-  $("pomoTime").textContent = fmtMMSS(remainingMs);
+  if($("pomoTime")) $("pomoTime").textContent = fmtMMSS(remainingMs);
+}
+function startPomo(){
+  if(pomoRunning) return;
+  pomoRunning = true;
+  if(!pomoTimer) pomoTimer = setInterval(tick, 250);
+}
+function pausePomo(){
+  pomoRunning = false;
+}
+function togglePomo(){
+  if(pomoRunning) pausePomo();
+  else startPomo();
 }
 
-/* ---------- Modal Pomodoro ---------- */
-function openModal(){
+/* ---------- Backdrop modales ---------- */
+function openModalBack(){
+  const mb = $("modalBack");
+  if(mb) mb.hidden = false;
+}
+function closeModalBackIfNone(){
+  const anyOpen =
+    ($("pomoModal") && !$("pomoModal").hidden) ||
+    ($("overlayModal") && !$("overlayModal").hidden);
+  if(!anyOpen && $("modalBack")) $("modalBack").hidden = true;
+}
+
+/* ---------- Pomodoro modal ---------- */
+function openPomoModal(){
   openModalBack();
-  $("pomoModal").hidden = false;
+  const m = $("pomoModal");
+  if(m) m.hidden = false;
+
   $("pomoMinutes").value = String(state.pomodoro.workMin);
   $("breakMinutes").value = String(state.pomodoro.breakMin);
   $("autoStartSel").value = state.pomodoro.autoStart;
 }
-function closeModal(){
-  $("pomoModal").hidden = true;
+function closePomoModal(){
+  const m = $("pomoModal");
+  if(m) m.hidden = true;
   closeModalBackIfNone();
 }
-
 function applyPomoSettings(){
   const w = clamp(parseInt($("pomoMinutes").value,10) || 25, 5, 90);
   const b = clamp(parseInt($("breakMinutes").value,10) || 5, 1, 30);
@@ -803,15 +797,10 @@ function applyPomoSettings(){
   saveState();
   resetPhase();
   status("Pomodoro réglé.");
-   
-  function openModalBack(){
-  $("modalBack").hidden = false;
-}
-function closeModalBackIfNone(){
-  const anyOpen = (!$("pomoModal").hidden) || (!$("overlayModal").hidden);
-  if(!anyOpen) $("modalBack").hidden = true;
+  closePomoModal();
 }
 
+/* ---------- Overlay central ---------- */
 function hideAllOverlayPages(){
   ["notes","typhonse","kiffance","stats"].forEach(k=>{
     const el = $(`overlay-${k}`);
@@ -819,6 +808,7 @@ function hideAllOverlayPages(){
   });
 }
 function openOverlay(kind){
+  ensureNotes();
   hideAllOverlayPages();
   const page = $(`overlay-${kind}`);
   if(!page) return;
@@ -826,44 +816,43 @@ function openOverlay(kind){
   $("overlayTitle").textContent =
     kind === "notes" ? "Notes & rappels" :
     kind === "typhonse" ? "Typhonse" :
-    kind === "kiffance" ? "Kiffance" :
-    "Stats";
+    kind === "kiffance" ? "Kiffance" : "Stats";
 
   page.hidden = false;
-
   openModalBack();
   $("overlayModal").hidden = false;
 
-  // hydrate contenu
   if(kind==="notes"){
-    $("notesArea").value = state.notes?.text || "";
-    $("remindersArea").value = state.notes?.reminders || "";
+    $("notesArea").value = state.notes.text || "";
+    $("remindersArea").value = state.notes.reminders || "";
   }
-  if(kind==="typhonse"){
-    renderTyphonse();
-  }
-  if(kind==="kiffance"){
-    renderKiffOverlay();
-  }
-  if(kind==="stats"){
-    renderStatsOverlay();
-  }
+  if(kind==="typhonse") renderTyphonse();
+  if(kind==="kiffance") renderKiffOverlay();
+  if(kind==="stats") renderStatsOverlay();
 }
-
 function closeOverlay(){
   $("overlayModal").hidden = true;
   closeModalBackIfNone();
 }
-  closeModal();
-}
-function ensureNotes(){
-  if(!state.notes) state.notes = { text:"", reminders:"", typhonse:[] };
-  if(!Array.isArray(state.notes.typhonse)) state.notes.typhonse = [];
+
+/* ---------- Notes autosave ---------- */
+let notesSaveTimer = null;
+function scheduleNotesSave(){
+  if(notesSaveTimer) clearTimeout(notesSaveTimer);
+  notesSaveTimer = setTimeout(()=>{
+    ensureNotes();
+    state.notes.text = $("notesArea").value || "";
+    state.notes.reminders = $("remindersArea").value || "";
+    saveState();
+    status("Notes sauvegardées.", 1600);
+  }, 350);
 }
 
+/* ---------- Typhonse ---------- */
 function renderTyphonse(){
   ensureNotes();
   const root = $("typhonseList");
+  if(!root) return;
   root.innerHTML = "";
 
   if(state.notes.typhonse.length === 0){
@@ -879,11 +868,10 @@ function renderTyphonse(){
     row.className = "cardRow";
 
     const left = document.createElement("div");
-    left.className = "tyLeft";
+    left.className = "cardLeft";
 
     const cb = document.createElement("input");
     cb.type = "checkbox";
-    cb.className = "tyCheck";
     cb.checked = !!item.done;
     cb.onchange = ()=>{
       item.done = cb.checked;
@@ -892,7 +880,7 @@ function renderTyphonse(){
     };
 
     const txt = document.createElement("div");
-    txt.className = "tyText" + (item.done ? " done" : "");
+    txt.className = "cardTitle";
     txt.textContent = item.text;
 
     left.appendChild(cb);
@@ -909,17 +897,11 @@ function renderTyphonse(){
       status("Typhonse : item évaporé.");
     };
 
-    const wrap = document.createElement("div");
-    wrap.className = "tyRow";
-    wrap.appendChild(left);
-
-    row.appendChild(wrap);
+    row.appendChild(left);
     row.appendChild(del);
-
     root.appendChild(row);
   }
 }
-
 function addTyphonse(){
   ensureNotes();
   const v = ($("typhonseInput").value || "").trim();
@@ -931,19 +913,10 @@ function addTyphonse(){
   status("Typhonse ajouté.");
 }
 
-let notesSaveTimer = null;
-function scheduleNotesSave(){
-  if(notesSaveTimer) clearTimeout(notesSaveTimer);
-  notesSaveTimer = setTimeout(()=>{
-    ensureNotes();
-    state.notes.text = $("notesArea").value || "";
-    state.notes.reminders = $("remindersArea").value || "";
-    saveState();
-    status("Notes sauvegardées.", 1800);
-  }, 350);
-} 
+/* ---------- Kiffance overlay ---------- */
 function renderKiffOverlay(){
   const root = $("kiffOverlayList");
+  if(!root) return;
   root.innerHTML = "";
 
   if(!state.kiffances || state.kiffances.length===0){
@@ -992,7 +965,6 @@ function renderKiffOverlay(){
     root.appendChild(row);
   });
 }
-
 function addKiffOverlay(){
   const v = ($("kiffOverlayInput").value || "").trim();
   if(!v) return;
@@ -1001,7 +973,7 @@ function addKiffOverlay(){
   saveState();
   renderKiffOverlay();
   status("Kiffance ajoutée.");
-} 
+}
 function renderStatsOverlay(){
   const act = activeTasks().length;
   const done = doneTasks().length;
@@ -1011,43 +983,43 @@ function renderStatsOverlay(){
   $("statsDoneBig").textContent = String(done);
   $("statsPctBig").textContent = `${pct}%`;
 
-  const dump = {
+  $("statsDump").value = JSON.stringify({
     active: act,
     done,
     remainingPct: pct,
     baseline: state.baseline?.totalTasks ?? 0,
     season: state.ui.season,
     mode: state.ui.mode
-  };
-  $("statsDump").value = JSON.stringify(dump, null, 2);
+  }, null, 2);
 }
+
 /* ---------- Topbar ---------- */
 function bindTopbar(){
-  $("modeToggle").addEventListener("click", ()=>{
+  $("modeToggle")?.addEventListener("click", ()=>{
     state.ui.mode = (state.ui.mode === "clair") ? "sombre" : "clair";
     saveState();
     renderAll();
   });
 
-  $("seasonCycle").addEventListener("click", ()=>{
+  $("seasonCycle")?.addEventListener("click", ()=>{
     const idx = Math.max(0, SEASONS.indexOf(state.ui.season));
     state.ui.season = SEASONS[(idx + 1) % SEASONS.length];
     saveState();
     renderAll();
   });
 
-  $("focusBtn").addEventListener("click", ()=>{
+  $("focusBtn")?.addEventListener("click", ()=>{
     document.body.classList.toggle("focusMode");
-    $("focusBtn").classList.toggle("active", document.body.classList.contains("focusMode"));
+    $("focusBtn")?.classList.toggle("active", document.body.classList.contains("focusMode"));
   });
 
-  $("countersBtn").addEventListener("click", ()=>{
+  $("countersBtn")?.addEventListener("click", ()=>{
     document.body.classList.toggle("hideCounters");
-    $("countersBtn").classList.toggle("active", !document.body.classList.contains("hideCounters"));
+    $("countersBtn")?.classList.toggle("active", !document.body.classList.contains("hideCounters"));
   });
 }
 
-/* ---------- Prefs (✅ live + apply) ---------- */
+/* ---------- Prefs ---------- */
 function syncPrefsUI(){
   $("modeSel").value = state.ui.mode;
   $("seasonSel").value = state.ui.season;
@@ -1056,7 +1028,6 @@ function syncPrefsUI(){
   $("progressStyleSel").value = state.ui.progressStyle;
   $("pomoQuick").value = String(clamp(state.pomodoro.workMin, 5, 90));
 }
-
 function applyPrefsFromUI(){
   state.ui.mode = $("modeSel").value;
   state.ui.season = $("seasonSel").value;
@@ -1070,26 +1041,20 @@ function applyPrefsFromUI(){
   saveState();
   renderAll();
 }
-
 function bindPrefs(){
-  // ✅ live
   ["modeSel","seasonSel","fontSel","progressStyleSel"].forEach(id=>{
-    $(id).addEventListener("change", applyPrefsFromUI);
+    $(id)?.addEventListener("change", applyPrefsFromUI);
   });
-  $("uiScale").addEventListener("input", applyPrefsFromUI);
-  $("pomoQuick").addEventListener("input", ()=>{ /* pas trop agressif */ });
+  $("uiScale")?.addEventListener("input", applyPrefsFromUI);
 
-  $("prefsApply").addEventListener("click", ()=>{
+  $("prefsApply")?.addEventListener("click", ()=>{
     applyPrefsFromUI();
     status("Préférences appliquées.");
   });
 
-  $("prefsReset").addEventListener("click", ()=>{
+  $("prefsReset")?.addEventListener("click", ()=>{
     state.ui = structuredClone(defaultState.ui);
-    state.pomodoro.workMin = defaultState.pomodoro.workMin;
-    state.pomodoro.breakMin = defaultState.pomodoro.breakMin;
-    state.pomodoro.autoStart = defaultState.pomodoro.autoStart;
-    state.pomodoro.phase = "work";
+    state.pomodoro = structuredClone(defaultState.pomodoro);
     saveState();
     renderAll();
     status("Préférences reset.");
@@ -1131,15 +1096,15 @@ function renderAll(){
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", ()=>{
   // punchline
-  $("subtitle").textContent = pickSubline();
-  setInterval(()=>{ $("subtitle").textContent = pickSubline(); }, 45000);
+  if($("subtitle")) $("subtitle").textContent = pickSubline();
+  setInterval(()=>{ if($("subtitle")) $("subtitle").textContent = pickSubline(); }, 45000);
 
   // panels
-  $("btnLeft").onclick = ()=>openPanel("left");
-  $("btnRight").onclick = ()=>openPanel("right");
-  $("leftClose").onclick = closePanels;
-  $("rightClose").onclick = closePanels;
-  $("panelBack").onclick = closePanels;
+  $("btnLeft")?.addEventListener("click", ()=>openPanel("left"));
+  $("btnRight")?.addEventListener("click", ()=>openPanel("right"));
+  $("leftClose")?.addEventListener("click", closePanels);
+  $("rightClose")?.addEventListener("click", closePanels);
+  $("panelBack")?.addEventListener("click", closePanels);
 
   initResizer("leftResizer","left");
   initResizer("rightResizer","right");
@@ -1149,33 +1114,33 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindPrefs();
 
   // inbox
-  $("inboxAdd").onclick = inboxAdd;
-  $("inboxClear").onclick = inboxClear;
+  $("inboxAdd")?.addEventListener("click", inboxAdd);
+  $("inboxClear")?.addEventListener("click", inboxClear);
 
   // actions
-  $("rouletteBtn").onclick = spinRoulette;
-  $("bombBtn").onclick = degommerOne;
-  $("undoBtn").onclick = doUndo;
-  $("taskInfoBtn").onclick = toggleTaskMeta;
+  $("rouletteBtn")?.addEventListener("click", spinRoulette);
+  $("bombBtn")?.addEventListener("click", degommerOne);
+  $("undoBtn")?.addEventListener("click", doUndo);
+  $("taskInfoBtn")?.addEventListener("click", toggleTaskMeta);
 
   // filters
-  $("catFilter").addEventListener("change", renderTasksPanel);
-  $("viewFilter").addEventListener("change", renderTasksPanel);
+  $("catFilter")?.addEventListener("change", renderTasksPanel);
+  $("viewFilter")?.addEventListener("change", renderTasksPanel);
 
   // export
-  $("exportBtn").onclick = ()=>copyText(JSON.stringify(state, null, 2));
-  $("wipeBtn").onclick = ()=>{
+  $("exportBtn")?.addEventListener("click", ()=>copyText(JSON.stringify(state, null, 2)));
+  $("wipeBtn")?.addEventListener("click", ()=>{
     if(!confirm("Reset total ? (tout effacer)")) return;
     localStorage.removeItem(LS_KEY);
     state = structuredClone(defaultState);
     saveState();
     renderAll();
     status("Reset complet. Le monde repart à zéro.");
-  };
+  });
 
-  // kiff
-  $("kiffAdd").onclick = ()=>{
-    const v = ($("kiffNew").value||"").trim();
+  // kiff panel gauche
+  $("kiffAdd")?.addEventListener("click", ()=>{
+    const v = ($("kiffNew")?.value||"").trim();
     if(!v) return;
     pushUndo("kiffAdd");
     state.kiffances.unshift(v);
@@ -1183,77 +1148,80 @@ document.addEventListener("DOMContentLoaded", ()=>{
     saveState();
     renderKiffance();
     status("Kiffance ajoutée.");
-  };
+  });
 
-  // pomodoro
+  // pomodoro init
   if(!state.pomodoro.phase) state.pomodoro.phase = "work";
   resetPhase();
 
-  $("pomoTime").onclick = ()=>{
+  $("pomoTime")?.addEventListener("click", ()=>{
     if(remainingMs <= 0) resetPhase();
     togglePomo();
-  };
-  $("pomoEdit").onclick = (e)=>{
+  });
+  $("pomoEdit")?.addEventListener("click", (e)=>{
     e.preventDefault();
     e.stopPropagation();
-    openModal();
-  };
+    openPomoModal();
+  });
 
-  // modal
-  $("modalBack").onclick = ()=>{
-    if(!$("pomoModal").hidden) closeModal();
-    if(!$("overlayModal").hidden) closeOverlay();
-  closeModalBackIfNone();
-  $("modalClose").onclick = closeModal;
-  $("pomoApply").onclick = applyPomoSettings;
-  $("pomoReset").onclick = ()=>{
+  // modal events
+  $("modalBack")?.addEventListener("click", ()=>{
+    if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
+    if($("overlayModal") && !$("overlayModal").hidden) closeOverlay();
+    closeModalBackIfNone();
+  });
+  $("modalClose")?.addEventListener("click", closePomoModal);
+  $("pomoApply")?.addEventListener("click", applyPomoSettings);
+  $("pomoReset")?.addEventListener("click", ()=>{
     pausePomo();
     resetPhase();
     status("Timer reset.");
-  };
-
-  window.addEventListener("keydown",(e)=>{
-    if(e.key === "Escape" && !$("pomoModal").hidden) closeModal();
   });
-    // Overlay central
-  $("overlayClose").onclick = closeOverlay;
 
-  $("openNotes").onclick = ()=>openOverlay("notes");
-  $("openTyphonse").onclick = ()=>openOverlay("typhonse");
-  $("openKiffance").onclick = ()=>openOverlay("kiffance");
-  $("openStats").onclick = ()=>openOverlay("stats");
+  // overlay central
+  $("overlayClose")?.addEventListener("click", closeOverlay);
+  $("openNotes")?.addEventListener("click", ()=>openOverlay("notes"));
+  $("openTyphonse")?.addEventListener("click", ()=>openOverlay("typhonse"));
+  $("openKiffance")?.addEventListener("click", ()=>openOverlay("kiffance"));
+  $("openStats")?.addEventListener("click", ()=>openOverlay("stats"));
 
-  // Notes autosave
-  $("notesArea").addEventListener("input", scheduleNotesSave);
-  $("remindersArea").addEventListener("input", scheduleNotesSave);
+  // notes autosave
+  $("notesArea")?.addEventListener("input", scheduleNotesSave);
+  $("remindersArea")?.addEventListener("input", scheduleNotesSave);
 
-  // Typhonse
-  $("typhonseAdd").onclick = addTyphonse;
-  $("typhonseInput").addEventListener("keydown",(e)=>{
+  // typhonse
+  $("typhonseAdd")?.addEventListener("click", addTyphonse);
+  $("typhonseInput")?.addEventListener("keydown",(e)=>{
     if(e.key==="Enter"){ e.preventDefault(); addTyphonse(); }
   });
-  $("typhonseClearDone").onclick = ()=>{
+  $("typhonseClearDone")?.addEventListener("click", ()=>{
     ensureNotes();
     state.notes.typhonse = state.notes.typhonse.filter(x=>!x.done);
     saveState();
     renderTyphonse();
     status("Typhonse : cochés retirés.");
-  };
+  });
 
-  // Kiffance overlay
-  $("kiffOverlayAdd").onclick = addKiffOverlay;
-  $("kiffOverlayInput").addEventListener("keydown",(e)=>{
+  // kiff overlay
+  $("kiffOverlayAdd")?.addEventListener("click", addKiffOverlay);
+  $("kiffOverlayInput")?.addEventListener("keydown",(e)=>{
     if(e.key==="Enter"){ e.preventDefault(); addKiffOverlay(); }
   });
-  $("kiffRoll").onclick = ()=>{
+  $("kiffRoll")?.addEventListener("click", ()=>{
     if(!state.kiffances || state.kiffances.length===0) return status("Aucune kiffance à tirer.");
     const k = state.kiffances[Math.floor(Math.random()*state.kiffances.length)];
     status("🎁 Kiffance : " + k);
-  };
-
-  // ESC ferme overlay aussi
-  window.addEventListener("keydown",(e)=>{
-    if(e.key==="Escape" && !$("overlayModal").hidden) closeOverlay();
   });
+
+  // ESC ferme modales
+  window.addEventListener("keydown",(e)=>{
+    if(e.key !== "Escape") return;
+    if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
+    if($("overlayModal") && !$("overlayModal").hidden) closeOverlay();
+  });
+
+  // reflow responsive
+  window.addEventListener("resize", ()=>applyTheme());
+
   renderAll();
 });
