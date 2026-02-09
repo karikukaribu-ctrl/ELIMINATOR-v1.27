@@ -1,7 +1,12 @@
 /* ===========================
-   ELIMINATOR — state.v5.js (stable)
-   - DOM-safe (aucun null crash)
-   - topbar/prefs/panels/pomodoro/overlay/roulette OK
+   ELIMINATOR — state.v5.js (v5.1)
+   Fixes:
+   - safeClone() (évite crash Safari iOS si structuredClone absent)
+   - topbar/season/mode/prefs réellement appliquées
+   - pomodoro play/pause + modal
+   - overlay central stable (pas de modales imbriquées)
+   - roulette anim + tirage
+   - panels responsive width clamp + resize
 =========================== */
 
 const $ = (id)=>document.getElementById(id);
@@ -10,10 +15,13 @@ const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
 const uid = ()=>Math.random().toString(36).slice(2,10)+"_"+Date.now().toString(36);
 const nowISO = ()=>new Date().toISOString();
 
-/* --- DOM-safe helpers (évite qu’un seul null tue tout) --- */
-function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
-function setVal(id, v){ const el=$(id); if(el) el.value = v; }
-function on(id, evt, fn){ const el=$(id); if(el) el.addEventListener(evt, fn); }
+// ✅ Safari/mobile friendly clone
+function safeClone(obj){
+  if(typeof structuredClone === "function"){
+    try{ return structuredClone(obj); }catch(_){}
+  }
+  return JSON.parse(JSON.stringify(obj));
+}
 
 const LS_KEY = "eliminator_step2_fix_v5";
 const SEASONS = ["printemps","ete","automne","hiver","noirblanc"];
@@ -32,90 +40,88 @@ const SUBLINES = [
 ];
 const pickSubline = ()=>SUBLINES[Math.floor(Math.random()*SUBLINES.length)];
 
-/* ----------- doodles (SVG repeat) ----------- */
+/* ----------- doodles (SVG repeat, légers) ----------- */
 function svgUrl(svg){
   const enc = encodeURIComponent(svg).replace(/'/g,"%27").replace(/"/g,"%22");
   return `url("data:image/svg+xml,${enc}")`;
 }
 const DOODLES = {
-  printemps: svgUrl(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
-      <g fill="none" stroke="rgba(255,120,170,0.55)" stroke-width="2" stroke-linecap="round">
-        <path d="M90 120c30-30 65-30 95 0-30 30-65 30-95 0z"/>
-        <path d="M180 160c12-20 26-32 42-36-5 18-18 34-42 36z"/>
-        <path d="M360 110c28-22 60-22 88 0-28 22-60 22-88 0z"/>
-      </g>
-      <g fill="none" stroke="rgba(120,207,168,0.50)" stroke-width="2" stroke-linecap="round">
-        <path d="M120 360c28-26 58-26 86 0-28 26-58 26-86 0z"/>
-        <path d="M330 360c22-34 44-48 70-52-6 26-26 48-70 52z"/>
-      </g>
-    </svg>
-  `),
-  ete: svgUrl(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
-      <g fill="none" stroke="rgba(242,178,75,0.55)" stroke-width="2" stroke-linecap="round">
-        <circle cx="120" cy="120" r="22"/>
-        <path d="M120 86v-18M120 172v18M86 120H68M172 120h18M96 96l-12-12M144 144l12 12M96 144l-12 12M144 96l12-12"/>
-      </g>
-      <g fill="none" stroke="rgba(90,190,200,0.45)" stroke-width="2" stroke-linecap="round">
-        <path d="M300 120c30-20 62-20 92 0-30 20-62 20-92 0z"/>
-        <path d="M90 360c40 20 80 20 120 0"/>
-        <path d="M290 380c40 20 80 20 120 0"/>
-      </g>
-    </svg>
-  `),
-  automne: svgUrl(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
-      <g fill="none" stroke="rgba(211,138,92,0.55)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M110 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
-        <path d="M155 130c-8-18-10-34-6-52"/>
-        <path d="M360 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
-        <path d="M405 130c-8-18-10-34-6-52"/>
-      </g>
-      <g fill="none" stroke="rgba(140,110,85,0.45)" stroke-width="2" stroke-linecap="round">
-        <path d="M120 360c26-22 54-22 80 0-26 22-54 22-80 0z"/>
-        <path d="M320 380c26-22 54-22 80 0-26 22-54 22-80 0z"/>
-      </g>
-    </svg>
-  `),
-  hiver: svgUrl(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
-      <g fill="none" stroke="rgba(120,160,200,0.55)" stroke-width="2" stroke-linecap="round">
-        <path d="M120 120l22 22M142 120l-22 22M120 98v44M98 120h44"/>
-        <path d="M360 140l26 26M386 140l-26 26M360 112v56M332 140h56"/>
-      </g>
-      <g fill="none" stroke="rgba(220,240,255,0.35)" stroke-width="2" stroke-linecap="round">
-        <path d="M100 360c40-16 80-16 120 0"/>
-        <path d="M290 380c40-16 80-16 120 0"/>
-      </g>
-    </svg>
-  `),
-  noirblanc: svgUrl(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
-      <g fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round">
-        <path d="M110 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
-        <path d="M360 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
-        <circle cx="120" cy="360" r="18"/>
-        <circle cx="360" cy="380" r="18"/>
-      </g>
-    </svg>
-  `)
+  printemps: svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+    <g fill="none" stroke="rgba(255,120,170,0.55)" stroke-width="2" stroke-linecap="round">
+      <path d="M90 120c30-30 65-30 95 0-30 30-65 30-95 0z"/>
+      <path d="M180 160c12-20 26-32 42-36-5 18-18 34-42 36z"/>
+      <path d="M360 110c28-22 60-22 88 0-28 22-60 22-88 0z"/>
+    </g>
+    <g fill="none" stroke="rgba(120,207,168,0.50)" stroke-width="2" stroke-linecap="round">
+      <path d="M120 360c28-26 58-26 86 0-28 26-58 26-86 0z"/>
+      <path d="M330 360c22-34 44-48 70-52-6 26-26 48-70 52z"/>
+    </g>
+  </svg>`),
+  ete: svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+    <g fill="none" stroke="rgba(242,178,75,0.55)" stroke-width="2" stroke-linecap="round">
+      <circle cx="120" cy="120" r="22"/>
+      <path d="M120 86v-18M120 172v18M86 120H68M172 120h18M96 96l-12-12M144 144l12 12M96 144l-12 12M144 96l12-12"/>
+    </g>
+    <g fill="none" stroke="rgba(90,190,200,0.45)" stroke-width="2" stroke-linecap="round">
+      <path d="M300 120c30-20 62-20 92 0-30 20-62 20-92 0z"/>
+      <path d="M90 360c40 20 80 20 120 0"/>
+      <path d="M290 380c40 20 80 20 120 0"/>
+    </g>
+  </svg>`),
+  automne: svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+    <g fill="none" stroke="rgba(211,138,92,0.55)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M110 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
+      <path d="M155 130c-8-18-10-34-6-52"/>
+      <path d="M360 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
+      <path d="M405 130c-8-18-10-34-6-52"/>
+    </g>
+    <g fill="none" stroke="rgba(140,110,85,0.45)" stroke-width="2" stroke-linecap="round">
+      <path d="M120 360c26-22 54-22 80 0-26 22-54 22-80 0z"/>
+      <path d="M320 380c26-22 54-22 80 0-26 22-54 22-80 0z"/>
+    </g>
+  </svg>`),
+  hiver: svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+    <g fill="none" stroke="rgba(120,160,200,0.55)" stroke-width="2" stroke-linecap="round">
+      <path d="M120 120l22 22M142 120l-22 22M120 98v44M98 120h44"/>
+      <path d="M360 140l26 26M386 140l-26 26M360 112v56M332 140h56"/>
+    </g>
+    <g fill="none" stroke="rgba(220,240,255,0.35)" stroke-width="2" stroke-linecap="round">
+      <path d="M100 360c40-16 80-16 120 0"/>
+      <path d="M290 380c40-16 80-16 120 0"/>
+    </g>
+  </svg>`),
+  noirblanc: svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520">
+    <g fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round">
+      <path d="M110 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
+      <path d="M360 140c40-20 70-10 90 10-20 30-60 40-90 10z"/>
+      <circle cx="120" cy="360" r="18"/>
+      <circle cx="360" cy="380" r="18"/>
+    </g>
+  </svg>`)
 };
 
-/* ---------- THEMES (tu peux remplacer par ton bloc complet si tu veux) ---------- */
-const THEMES = window.THEMES || ({
+/* ---------- THEMES (identique à ton code) ---------- */
+const THEMES = ({
+  printemps:{
+    clair:{ bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54", barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)", accent:"rgba(255,162,190,.14)", accent2:"rgba(124,207,168,.30)", panel:"rgba(255,255,255,.72)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)" },
+    sombre:{ bg:"#2A3A3A", fg:"#F6F2EA", muted:"#DAD2C6", barFill:"#8FE3BC", barEmpty:"rgba(143,227,188,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,170,200,.10)", accent2:"rgba(143,227,188,.20)", panel:"rgba(54,86,82,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(56,86,82,.40)", glass2:"rgba(72,110,104,.24)", decoA:"rgba(255,170,200,.08)", decoB:"rgba(255,235,180,.06)" }
+  },
+  ete:{
+    clair:{ bg:"#FFF6DF", fg:"#16120F", muted:"#6C5E52", barFill:"#F2B24B", barEmpty:"rgba(242,178,75,.16)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(90,190,200,.12)", accent2:"rgba(242,178,75,.28)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(242,178,75,.14)", decoB:"rgba(90,190,200,.10)" },
+    sombre:{ bg:"#263748", fg:"#F0FAFF", muted:"#D6E2EA", barFill:"#FFD07A", barEmpty:"rgba(255,208,122,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,208,122,.10)", accent2:"rgba(134,210,220,.18)", panel:"rgba(54,86,108,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,86,108,.38)", glass2:"rgba(72,110,136,.24)", decoA:"rgba(255,208,122,.08)", decoB:"rgba(134,210,220,.08)" }
+  },
   automne:{
     clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", barEmpty:"rgba(211,138,92,.18)", barEdge:"rgba(255,255,255,.85)", accent:"rgba(211,138,92,.18)", accent2:"rgba(211,138,92,.36)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(211,138,92,.12)", decoB:"rgba(255,210,160,.12)" },
     sombre:{ bg:"#2E3A33", fg:"#FFF3E6", muted:"#E3D3C4", barFill:"#E0A77D", barEmpty:"rgba(224,167,125,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(224,167,125,.12)", accent2:"rgba(224,167,125,.22)", panel:"rgba(62,82,70,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(62,82,70,.38)", glass2:"rgba(74,98,84,.24)", decoA:"rgba(224,167,125,.10)", decoB:"rgba(255,245,210,.08)" }
   },
-  printemps:{ clair:{ bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54", barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)", accent:"rgba(255,162,190,.14)", accent2:"rgba(124,207,168,.30)", panel:"rgba(255,255,255,.72)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)" },
-             sombre:{ bg:"#2A3A3A", fg:"#F6F2EA", muted:"#DAD2C6", barFill:"#8FE3BC", barEmpty:"rgba(143,227,188,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,170,200,.10)", accent2:"rgba(143,227,188,.20)", panel:"rgba(54,86,82,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(56,86,82,.40)", glass2:"rgba(72,110,104,.24)", decoA:"rgba(255,170,200,.08)", decoB:"rgba(255,235,180,.06)" } },
-  ete:{ clair:{ bg:"#FFF6DF", fg:"#16120F", muted:"#6C5E52", barFill:"#F2B24B", barEmpty:"rgba(242,178,75,.16)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(90,190,200,.12)", accent2:"rgba(242,178,75,.28)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(242,178,75,.14)", decoB:"rgba(90,190,200,.10)" },
-        sombre:{ bg:"#263748", fg:"#F0FAFF", muted:"#D6E2EA", barFill:"#FFD07A", barEmpty:"rgba(255,208,122,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,208,122,.10)", accent2:"rgba(134,210,220,.18)", panel:"rgba(54,86,108,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,86,108,.38)", glass2:"rgba(72,110,136,.24)", decoA:"rgba(255,208,122,.08)", decoB:"rgba(134,210,220,.08)" } },
-  hiver:{ clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", barEmpty:"rgba(120,160,200,.18)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(120,160,200,.16)", accent2:"rgba(120,160,200,.30)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(120,160,200,.12)", decoB:"rgba(220,240,255,.14)" },
-          sombre:{ bg:"#273244", fg:"#F0FBFF", muted:"#D0DFE5", barFill:"#9DB8D5", barEmpty:"rgba(157,184,213,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(157,184,213,.12)", accent2:"rgba(157,184,213,.22)", panel:"rgba(54,74,98,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,74,98,.38)", glass2:"rgba(66,92,120,.24)", decoA:"rgba(157,184,213,.10)", decoB:"rgba(242,253,255,.08)" } },
-  noirblanc:{ clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#4A4A4A", barEmpty:"rgba(0,0,0,.08)", barEdge:"rgba(255,255,255,.82)", accent:"rgba(0,0,0,.06)", accent2:"rgba(0,0,0,.12)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(0,0,0,.05)", decoB:"rgba(0,0,0,.03)" },
-             sombre:{ bg:"#2B2F38", fg:"#F4F4F4", muted:"#D5D5D8", barFill:"#BEBEBE", barEmpty:"rgba(255,255,255,.10)", barEdge:"rgba(255,255,255,.18)", accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.14)", panel:"rgba(58,64,78,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(58,64,78,.40)", glass2:"rgba(72,80,98,.26)", decoA:"rgba(255,255,255,.06)", decoB:"rgba(255,255,255,.04)" } }
+  hiver:{
+    clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", barEmpty:"rgba(120,160,200,.18)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(120,160,200,.16)", accent2:"rgba(120,160,200,.30)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(120,160,200,.12)", decoB:"rgba(220,240,255,.14)" },
+    sombre:{ bg:"#273244", fg:"#F0FBFF", muted:"#D0DFE5", barFill:"#9DB8D5", barEmpty:"rgba(157,184,213,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(157,184,213,.12)", accent2:"rgba(157,184,213,.22)", panel:"rgba(54,74,98,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,74,98,.38)", glass2:"rgba(66,92,120,.24)", decoA:"rgba(157,184,213,.10)", decoB:"rgba(242,253,255,.08)" }
+  },
+  noirblanc:{
+    clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#4A4A4A", barEmpty:"rgba(0,0,0,.08)", barEdge:"rgba(255,255,255,.82)", accent:"rgba(0,0,0,.06)", accent2:"rgba(0,0,0,.12)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(0,0,0,.05)", decoB:"rgba(0,0,0,.03)" },
+    sombre:{ bg:"#2B2F38", fg:"#F4F4F4", muted:"#D5D5D8", barFill:"#BEBEBE", barEmpty:"rgba(255,255,255,.10)", barEdge:"rgba(255,255,255,.18)", accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.14)", panel:"rgba(58,64,78,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(58,64,78,.40)", glass2:"rgba(72,80,98,.26)", decoA:"rgba(255,255,255,.06)", decoB:"rgba(255,255,255,.04)" }
+  }
 });
 
 /* ---------- State ---------- */
@@ -144,7 +150,11 @@ const defaultState = {
     autoStart: "auto",
     phase: "work"
   },
-  notes:{ text:"", reminders:"", typhonse:[] }
+  notes:{
+    text:"",
+    reminders:"",
+    typhonse:[]
+  }
 };
 
 function deepAssign(t,s){
@@ -153,21 +163,23 @@ function deepAssign(t,s){
     else t[k]=s[k];
   }
 }
+
 function loadState(){
   try{
     const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return structuredClone(defaultState);
+    if(!raw) return safeClone(defaultState);
     const parsed = JSON.parse(raw);
-    const merged = structuredClone(defaultState);
+    const merged = safeClone(defaultState);
     deepAssign(merged, parsed);
     return merged;
   }catch(_){
-    return structuredClone(defaultState);
+    return safeClone(defaultState);
   }
 }
 let state = loadState();
 function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){} }
 
+/* ---------- helpers notes ---------- */
 function ensureNotes(){
   if(!state.notes) state.notes = { text:"", reminders:"", typhonse:[] };
   if(!Array.isArray(state.notes.typhonse)) state.notes.typhonse = [];
@@ -214,7 +226,7 @@ function applyTheme(){
 
   setVar("--baseSize", `${clamp(state.ui.baseSize, 14, 18)}px`);
 
-  // ✅ responsive panels : limite automatique sur mobile
+  // ✅ Panels responsive : cap selon viewport
   const maxPanel = Math.max(320, Math.min(window.innerWidth - 28, 520));
   setVar("--leftW", `${clamp(state.ui.leftW, 320, maxPanel)}px`);
   setVar("--rightW", `${clamp(state.ui.rightW, 320, maxPanel)}px`);
@@ -231,9 +243,10 @@ function applyTheme(){
   setVar("--doodle", doodle);
   setVar("--doodleOpacity", (mode==="sombre") ? ".16" : ".22");
 
-  document.body?.setAttribute("data-font", state.ui.font);
-  document.body?.setAttribute("data-mode", state.ui.mode);
+  document.body.setAttribute("data-font", state.ui.font);
+  document.body.setAttribute("data-mode", state.ui.mode);
 
+  // topbar reflect
   const mt = $("modeToggle");
   const sc = $("seasonCycle");
   if(mt){
@@ -289,6 +302,7 @@ function initResizer(handleId, which){
   window.addEventListener("mousemove",(e)=>move(e.clientX));
   window.addEventListener("mouseup", up);
 
+  // mobile
   h.addEventListener("touchstart",(e)=>{ e.preventDefault(); down(e.touches[0].clientX); }, {passive:false});
   window.addEventListener("touchmove",(e)=>move(e.touches[0].clientX), {passive:true});
   window.addEventListener("touchend", up);
@@ -385,7 +399,7 @@ function ensureCurrentTask(){
   if(!cur || cur.done) state.currentTaskId = act[0].id;
 }
 
-/* ---------- Progress ---------- */
+/* ---------- Progress = reste% ---------- */
 function computeRemainingPct(){
   ensureBaseline();
   const base = state.baseline.totalTasks || 0;
@@ -405,7 +419,7 @@ function renderProgress(){
 
 /* ---------- Undo ---------- */
 function pushUndo(label){
-  state.undo.unshift({ label, at: Date.now(), payload: structuredClone(state) });
+  state.undo.unshift({ label, at: Date.now(), payload: safeClone(state) });
   state.undo = state.undo.slice(0, 25);
   saveState();
 }
@@ -424,26 +438,27 @@ function renderHub(){
   const done = doneTasks();
   const base = state.baseline.totalTasks || 0;
 
-  setText("statActive", String(act.length));
-  setText("statDone", String(done.length));
+  if($("statActive")) $("statActive").textContent = String(act.length);
+  if($("statDone")) $("statDone").textContent = String(done.length);
 
   const ml = $("missionLineLeft");
   if(ml) ml.textContent = `Tâches en cours (${done.length} finies · ${act.length}/${base || act.length || 0})`;
 
   const cur = getTask(state.currentTaskId);
   if(!cur){
-    setText("taskTitle", "Aucune tâche sélectionnée");
-    setText("metaCat","—");
-    setText("metaEt","—");
+    $("taskTitle").textContent = "Aucune tâche sélectionnée";
+    $("metaCat").textContent = "—";
+    $("metaEt").textContent = "—";
   }else{
-    setText("taskTitle", cur.title);
-    setText("metaCat", cur.cat || "Inbox");
-    setText("metaEt", `${cur.etorionsLeft}/${cur.etorionsTotal}`);
+    $("taskTitle").textContent = cur.title;
+    $("metaCat").textContent = cur.cat || "Inbox";
+    $("metaEt").textContent = `${cur.etorionsLeft}/${cur.etorionsTotal}`;
   }
 }
 function toggleTaskMeta(){
   const m = $("taskMetaDetails");
-  if(m) m.hidden = !m.hidden;
+  if(!m) return;
+  m.hidden = !m.hidden;
 }
 
 /* ---------- Actions ---------- */
@@ -466,6 +481,18 @@ function completeTask(id){
   saveState();
   renderAll();
   status("GLORIEUX. Une menace de moins.");
+}
+
+function restoreTask(id){
+  const t = getTask(id);
+  if(!t || !t.done) return;
+  pushUndo("restore");
+  t.done = false;
+  t.doneAt = null;
+  ensureCurrentTask();
+  saveState();
+  renderAll();
+  status("Ressuscitée. Suspect. Utile.");
 }
 
 function degommerOne(){
@@ -515,6 +542,8 @@ function spinRoulette(){
   if(!wheel) return status("Roulette introuvable (bug DOM).");
 
   spinning = true;
+  wheel.classList.add("spinning");
+
   const turns = 4 + Math.random()*3;
   const extraDeg = Math.random()*360;
   const start = performance.now();
@@ -523,8 +552,8 @@ function spinRoulette(){
   const cur = wheel._angle || 0;
   const target = cur + turns*360 + extraDeg;
 
-  function frame(now){
-    const t = Math.min(1, (now - start)/dur);
+  function frame(ts){
+    const t = Math.min(1, (ts - start)/dur);
     const k = easeOutCubic(t);
     const a = cur + (target - cur)*k;
     wheel.style.transform = `rotate(${a}deg)`;
@@ -532,6 +561,7 @@ function spinRoulette(){
     if(t < 1) requestAnimationFrame(frame);
     else{
       spinning = false;
+      wheel.classList.remove("spinning");
       onRouletteStop();
     }
   }
@@ -571,7 +601,7 @@ function renderTasksPanel(){
   let list = state.tasks.slice();
   if(view==="active") list = list.filter(t=>!t.done);
   if(view==="done") list = list.filter(t=>t.done);
-  if(view==="all") list = list;
+  if(view==="all") list = list.slice();
   if(cat && cat!=="Toutes") list = list.filter(t=>(t.cat||"Inbox")===cat);
 
   list.sort((a,b)=>{
@@ -625,20 +655,12 @@ function renderTasksPanel(){
       doneBtn.onclick = ()=>completeTask(t.id);
       btns.appendChild(doneBtn);
     }else{
-      const restore = document.createElement("button");
-      restore.className = "iconBtn";
-      restore.title = "Restaurer";
-      restore.textContent = "↩";
-      restore.onclick = ()=>{
-        pushUndo("restore");
-        t.done = false;
-        t.doneAt = null;
-        ensureCurrentTask();
-        saveState();
-        renderAll();
-        status("Ressuscitée. Pratique. Suspect. Efficace.");
-      };
-      btns.appendChild(restore);
+      const restoreBtn = document.createElement("button");
+      restoreBtn.className = "iconBtn";
+      restoreBtn.title = "Restaurer";
+      restoreBtn.textContent = "↩";
+      restoreBtn.onclick = ()=>restoreTask(t.id);
+      btns.appendChild(restoreBtn);
     }
 
     const delBtn = document.createElement("button");
@@ -749,7 +771,7 @@ function tick(){
   remainingMs -= 250;
   if(remainingMs <= 0){
     remainingMs = 0;
-    setText("pomoTime","00:00");
+    if($("pomoTime")) $("pomoTime").textContent = "00:00";
     pausePomo();
 
     state.pomodoro.phase = (state.pomodoro.phase === "work") ? "break" : "work";
@@ -762,7 +784,7 @@ function tick(){
     if(state.pomodoro.autoStart === "auto") startPomo();
     return;
   }
-  setText("pomoTime", fmtMMSS(remainingMs));
+  if($("pomoTime")) $("pomoTime").textContent = fmtMMSS(remainingMs);
 }
 function startPomo(){
   if(pomoRunning) return;
@@ -779,43 +801,36 @@ function togglePomo(){
   else startPomo();
 }
 
-/* ---------- Modals backdrop ---------- */
-function openModalBack(){
-  const mb = $("modalBack");
-  if(mb) mb.hidden = false;
-}
+/* ---------- Backdrop modales ---------- */
+function openModalBack(){ $("modalBack").hidden = false; }
 function closeModalBackIfNone(){
   const anyOpen =
     ($("pomoModal") && !$("pomoModal").hidden) ||
     ($("overlayModal") && !$("overlayModal").hidden);
-  if(!anyOpen && $("modalBack")) $("modalBack").hidden = true;
+  if(!anyOpen) $("modalBack").hidden = true;
 }
 
 /* ---------- Pomodoro modal ---------- */
 function openPomoModal(){
   openModalBack();
-  const m = $("pomoModal");
-  if(m) m.hidden = false;
-
-  setVal("pomoMinutes", String(state.pomodoro.workMin));
-  setVal("breakMinutes", String(state.pomodoro.breakMin));
-  setVal("autoStartSel", state.pomodoro.autoStart);
+  $("pomoModal").hidden = false;
+  $("pomoMinutes").value = String(state.pomodoro.workMin);
+  $("breakMinutes").value = String(state.pomodoro.breakMin);
+  $("autoStartSel").value = state.pomodoro.autoStart;
 }
 function closePomoModal(){
-  const m = $("pomoModal");
-  if(m) m.hidden = true;
+  $("pomoModal").hidden = true;
   closeModalBackIfNone();
 }
 function applyPomoSettings(){
-  const w = clamp(parseInt($("pomoMinutes")?.value,10) || 25, 5, 90);
-  const b = clamp(parseInt($("breakMinutes")?.value,10) || 5, 1, 30);
-  const a = ($("autoStartSel")?.value === "manual") ? "manual" : "auto";
+  const w = clamp(parseInt($("pomoMinutes").value,10) || 25, 5, 90);
+  const b = clamp(parseInt($("breakMinutes").value,10) || 5, 1, 30);
+  const a = $("autoStartSel").value === "manual" ? "manual" : "auto";
 
   state.pomodoro.workMin = w;
   state.pomodoro.breakMin = b;
   state.pomodoro.autoStart = a;
-
-  setVal("pomoQuick", String(w));
+  if($("pomoQuick")) $("pomoQuick").value = String(w);
 
   saveState();
   resetPhase();
@@ -832,25 +847,26 @@ function hideAllOverlayPages(){
 }
 function openOverlay(kind){
   ensureNotes();
-  if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
+
+  // évite double modale
+  if(!$("pomoModal").hidden) closePomoModal();
 
   hideAllOverlayPages();
   const page = $(`overlay-${kind}`);
   if(!page) return;
 
-  setText("overlayTitle",
+  $("overlayTitle").textContent =
     kind === "notes" ? "Notes & rappels" :
     kind === "typhonse" ? "Typhonse" :
-    kind === "kiffance" ? "Kiffance" : "Stats"
-  );
+    kind === "kiffance" ? "Kiffance" : "Stats";
 
   page.hidden = false;
   openModalBack();
   $("overlayModal").hidden = false;
 
   if(kind==="notes"){
-    setVal("notesArea", state.notes.text || "");
-    setVal("remindersArea", state.notes.reminders || "");
+    $("notesArea").value = state.notes.text || "";
+    $("remindersArea").value = state.notes.reminders || "";
   }
   if(kind==="typhonse") renderTyphonse();
   if(kind==="kiffance") renderKiffOverlay();
@@ -867,8 +883,8 @@ function scheduleNotesSave(){
   if(notesSaveTimer) clearTimeout(notesSaveTimer);
   notesSaveTimer = setTimeout(()=>{
     ensureNotes();
-    state.notes.text = $("notesArea")?.value || "";
-    state.notes.reminders = $("remindersArea")?.value || "";
+    state.notes.text = $("notesArea").value || "";
+    state.notes.reminders = $("remindersArea").value || "";
     saveState();
     status("Notes sauvegardées.", 1600);
   }, 350);
@@ -898,6 +914,7 @@ function renderTyphonse(){
 
     const cb = document.createElement("input");
     cb.type = "checkbox";
+    cb.className = "tyCheck";
     cb.checked = !!item.done;
     cb.onchange = ()=>{
       item.done = cb.checked;
@@ -930,7 +947,7 @@ function renderTyphonse(){
 }
 function addTyphonse(){
   ensureNotes();
-  const v = ($("typhonseInput")?.value || "").trim();
+  const v = ($("typhonseInput").value || "").trim();
   if(!v) return;
   state.notes.typhonse.unshift({ id: uid(), text: v, done:false });
   $("typhonseInput").value = "";
@@ -992,7 +1009,7 @@ function renderKiffOverlay(){
   });
 }
 function addKiffOverlay(){
-  const v = ($("kiffOverlayInput")?.value || "").trim();
+  const v = ($("kiffOverlayInput").value || "").trim();
   if(!v) return;
   state.kiffances.unshift(v);
   $("kiffOverlayInput").value = "";
@@ -1005,100 +1022,91 @@ function renderStatsOverlay(){
   const done = doneTasks().length;
   const pct = computeRemainingPct();
 
-  setText("statsActiveBig", String(act));
-  setText("statsDoneBig", String(done));
-  setText("statsPctBig", `${pct}%`);
+  $("statsActiveBig").textContent = String(act);
+  $("statsDoneBig").textContent = String(done);
+  $("statsPctBig").textContent = `${pct}%`;
 
-  setVal("statsDump", JSON.stringify({
+  $("statsDump").value = JSON.stringify({
     active: act,
     done,
     remainingPct: pct,
     baseline: state.baseline?.totalTasks ?? 0,
     season: state.ui.season,
     mode: state.ui.mode
-  }, null, 2));
-}
-
-/* ---------- Prefs ---------- */
-function syncPrefsUI(){
-  setVal("modeSel", state.ui.mode);
-  setVal("seasonSel", state.ui.season);
-  setVal("fontSel", state.ui.font);
-  setVal("uiScale", String(clamp(state.ui.baseSize,14,18)));
-  setVal("progressStyleSel", state.ui.progressStyle);
-  setVal("pomoQuick", String(clamp(state.pomodoro.workMin, 5, 90)));
-}
-function applyPrefsFromUI(){
-  const modeSel = $("modeSel");
-  const seasonSel = $("seasonSel");
-  const fontSel = $("fontSel");
-  const uiScale = $("uiScale");
-  const progressStyleSel = $("progressStyleSel");
-  const pomoQuick = $("pomoQuick");
-
-  if(modeSel) state.ui.mode = modeSel.value;
-  if(seasonSel) state.ui.season = seasonSel.value;
-  if(fontSel) state.ui.font = fontSel.value;
-  if(uiScale) state.ui.baseSize = parseInt(uiScale.value, 10) || 16;
-  if(progressStyleSel) state.ui.progressStyle = progressStyleSel.value;
-
-  if(pomoQuick){
-    const quick = clamp(parseInt(pomoQuick.value,10) || state.pomodoro.workMin, 5, 90);
-    state.pomodoro.workMin = quick;
-  }
-
-  saveState();
-  renderAll();
-}
-function bindPrefs(){
-  ["modeSel","seasonSel","fontSel","progressStyleSel"].forEach(id=>{
-    on(id,"change", applyPrefsFromUI);
-  });
-  on("uiScale","input", applyPrefsFromUI);
-
-  on("prefsApply","click", ()=>{
-    applyPrefsFromUI();
-    status("Préférences appliquées.");
-  });
-
-  on("prefsReset","click", ()=>{
-    state.ui = structuredClone(defaultState.ui);
-    state.pomodoro = structuredClone(defaultState.pomodoro);
-    saveState();
-    renderAll();
-    status("Préférences reset.");
-  });
+  }, null, 2);
 }
 
 /* ---------- Topbar ---------- */
 function bindTopbar(){
-  on("modeToggle","click", ()=>{
+  $("modeToggle")?.addEventListener("click", ()=>{
     state.ui.mode = (state.ui.mode === "clair") ? "sombre" : "clair";
     saveState();
     renderAll();
   });
 
-  on("seasonCycle","click", ()=>{
+  $("seasonCycle")?.addEventListener("click", ()=>{
     const idx = Math.max(0, SEASONS.indexOf(state.ui.season));
     state.ui.season = SEASONS[(idx + 1) % SEASONS.length];
     saveState();
     renderAll();
   });
 
-  on("focusBtn","click", ()=>{
+  $("focusBtn")?.addEventListener("click", ()=>{
     document.body.classList.toggle("focusMode");
     $("focusBtn")?.classList.toggle("active", document.body.classList.contains("focusMode"));
   });
 
-  on("countersBtn","click", ()=>{
+  $("countersBtn")?.addEventListener("click", ()=>{
     document.body.classList.toggle("hideCounters");
     $("countersBtn")?.classList.toggle("active", !document.body.classList.contains("hideCounters"));
   });
 }
 
+/* ---------- Prefs ---------- */
+function syncPrefsUI(){
+  $("modeSel").value = state.ui.mode;
+  $("seasonSel").value = state.ui.season;
+  $("fontSel").value = state.ui.font;
+  $("uiScale").value = String(clamp(state.ui.baseSize,14,18));
+  $("progressStyleSel").value = state.ui.progressStyle;
+  $("pomoQuick").value = String(clamp(state.pomodoro.workMin, 5, 90));
+}
+function applyPrefsFromUI(){
+  state.ui.mode = $("modeSel").value;
+  state.ui.season = $("seasonSel").value;
+  state.ui.font = $("fontSel").value;
+  state.ui.baseSize = parseInt($("uiScale").value, 10) || 16;
+  state.ui.progressStyle = $("progressStyleSel").value;
+
+  const quick = clamp(parseInt($("pomoQuick").value,10) || state.pomodoro.workMin, 5, 90);
+  state.pomodoro.workMin = quick;
+
+  saveState();
+  renderAll();
+}
+function bindPrefs(){
+  ["modeSel","seasonSel","fontSel","progressStyleSel"].forEach(id=>{
+    $(id)?.addEventListener("change", applyPrefsFromUI);
+  });
+  $("uiScale")?.addEventListener("input", applyPrefsFromUI);
+
+  $("prefsApply")?.addEventListener("click", ()=>{
+    applyPrefsFromUI();
+    status("Préférences appliquées.");
+  });
+
+  $("prefsReset")?.addEventListener("click", ()=>{
+    state.ui = safeClone(defaultState.ui);
+    state.pomodoro = safeClone(defaultState.pomodoro);
+    saveState();
+    renderAll();
+    status("Préférences reset.");
+  });
+}
+
 /* ---------- Inbox add ---------- */
 function inboxAdd(){
-  const text = $("inboxText")?.value || "";
+  const text = $("inboxText").value || "";
   const parsed = importFromInbox(text);
   if(parsed.length===0) return status("Rien à ajouter.");
 
@@ -1114,10 +1122,7 @@ function inboxAdd(){
   renderAll();
   status(`Ajout : ${parsed.length} tâche(s).`);
 }
-function inboxClear(){
-  if($("inboxText")) $("inboxText").value = "";
-  status("Champ effacé.");
-}
+function inboxClear(){ $("inboxText").value = ""; status("Champ effacé."); }
 
 /* ---------- Render all ---------- */
 function renderAll(){
@@ -1134,15 +1139,15 @@ function renderAll(){
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", ()=>{
   // punchline
-  setText("subtitle", pickSubline());
-  setInterval(()=>setText("subtitle", pickSubline()), 45000);
+  if($("subtitle")) $("subtitle").textContent = pickSubline();
+  setInterval(()=>{ if($("subtitle")) $("subtitle").textContent = pickSubline(); }, 45000);
 
   // panels
-  on("btnLeft","click", ()=>openPanel("left"));
-  on("btnRight","click", ()=>openPanel("right"));
-  on("leftClose","click", closePanels);
-  on("rightClose","click", closePanels);
-  on("panelBack","click", closePanels);
+  $("btnLeft")?.addEventListener("click", ()=>openPanel("left"));
+  $("btnRight")?.addEventListener("click", ()=>openPanel("right"));
+  $("leftClose")?.addEventListener("click", closePanels);
+  $("rightClose")?.addEventListener("click", closePanels);
+  $("panelBack")?.addEventListener("click", closePanels);
 
   initResizer("leftResizer","left");
   initResizer("rightResizer","right");
@@ -1152,32 +1157,32 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindPrefs();
 
   // inbox
-  on("inboxAdd","click", inboxAdd);
-  on("inboxClear","click", inboxClear);
+  $("inboxAdd")?.addEventListener("click", inboxAdd);
+  $("inboxClear")?.addEventListener("click", inboxClear);
 
   // actions
-  on("rouletteBtn","click", spinRoulette);
-  on("bombBtn","click", degommerOne);
-  on("undoBtn","click", doUndo);
-  on("taskInfoBtn","click", toggleTaskMeta);
+  $("rouletteBtn")?.addEventListener("click", spinRoulette);
+  $("bombBtn")?.addEventListener("click", degommerOne);
+  $("undoBtn")?.addEventListener("click", doUndo);
+  $("taskInfoBtn")?.addEventListener("click", toggleTaskMeta);
 
   // filters
-  on("catFilter","change", renderTasksPanel);
-  on("viewFilter","change", renderTasksPanel);
+  $("catFilter")?.addEventListener("change", renderTasksPanel);
+  $("viewFilter")?.addEventListener("change", renderTasksPanel);
 
   // export
-  on("exportBtn","click", ()=>copyText(JSON.stringify(state, null, 2)));
-  on("wipeBtn","click", ()=>{
+  $("exportBtn")?.addEventListener("click", ()=>copyText(JSON.stringify(state, null, 2)));
+  $("wipeBtn")?.addEventListener("click", ()=>{
     if(!confirm("Reset total ? (tout effacer)")) return;
     localStorage.removeItem(LS_KEY);
-    state = structuredClone(defaultState);
+    state = safeClone(defaultState);
     saveState();
     renderAll();
     status("Reset complet. Le monde repart à zéro.");
   });
 
   // kiff panel gauche
-  on("kiffAdd","click", ()=>{
+  $("kiffAdd")?.addEventListener("click", ()=>{
     const v = ($("kiffNew")?.value||"").trim();
     if(!v) return;
     pushUndo("kiffAdd");
@@ -1192,47 +1197,47 @@ document.addEventListener("DOMContentLoaded", ()=>{
   if(!state.pomodoro.phase) state.pomodoro.phase = "work";
   resetPhase();
 
-  on("pomoTime","click", ()=>{
+  $("pomoTime")?.addEventListener("click", ()=>{
     if(remainingMs <= 0) resetPhase();
     togglePomo();
   });
-  on("pomoEdit","click", (e)=>{
+  $("pomoEdit")?.addEventListener("click", (e)=>{
     e.preventDefault();
     e.stopPropagation();
     openPomoModal();
   });
 
   // modal events
-  on("modalBack","click", ()=>{
+  $("modalBack")?.addEventListener("click", ()=>{
     if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
     if($("overlayModal") && !$("overlayModal").hidden) closeOverlay();
     closeModalBackIfNone();
   });
-  on("modalClose","click", closePomoModal);
-  on("pomoApply","click", applyPomoSettings);
-  on("pomoReset","click", ()=>{
+  $("modalClose")?.addEventListener("click", closePomoModal);
+  $("pomoApply")?.addEventListener("click", applyPomoSettings);
+  $("pomoReset")?.addEventListener("click", ()=>{
     pausePomo();
     resetPhase();
     status("Timer reset.");
   });
 
   // overlay central
-  on("overlayClose","click", closeOverlay);
-  on("openNotes","click", ()=>openOverlay("notes"));
-  on("openTyphonse","click", ()=>openOverlay("typhonse"));
-  on("openKiffance","click", ()=>openOverlay("kiffance"));
-  on("openStats","click", ()=>openOverlay("stats"));
+  $("overlayClose")?.addEventListener("click", closeOverlay);
+  $("openNotes")?.addEventListener("click", ()=>openOverlay("notes"));
+  $("openTyphonse")?.addEventListener("click", ()=>openOverlay("typhonse"));
+  $("openKiffance")?.addEventListener("click", ()=>openOverlay("kiffance"));
+  $("openStats")?.addEventListener("click", ()=>openOverlay("stats"));
 
   // notes autosave
-  on("notesArea","input", scheduleNotesSave);
-  on("remindersArea","input", scheduleNotesSave);
+  $("notesArea")?.addEventListener("input", scheduleNotesSave);
+  $("remindersArea")?.addEventListener("input", scheduleNotesSave);
 
   // typhonse
-  on("typhonseAdd","click", addTyphonse);
-  on("typhonseInput","keydown",(e)=>{
+  $("typhonseAdd")?.addEventListener("click", addTyphonse);
+  $("typhonseInput")?.addEventListener("keydown",(e)=>{
     if(e.key==="Enter"){ e.preventDefault(); addTyphonse(); }
   });
-  on("typhonseClearDone","click", ()=>{
+  $("typhonseClearDone")?.addEventListener("click", ()=>{
     ensureNotes();
     state.notes.typhonse = state.notes.typhonse.filter(x=>!x.done);
     saveState();
@@ -1241,11 +1246,11 @@ document.addEventListener("DOMContentLoaded", ()=>{
   });
 
   // kiff overlay
-  on("kiffOverlayAdd","click", addKiffOverlay);
-  on("kiffOverlayInput","keydown",(e)=>{
+  $("kiffOverlayAdd")?.addEventListener("click", addKiffOverlay);
+  $("kiffOverlayInput")?.addEventListener("keydown",(e)=>{
     if(e.key==="Enter"){ e.preventDefault(); addKiffOverlay(); }
   });
-  on("kiffRoll","click", ()=>{
+  $("kiffRoll")?.addEventListener("click", ()=>{
     if(!state.kiffances || state.kiffances.length===0) return status("Aucune kiffance à tirer.");
     const k = state.kiffances[Math.floor(Math.random()*state.kiffances.length)];
     status("🎁 Kiffance : " + k);
@@ -1258,7 +1263,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     if($("overlayModal") && !$("overlayModal").hidden) closeOverlay();
   });
 
-  // responsive repaint
+  // reflow responsive
   window.addEventListener("resize", ()=>applyTheme());
 
   renderAll();
