@@ -692,3 +692,23 @@ body::after{
   opacity:.55;
   text-decoration: line-through;
 }
+/* ✅ Titre responsive : ne dépasse jamais l'écran */
+#appTitle{
+  max-width: 100%;
+  overflow: hidden;          /* évite de “déborder visuellement” */
+  text-overflow: clip;
+  line-height: 0.95;
+  letter-spacing: clamp(.01em, 1vw, .06em); /* ✅ réduit sur mobile */
+  font-size: clamp(52px, 14vw, 132px);      /* ✅ plus agressif sur mobile */
+}
+
+/* ✅ Sur ultra petits écrans, on serre un peu plus */
+@media (max-width: 420px){
+  #appTitle{
+    font-size: clamp(44px, 13.5vw, 92px);
+    letter-spacing: .02em;
+  }
+}
+
+/* ✅ Barrière anti-scroll horizontal globale (au cas où) */
+html, body{ max-width: 100%; overflow-x: hidden; }
