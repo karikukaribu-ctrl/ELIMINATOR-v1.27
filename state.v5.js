@@ -142,7 +142,12 @@ const defaultState = {
     autoStart: "auto",
     phase: "work"
   }
-};
+   
+};notes:{
+    text:"",
+    reminders:"",
+    typhonse:[],   // {id,text,done}
+  },
 
 function deepAssign(t,s){
   for(const k in s){
@@ -773,15 +778,15 @@ function tick(){
 
 /* ---------- Modal Pomodoro ---------- */
 function openModal(){
-  $("modalBack").hidden = false;
+  openModalBack();
   $("pomoModal").hidden = false;
   $("pomoMinutes").value = String(state.pomodoro.workMin);
   $("breakMinutes").value = String(state.pomodoro.breakMin);
   $("autoStartSel").value = state.pomodoro.autoStart;
 }
 function closeModal(){
-  $("modalBack").hidden = true;
   $("pomoModal").hidden = true;
+  closeModalBackIfNone();
 }
 
 function applyPomoSettings(){
@@ -798,9 +803,224 @@ function applyPomoSettings(){
   saveState();
   resetPhase();
   status("Pomodoro réglé.");
-  closeModal();
+   
+  function openModalBack(){
+  $("modalBack").hidden = false;
+}
+function closeModalBackIfNone(){
+  const anyOpen = (!$("pomoModal").hidden) || (!$("overlayModal").hidden);
+  if(!anyOpen) $("modalBack").hidden = true;
 }
 
+function hideAllOverlayPages(){
+  ["notes","typhonse","kiffance","stats"].forEach(k=>{
+    const el = $(`overlay-${k}`);
+    if(el) el.hidden = true;
+  });
+}
+function openOverlay(kind){
+  hideAllOverlayPages();
+  const page = $(`overlay-${kind}`);
+  if(!page) return;
+
+  $("overlayTitle").textContent =
+    kind === "notes" ? "Notes & rappels" :
+    kind === "typhonse" ? "Typhonse" :
+    kind === "kiffance" ? "Kiffance" :
+    "Stats";
+
+  page.hidden = false;
+
+  openModalBack();
+  $("overlayModal").hidden = false;
+
+  // hydrate contenu
+  if(kind==="notes"){
+    $("notesArea").value = state.notes?.text || "";
+    $("remindersArea").value = state.notes?.reminders || "";
+  }
+  if(kind==="typhonse"){
+    renderTyphonse();
+  }
+  if(kind==="kiffance"){
+    renderKiffOverlay();
+  }
+  if(kind==="stats"){
+    renderStatsOverlay();
+  }
+}
+
+function closeOverlay(){
+  $("overlayModal").hidden = true;
+  closeModalBackIfNone();
+}
+  closeModal();
+}
+function ensureNotes(){
+  if(!state.notes) state.notes = { text:"", reminders:"", typhonse:[] };
+  if(!Array.isArray(state.notes.typhonse)) state.notes.typhonse = [];
+}
+
+function renderTyphonse(){
+  ensureNotes();
+  const root = $("typhonseList");
+  root.innerHTML = "";
+
+  if(state.notes.typhonse.length === 0){
+    const d = document.createElement("div");
+    d.className = "muted small";
+    d.textContent = "Aucun item. Typhonse sommeille.";
+    root.appendChild(d);
+    return;
+  }
+
+  for(const item of state.notes.typhonse){
+    const row = document.createElement("div");
+    row.className = "cardRow";
+
+    const left = document.createElement("div");
+    left.className = "tyLeft";
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.className = "tyCheck";
+    cb.checked = !!item.done;
+    cb.onchange = ()=>{
+      item.done = cb.checked;
+      saveState();
+      renderTyphonse();
+    };
+
+    const txt = document.createElement("div");
+    txt.className = "tyText" + (item.done ? " done" : "");
+    txt.textContent = item.text;
+
+    left.appendChild(cb);
+    left.appendChild(txt);
+
+    const del = document.createElement("button");
+    del.className = "iconBtn";
+    del.title = "Supprimer";
+    del.textContent = "×";
+    del.onclick = ()=>{
+      state.notes.typhonse = state.notes.typhonse.filter(x=>x.id !== item.id);
+      saveState();
+      renderTyphonse();
+      status("Typhonse : item évaporé.");
+    };
+
+    const wrap = document.createElement("div");
+    wrap.className = "tyRow";
+    wrap.appendChild(left);
+
+    row.appendChild(wrap);
+    row.appendChild(del);
+
+    root.appendChild(row);
+  }
+}
+
+function addTyphonse(){
+  ensureNotes();
+  const v = ($("typhonseInput").value || "").trim();
+  if(!v) return;
+  state.notes.typhonse.unshift({ id: uid(), text: v, done:false });
+  $("typhonseInput").value = "";
+  saveState();
+  renderTyphonse();
+  status("Typhonse ajouté.");
+}
+
+let notesSaveTimer = null;
+function scheduleNotesSave(){
+  if(notesSaveTimer) clearTimeout(notesSaveTimer);
+  notesSaveTimer = setTimeout(()=>{
+    ensureNotes();
+    state.notes.text = $("notesArea").value || "";
+    state.notes.reminders = $("remindersArea").value || "";
+    saveState();
+    status("Notes sauvegardées.", 1800);
+  }, 350);
+} 
+function renderKiffOverlay(){
+  const root = $("kiffOverlayList");
+  root.innerHTML = "";
+
+  if(!state.kiffances || state.kiffances.length===0){
+    const d = document.createElement("div");
+    d.className = "muted small";
+    d.textContent = "Aucune kiffance. C’est illégalement sérieux.";
+    root.appendChild(d);
+    return;
+  }
+
+  state.kiffances.forEach((k, idx)=>{
+    const row = document.createElement("div");
+    row.className = "cardRow";
+
+    const left = document.createElement("div");
+    left.className = "cardLeft";
+
+    const title = document.createElement("div");
+    title.className = "cardTitle";
+    title.textContent = k;
+
+    const sub = document.createElement("div");
+    sub.className = "cardSub";
+    sub.textContent = "Kiffance";
+
+    left.appendChild(title);
+    left.appendChild(sub);
+
+    const btns = document.createElement("div");
+    btns.className = "cardBtns";
+
+    const del = document.createElement("button");
+    del.className = "iconBtn";
+    del.title = "Supprimer";
+    del.textContent = "×";
+    del.onclick = ()=>{
+      state.kiffances.splice(idx,1);
+      saveState();
+      renderKiffOverlay();
+      status("Kiffance supprimée. Cruel destin.");
+    };
+
+    btns.appendChild(del);
+    row.appendChild(left);
+    row.appendChild(btns);
+    root.appendChild(row);
+  });
+}
+
+function addKiffOverlay(){
+  const v = ($("kiffOverlayInput").value || "").trim();
+  if(!v) return;
+  state.kiffances.unshift(v);
+  $("kiffOverlayInput").value = "";
+  saveState();
+  renderKiffOverlay();
+  status("Kiffance ajoutée.");
+} 
+function renderStatsOverlay(){
+  const act = activeTasks().length;
+  const done = doneTasks().length;
+  const pct = computeRemainingPct();
+
+  $("statsActiveBig").textContent = String(act);
+  $("statsDoneBig").textContent = String(done);
+  $("statsPctBig").textContent = `${pct}%`;
+
+  const dump = {
+    active: act,
+    done,
+    remainingPct: pct,
+    baseline: state.baseline?.totalTasks ?? 0,
+    season: state.ui.season,
+    mode: state.ui.mode
+  };
+  $("statsDump").value = JSON.stringify(dump, null, 2);
+}
 /* ---------- Topbar ---------- */
 function bindTopbar(){
   $("modeToggle").addEventListener("click", ()=>{
@@ -980,7 +1200,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
   };
 
   // modal
-  $("modalBack").onclick = closeModal;
+  $("modalBack").onclick = ()=>{
+    if(!$("pomoModal").hidden) closeModal();
+    if(!$("overlayModal").hidden) closeOverlay();
+  closeModalBackIfNone();
   $("modalClose").onclick = closeModal;
   $("pomoApply").onclick = applyPomoSettings;
   $("pomoReset").onclick = ()=>{
@@ -992,6 +1215,45 @@ document.addEventListener("DOMContentLoaded", ()=>{
   window.addEventListener("keydown",(e)=>{
     if(e.key === "Escape" && !$("pomoModal").hidden) closeModal();
   });
+    // Overlay central
+  $("overlayClose").onclick = closeOverlay;
 
+  $("openNotes").onclick = ()=>openOverlay("notes");
+  $("openTyphonse").onclick = ()=>openOverlay("typhonse");
+  $("openKiffance").onclick = ()=>openOverlay("kiffance");
+  $("openStats").onclick = ()=>openOverlay("stats");
+
+  // Notes autosave
+  $("notesArea").addEventListener("input", scheduleNotesSave);
+  $("remindersArea").addEventListener("input", scheduleNotesSave);
+
+  // Typhonse
+  $("typhonseAdd").onclick = addTyphonse;
+  $("typhonseInput").addEventListener("keydown",(e)=>{
+    if(e.key==="Enter"){ e.preventDefault(); addTyphonse(); }
+  });
+  $("typhonseClearDone").onclick = ()=>{
+    ensureNotes();
+    state.notes.typhonse = state.notes.typhonse.filter(x=>!x.done);
+    saveState();
+    renderTyphonse();
+    status("Typhonse : cochés retirés.");
+  };
+
+  // Kiffance overlay
+  $("kiffOverlayAdd").onclick = addKiffOverlay;
+  $("kiffOverlayInput").addEventListener("keydown",(e)=>{
+    if(e.key==="Enter"){ e.preventDefault(); addKiffOverlay(); }
+  });
+  $("kiffRoll").onclick = ()=>{
+    if(!state.kiffances || state.kiffances.length===0) return status("Aucune kiffance à tirer.");
+    const k = state.kiffances[Math.floor(Math.random()*state.kiffances.length)];
+    status("🎁 Kiffance : " + k);
+  };
+
+  // ESC ferme overlay aussi
+  window.addEventListener("keydown",(e)=>{
+    if(e.key==="Escape" && !$("overlayModal").hidden) closeOverlay();
+  });
   renderAll();
 });
