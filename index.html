@@ -260,7 +260,89 @@ Lire article - 2"></textarea>
       <div class="modalTitle">Paramètres Pomodoro</div>
       <button id="modalClose" class="modalClose" type="button" aria-label="Fermer">×</button>
     </div>
+        <!-- OVERLAY CENTRAL (Notes / Typhonse / Stats / Kiffance) -->
+<div id="overlayModal" class="modal modalOverlay" hidden role="dialog" aria-modal="true" aria-label="Fenêtre centrale">
+  <div class="modalHead">
+    <div class="modalTitle" id="overlayTitle">Fenêtre</div>
+    <button id="overlayClose" class="modalClose" type="button" aria-label="Fermer">×</button>
+  </div>
 
+  <div class="modalBody modalBodyScroll">
+    <!-- NOTES -->
+    <section id="overlay-notes" class="overlayPage" hidden>
+      <label class="muted small">Notes (auto-sauvegarde)</label>
+      <textarea id="notesArea" class="area" rows="10" placeholder="Écris ici. Le chaos n’a pas de droits d’édition."></textarea>
+
+      <div class="divider"></div>
+
+      <label class="muted small">Rappels / aide-mémoire</label>
+      <textarea id="remindersArea" class="area" rows="6" placeholder="• Demain : ...
+• À ne pas oublier : ..."></textarea>
+    </section>
+
+    <!-- TYPHONSE -->
+    <section id="overlay-typhonse" class="overlayPage" hidden>
+      <p class="muted small">Typhonse = liste rapide (un item par ligne). Auto-sauvegarde.</p>
+
+      <div class="row wrap">
+        <input id="typhonseInput" class="input" placeholder="Ajouter un item Typhonse…" />
+        <button id="typhonseAdd" class="btn primary" type="button">Ajouter</button>
+      </div>
+
+      <div class="list" id="typhonseList"></div>
+
+      <div class="divider"></div>
+
+      <button id="typhonseClearDone" class="btn ghost" type="button">Retirer les cochés</button>
+    </section>
+
+    <!-- KIFFANCE -->
+    <section id="overlay-kiffance" class="overlayPage" hidden>
+      <p class="muted small">Banque de kiffances (lecture + édition rapide).</p>
+
+      <div class="row wrap">
+        <input id="kiffOverlayInput" class="input" placeholder="Ajouter une kiffance…" />
+        <button id="kiffOverlayAdd" class="btn primary" type="button">Ajouter</button>
+      </div>
+
+      <div class="list" id="kiffOverlayList"></div>
+
+      <div class="divider"></div>
+      <button id="kiffRoll" class="btn ghost" type="button">Tirer une kiffance</button>
+    </section>
+
+    <!-- STATS -->
+    <section id="overlay-stats" class="overlayPage" hidden>
+      <p class="muted small">Stats (module léger pour l’instant). On enrichit au module suivant.</p>
+
+      <div class="grid2">
+        <div class="cardRow">
+          <div class="cardLeft">
+            <div class="cardTitle" id="statsActiveBig">0</div>
+            <div class="cardSub">Tâches actives</div>
+          </div>
+        </div>
+
+        <div class="cardRow">
+          <div class="cardLeft">
+            <div class="cardTitle" id="statsDoneBig">0</div>
+            <div class="cardSub">Tâches finies</div>
+          </div>
+        </div>
+
+        <div class="cardRow span2">
+          <div class="cardLeft">
+            <div class="cardTitle" id="statsPctBig">100%</div>
+            <div class="cardSub">Progression restante (barre)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <textarea id="statsDump" class="area" rows="8" readonly></textarea>
+    </section>
+  </div>
+</div>
     <div class="modalBody">
       <div class="grid2">
         <div>
