@@ -9,7 +9,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Zen+Maru+Gothic:wght@400;500;700&family=Yomogi&family=Kiwi+Maru:wght@400;500;700&family=Zen+Kurenaido&display=swap" rel="stylesheet">
 
-  <!-- ✅ versionnée pour casser le cache -->
   <link rel="stylesheet" href="styles.v5.css">
 </head>
 
@@ -38,6 +37,7 @@
 
   <div id="panelBack" aria-hidden="true"></div>
 
+  <!-- LEFT PANEL -->
   <aside id="leftPanel" class="panel panel-left" aria-label="Panneau gauche">
     <div class="panel-top">
       <div id="leftResizer" class="panelResizer left" title="Redimensionner"></div>
@@ -66,8 +66,8 @@ Appeler X 1
 Lire article - 2"></textarea>
 
         <div class="row">
-          <button id="inboxAdd" class="btn primary">Ajouter</button>
-          <button id="inboxClear" class="btn ghost">Effacer champ</button>
+          <button id="inboxAdd" class="btn primary" type="button">Ajouter</button>
+          <button id="inboxClear" class="btn ghost" type="button">Effacer champ</button>
         </div>
 
         <div class="divider"></div>
@@ -98,7 +98,7 @@ Lire article - 2"></textarea>
         <p class="muted small">Récompenses surprises (base éditable).</p>
         <div class="row wrap">
           <input id="kiffNew" class="input" placeholder="Ajouter une kiffance…" />
-          <button id="kiffAdd" class="btn primary">+</button>
+          <button id="kiffAdd" class="btn primary" type="button">+</button>
         </div>
         <div class="list" id="kiffList"></div>
       </section>
@@ -154,22 +154,23 @@ Lire article - 2"></textarea>
         </div>
 
         <div class="row">
-          <button id="prefsApply" class="btn primary">Appliquer</button>
-          <button id="prefsReset" class="btn ghost">Reset prefs</button>
+          <button id="prefsApply" class="btn primary" type="button">Appliquer</button>
+          <button id="prefsReset" class="btn ghost" type="button">Reset prefs</button>
         </div>
       </section>
 
       <section class="tabPage" id="left-export">
         <p class="muted small">Export JSON simple.</p>
         <div class="row wrap">
-          <button id="exportBtn" class="btn ghost">Copier JSON</button>
-          <button id="wipeBtn" class="btn danger">Reset total</button>
+          <button id="exportBtn" class="btn ghost" type="button">Copier JSON</button>
+          <button id="wipeBtn" class="btn danger" type="button">Reset total</button>
         </div>
         <textarea id="exportOut" class="area" rows="8" readonly></textarea>
       </section>
     </div>
   </aside>
 
+  <!-- HUB -->
   <main id="hub">
     <div id="hub-inner">
       <h1 id="appTitle">ELIMINATOR</h1>
@@ -228,6 +229,7 @@ Lire article - 2"></textarea>
     </div>
   </main>
 
+  <!-- RIGHT PANEL -->
   <aside id="rightPanel" class="panel panel-right" aria-label="Panneau droit">
     <div class="panel-top">
       <div class="panel-title">Panneau</div>
@@ -254,12 +256,10 @@ Lire article - 2"></textarea>
     </div>
   </aside>
 
-  <!-- Backdrop modales (pomo + overlay central) -->
-
-         <!-- Modals -->
+  <!-- BACKDROP -->
   <div id="modalBack" class="modalBack" hidden></div>
 
-  <!-- ✅ Pomodoro modal -->
+  <!-- POMODORO MODAL -->
   <div id="pomoModal" class="modal" hidden role="dialog" aria-modal="true" aria-label="Paramètres pomodoro">
     <div class="modalHead">
       <div class="modalTitle">Paramètres Pomodoro</div>
@@ -292,7 +292,7 @@ Lire article - 2"></textarea>
     </div>
   </div>
 
-  <!-- ✅ Overlay central : sibling (PAS enfant de pomoModal) -->
+  <!-- OVERLAY CENTRAL -->
   <div id="overlayModal" class="modal modalOverlay" hidden role="dialog" aria-modal="true" aria-label="Fenêtre centrale">
     <div class="modalHead">
       <div class="modalTitle" id="overlayTitle">Fenêtre</div>
@@ -300,7 +300,6 @@ Lire article - 2"></textarea>
     </div>
 
     <div class="modalBody modalBodyScroll">
-      <!-- NOTES -->
       <section id="overlay-notes" class="overlayPage" hidden>
         <label class="muted small">Notes (auto-sauvegarde)</label>
         <textarea id="notesArea" class="area" rows="10" placeholder="Écris ici. Le chaos n’a pas de droits d’édition."></textarea>
@@ -308,45 +307,33 @@ Lire article - 2"></textarea>
         <div class="divider"></div>
 
         <label class="muted small">Rappels / aide-mémoire</label>
-        <textarea id="remindersArea" class="area" rows="6" placeholder="• Demain : ...
-• À ne pas oublier : ..."></textarea>
+        <textarea id="remindersArea" class="area" rows="6" placeholder="• Demain : ...&#10;• À ne pas oublier : ..."></textarea>
       </section>
 
-      <!-- TYPHONSE -->
       <section id="overlay-typhonse" class="overlayPage" hidden>
         <p class="muted small">Typhonse = liste rapide (un item par ligne). Auto-sauvegarde.</p>
-
         <div class="row wrap">
           <input id="typhonseInput" class="input" placeholder="Ajouter un item Typhonse…" />
           <button id="typhonseAdd" class="btn primary" type="button">Ajouter</button>
         </div>
-
         <div class="list" id="typhonseList"></div>
-
         <div class="divider"></div>
-
         <button id="typhonseClearDone" class="btn ghost" type="button">Retirer les cochés</button>
       </section>
 
-      <!-- KIFFANCE -->
       <section id="overlay-kiffance" class="overlayPage" hidden>
         <p class="muted small">Banque de kiffances (lecture + édition rapide).</p>
-
         <div class="row wrap">
           <input id="kiffOverlayInput" class="input" placeholder="Ajouter une kiffance…" />
           <button id="kiffOverlayAdd" class="btn primary" type="button">Ajouter</button>
         </div>
-
         <div class="list" id="kiffOverlayList"></div>
-
         <div class="divider"></div>
         <button id="kiffRoll" class="btn ghost" type="button">Tirer une kiffance</button>
       </section>
 
-      <!-- STATS -->
       <section id="overlay-stats" class="overlayPage" hidden>
-        <p class="muted small">Stats (module léger pour l’instant). On enrichit au module suivant.</p>
-
+        <p class="muted small">Stats (module léger pour l’instant).</p>
         <div class="grid2">
           <div class="cardRow">
             <div class="cardLeft">
@@ -354,32 +341,25 @@ Lire article - 2"></textarea>
               <div class="cardSub">Tâches actives</div>
             </div>
           </div>
-
           <div class="cardRow">
             <div class="cardLeft">
               <div class="cardTitle" id="statsDoneBig">0</div>
               <div class="cardSub">Tâches finies</div>
             </div>
           </div>
-
           <div class="cardRow span2">
             <div class="cardLeft">
               <div class="cardTitle" id="statsPctBig">100%</div>
-              <div class="cardSub">Progression restante (barre)</div>
+              <div class="cardSub">Progression restante</div>
             </div>
           </div>
         </div>
-
         <div class="divider"></div>
         <textarea id="statsDump" class="area" rows="8" readonly></textarea>
       </section>
     </div>
   </div>
-  
 
-        
-
-  <!-- ✅ versionné pour casser le cache -->
   <script src="state.v5.js" defer></script>
 </body>
 </html>
