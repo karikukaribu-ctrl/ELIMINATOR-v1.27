@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Eliminator</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -66,8 +66,8 @@ Appeler X 1
 Lire article - 2"></textarea>
 
         <div class="row">
-          <button id="inboxAdd" class="btn primary" type="button">Ajouter</button>
-          <button id="inboxClear" class="btn ghost" type="button">Effacer champ</button>
+          <button id="inboxAdd" class="btn primary">Ajouter</button>
+          <button id="inboxClear" class="btn ghost">Effacer champ</button>
         </div>
 
         <div class="divider"></div>
@@ -256,10 +256,10 @@ Lire article - 2"></textarea>
     </div>
   </aside>
 
-  <!-- BACKDROP -->
+  <!-- BACKDROP MODALES -->
   <div id="modalBack" class="modalBack" hidden></div>
 
-  <!-- POMODORO MODAL -->
+  <!-- MODAL POMODORO -->
   <div id="pomoModal" class="modal" hidden role="dialog" aria-modal="true" aria-label="Paramètres pomodoro">
     <div class="modalHead">
       <div class="modalTitle">Paramètres Pomodoro</div>
@@ -307,33 +307,42 @@ Lire article - 2"></textarea>
         <div class="divider"></div>
 
         <label class="muted small">Rappels / aide-mémoire</label>
-        <textarea id="remindersArea" class="area" rows="6" placeholder="• Demain : ...&#10;• À ne pas oublier : ..."></textarea>
+        <textarea id="remindersArea" class="area" rows="6" placeholder="• Demain : ...
+• À ne pas oublier : ..."></textarea>
       </section>
 
       <section id="overlay-typhonse" class="overlayPage" hidden>
         <p class="muted small">Typhonse = liste rapide (un item par ligne). Auto-sauvegarde.</p>
+
         <div class="row wrap">
           <input id="typhonseInput" class="input" placeholder="Ajouter un item Typhonse…" />
           <button id="typhonseAdd" class="btn primary" type="button">Ajouter</button>
         </div>
+
         <div class="list" id="typhonseList"></div>
+
         <div class="divider"></div>
+
         <button id="typhonseClearDone" class="btn ghost" type="button">Retirer les cochés</button>
       </section>
 
       <section id="overlay-kiffance" class="overlayPage" hidden>
         <p class="muted small">Banque de kiffances (lecture + édition rapide).</p>
+
         <div class="row wrap">
           <input id="kiffOverlayInput" class="input" placeholder="Ajouter une kiffance…" />
           <button id="kiffOverlayAdd" class="btn primary" type="button">Ajouter</button>
         </div>
+
         <div class="list" id="kiffOverlayList"></div>
+
         <div class="divider"></div>
         <button id="kiffRoll" class="btn ghost" type="button">Tirer une kiffance</button>
       </section>
 
       <section id="overlay-stats" class="overlayPage" hidden>
         <p class="muted small">Stats (module léger pour l’instant).</p>
+
         <div class="grid2">
           <div class="cardRow">
             <div class="cardLeft">
@@ -341,19 +350,22 @@ Lire article - 2"></textarea>
               <div class="cardSub">Tâches actives</div>
             </div>
           </div>
+
           <div class="cardRow">
             <div class="cardLeft">
               <div class="cardTitle" id="statsDoneBig">0</div>
               <div class="cardSub">Tâches finies</div>
             </div>
           </div>
+
           <div class="cardRow span2">
             <div class="cardLeft">
               <div class="cardTitle" id="statsPctBig">100%</div>
-              <div class="cardSub">Progression restante</div>
+              <div class="cardSub">Progression restante (barre)</div>
             </div>
           </div>
         </div>
+
         <div class="divider"></div>
         <textarea id="statsDump" class="area" rows="8" readonly></textarea>
       </section>
