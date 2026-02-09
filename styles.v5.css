@@ -681,3 +681,24 @@ body::after{
 .modalBack{
   pointer-events: auto;
 }
+/* ✅ Mobile/portrait : missionTopRow respire, sans casser le style */
+@media (max-width: 520px){
+  .missionTopRow{
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .missionRight{
+    min-width: 0;
+    width: 100%;
+    align-items: flex-end;
+  }
+  .statusSpot{
+    max-width: 100%;
+  }
+}
+
+/* ✅ très petit écran : réduit le texte des pill sans empiler */
+@media (max-width: 420px){
+  .actionPill span{ display:none; } /* garde l’icône, ultra propre */
+  .actionPill{ max-width: 160px; }
+}
