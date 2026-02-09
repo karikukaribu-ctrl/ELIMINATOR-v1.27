@@ -809,6 +809,10 @@ function hideAllOverlayPages(){
 }
 function openOverlay(kind){
   ensureNotes();
+
+  // ✅ évite double-modale superposée
+  if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
+
   hideAllOverlayPages();
   const page = $(`overlay-${kind}`);
   if(!page) return;
@@ -830,6 +834,7 @@ function openOverlay(kind){
   if(kind==="kiffance") renderKiffOverlay();
   if(kind==="stats") renderStatsOverlay();
 }
+
 function closeOverlay(){
   $("overlayModal").hidden = true;
   closeModalBackIfNone();
