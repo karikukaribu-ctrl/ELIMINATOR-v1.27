@@ -630,3 +630,47 @@ body::after{
   color: var(--fg);
 }
 .modalBody{ padding: 12px; }
+/* ---------- Overlay central : plus grand mais même esthétique ---------- */
+.modalOverlay{
+  width: min(920px, 94vw);
+  max-height: 82vh;
+}
+
+.modalBodyScroll{
+  max-height: calc(82vh - 52px);
+  overflow: auto;
+}
+
+/* Pages internes */
+.overlayPage{
+  padding-bottom: 6px;
+}
+
+/* Typhonse : ligne compacte */
+.tyRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.tyLeft{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.tyCheck{
+  width: 18px;
+  height: 18px;
+  accent-color: rgba(211,138,92,.65);
+}
+.tyText{
+  font-weight: 900;
+  white-space: nowrap;
+  overflow:hidden;
+  text-overflow: ellipsis;
+}
+.tyText.done{
+  opacity:.55;
+  text-decoration: line-through;
+}
