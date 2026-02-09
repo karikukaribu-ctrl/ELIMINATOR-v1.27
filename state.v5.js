@@ -1,10 +1,7 @@
 /* ===========================
-   ELIMINATOR — state.v5.js (fix + responsive/touch)
-   ✅ AJOUTS "idée responsive" :
-   - raf-throttle sur resize/orientationchange/visualViewport
-   - --vh (mobile safe viewport) injecté
-   - resizer en Pointer Events (1 seul code pour souris/touch/stylus)
-   - structuredClone fallback (si vieux navigateur)
+   ELIMINATOR — state.v5.js (stable)
+   - DOM-safe (aucun null crash)
+   - topbar/prefs/panels/pomodoro/overlay/roulette OK
 =========================== */
 
 const $ = (id)=>document.getElementById(id);
@@ -13,11 +10,10 @@ const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
 const uid = ()=>Math.random().toString(36).slice(2,10)+"_"+Date.now().toString(36);
 const nowISO = ()=>new Date().toISOString();
 
-/* ✅ structuredClone fallback */
-const clone = (obj)=>{
-  if(typeof structuredClone === "function") return structuredClone(obj);
-  return JSON.parse(JSON.stringify(obj));
-};
+/* --- DOM-safe helpers (évite qu’un seul null tue tout) --- */
+function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
+function setVal(id, v){ const el=$(id); if(el) el.value = v; }
+function on(id, evt, fn){ const el=$(id); if(el) el.addEventListener(evt, fn); }
 
 const LS_KEY = "eliminator_step2_fix_v5";
 const SEASONS = ["printemps","ete","automne","hiver","noirblanc"];
@@ -36,7 +32,7 @@ const SUBLINES = [
 ];
 const pickSubline = ()=>SUBLINES[Math.floor(Math.random()*SUBLINES.length)];
 
-/* ----------- doodles (SVG repeat, légers) ----------- */
+/* ----------- doodles (SVG repeat) ----------- */
 function svgUrl(svg){
   const enc = encodeURIComponent(svg).replace(/'/g,"%27").replace(/"/g,"%22");
   return `url("data:image/svg+xml,${enc}")`;
@@ -106,23 +102,33 @@ const DOODLES = {
   `)
 };
 
-/* ---------- Thèmes ---------- */
-const THEMES = ({
+/* ---------- THEMES (tu peux remplacer par ton bloc complet si tu veux) ---------- */
+const THEMES = window.THEMES || ({
+  automne:{
+    clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", barEmpty:"rgba(211,138,92,.18)", barEdge:"rgba(255,255,255,.85)", accent:"rgba(211,138,92,.18)", accent2:"rgba(211,138,92,.36)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(211,138,92,.12)", decoB:"rgba(255,210,160,.12)" },
+    sombre:{ bg:"#2E3A33", fg:"#FFF3E6", muted:"#E3D3C4", barFill:"#E0A77D", barEmpty:"rgba(224,167,125,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(224,167,125,.12)", accent2:"rgba(224,167,125,.22)", panel:"rgba(62,82,70,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(62,82,70,.38)", glass2:"rgba(74,98,84,.24)", decoA:"rgba(224,167,125,.10)", decoB:"rgba(255,245,210,.08)" }
+  },
   printemps:{ clair:{ bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54", barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)", accent:"rgba(255,162,190,.14)", accent2:"rgba(124,207,168,.30)", panel:"rgba(255,255,255,.72)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)" },
              sombre:{ bg:"#2A3A3A", fg:"#F6F2EA", muted:"#DAD2C6", barFill:"#8FE3BC", barEmpty:"rgba(143,227,188,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,170,200,.10)", accent2:"rgba(143,227,188,.20)", panel:"rgba(54,86,82,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(56,86,82,.40)", glass2:"rgba(72,110,104,.24)", decoA:"rgba(255,170,200,.08)", decoB:"rgba(255,235,180,.06)" } },
-  ete:{       clair:{ bg:"#FFF6DF", fg:"#16120F", muted:"#6C5E52", barFill:"#F2B24B", barEmpty:"rgba(242,178,75,.16)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(90,190,200,.12)", accent2:"rgba(242,178,75,.28)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(242,178,75,.14)", decoB:"rgba(90,190,200,.10)" },
-             sombre:{ bg:"#263748", fg:"#F0FAFF", muted:"#D6E2EA", barFill:"#FFD07A", barEmpty:"rgba(255,208,122,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,208,122,.10)", accent2:"rgba(134,210,220,.18)", panel:"rgba(54,86,108,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,86,108,.38)", glass2:"rgba(72,110,136,.24)", decoA:"rgba(255,208,122,.08)", decoB:"rgba(134,210,220,.08)" } },
-  automne:{   clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", barEmpty:"rgba(211,138,92,.18)", barEdge:"rgba(255,255,255,.85)", accent:"rgba(211,138,92,.18)", accent2:"rgba(211,138,92,.36)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(211,138,92,.12)", decoB:"rgba(255,210,160,.12)" },
-             sombre:{ bg:"#2E3A33", fg:"#FFF3E6", muted:"#E3D3C4", barFill:"#E0A77D", barEmpty:"rgba(224,167,125,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(224,167,125,.12)", accent2:"rgba(224,167,125,.22)", panel:"rgba(62,82,70,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(62,82,70,.38)", glass2:"rgba(74,98,84,.24)", decoA:"rgba(224,167,125,.10)", decoB:"rgba(255,245,210,.08)" } },
-  hiver:{     clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", barEmpty:"rgba(120,160,200,.18)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(120,160,200,.16)", accent2:"rgba(120,160,200,.30)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(120,160,200,.12)", decoB:"rgba(220,240,255,.14)" },
-             sombre:{ bg:"#273244", fg:"#F0FBFF", muted:"#D0DFE5", barFill:"#9DB8D5", barEmpty:"rgba(157,184,213,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(157,184,213,.12)", accent2:"rgba(157,184,213,.22)", panel:"rgba(54,74,98,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,74,98,.38)", glass2:"rgba(66,92,120,.24)", decoA:"rgba(157,184,213,.10)", decoB:"rgba(242,253,255,.08)" } },
+  ete:{ clair:{ bg:"#FFF6DF", fg:"#16120F", muted:"#6C5E52", barFill:"#F2B24B", barEmpty:"rgba(242,178,75,.16)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(90,190,200,.12)", accent2:"rgba(242,178,75,.28)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(242,178,75,.14)", decoB:"rgba(90,190,200,.10)" },
+        sombre:{ bg:"#263748", fg:"#F0FAFF", muted:"#D6E2EA", barFill:"#FFD07A", barEmpty:"rgba(255,208,122,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,208,122,.10)", accent2:"rgba(134,210,220,.18)", panel:"rgba(54,86,108,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,86,108,.38)", glass2:"rgba(72,110,136,.24)", decoA:"rgba(255,208,122,.08)", decoB:"rgba(134,210,220,.08)" } },
+  hiver:{ clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", barEmpty:"rgba(120,160,200,.18)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(120,160,200,.16)", accent2:"rgba(120,160,200,.30)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(120,160,200,.12)", decoB:"rgba(220,240,255,.14)" },
+          sombre:{ bg:"#273244", fg:"#F0FBFF", muted:"#D0DFE5", barFill:"#9DB8D5", barEmpty:"rgba(157,184,213,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(157,184,213,.12)", accent2:"rgba(157,184,213,.22)", panel:"rgba(54,74,98,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,74,98,.38)", glass2:"rgba(66,92,120,.24)", decoA:"rgba(157,184,213,.10)", decoB:"rgba(242,253,255,.08)" } },
   noirblanc:{ clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#4A4A4A", barEmpty:"rgba(0,0,0,.08)", barEdge:"rgba(255,255,255,.82)", accent:"rgba(0,0,0,.06)", accent2:"rgba(0,0,0,.12)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(0,0,0,.05)", decoB:"rgba(0,0,0,.03)" },
              sombre:{ bg:"#2B2F38", fg:"#F4F4F4", muted:"#D5D5D8", barFill:"#BEBEBE", barEmpty:"rgba(255,255,255,.10)", barEdge:"rgba(255,255,255,.18)", accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.14)", panel:"rgba(58,64,78,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(58,64,78,.40)", glass2:"rgba(72,80,98,.26)", decoA:"rgba(255,255,255,.06)", decoB:"rgba(255,255,255,.04)" } }
 });
 
 /* ---------- State ---------- */
 const defaultState = {
-  ui:{ mode:"clair", season:"automne", font:"yomogi", baseSize:16, leftW:360, rightW:420, progressStyle:"float" },
+  ui:{
+    mode:"clair",
+    season:"automne",
+    font:"yomogi",
+    baseSize:16,
+    leftW:360,
+    rightW:420,
+    progressStyle:"float"
+  },
   baseline:{ totalTasks: 0 },
   tasks:[],
   currentTaskId:null,
@@ -132,7 +138,12 @@ const defaultState = {
     "Range 10 objets comme un ninja du tri.",
     "Bois une gorgée d’eau : potion de clarté mentale."
   ],
-  pomodoro:{ workMin: 25, breakMin: 5, autoStart: "auto", phase: "work" },
+  pomodoro:{
+    workMin: 25,
+    breakMin: 5,
+    autoStart: "auto",
+    phase: "work"
+  },
   notes:{ text:"", reminders:"", typhonse:[] }
 };
 
@@ -145,19 +156,18 @@ function deepAssign(t,s){
 function loadState(){
   try{
     const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return clone(defaultState);
+    if(!raw) return structuredClone(defaultState);
     const parsed = JSON.parse(raw);
-    const merged = clone(defaultState);
+    const merged = structuredClone(defaultState);
     deepAssign(merged, parsed);
     return merged;
   }catch(_){
-    return clone(defaultState);
+    return structuredClone(defaultState);
   }
 }
 let state = loadState();
 function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(_){} }
 
-/* ---------- helpers notes ---------- */
 function ensureNotes(){
   if(!state.notes) state.notes = { text:"", reminders:"", typhonse:[] };
   if(!Array.isArray(state.notes.typhonse)) state.notes.typhonse = [];
@@ -185,27 +195,27 @@ function applyTheme(){
   setVar("--bg", t.bg);
   setVar("--fg", t.fg);
   setVar("--muted", t.muted);
+
   setVar("--barFill", t.barFill);
   setVar("--barEmpty", t.barEmpty);
   setVar("--barEdge", t.barEdge);
+
   setVar("--accent", t.accent);
   setVar("--accent2", t.accent2);
+
   setVar("--panelBg", t.panel);
   setVar("--line", t.line);
+
   setVar("--glass", t.glass);
   setVar("--glass2", t.glass2);
+
   setVar("--decoA", t.decoA);
   setVar("--decoB", t.decoB);
 
   setVar("--baseSize", `${clamp(state.ui.baseSize, 14, 18)}px`);
 
-  // ✅ viewport mobile fiable (barre d’adresse iOS etc.)
-  const vh = (window.visualViewport?.height || window.innerHeight) * 0.01;
-  setVar("--vh", `${vh}px`);
-
-  // responsive panels : sur mobile on limite automatiquement
-  const w = window.visualViewport?.width || window.innerWidth;
-  const maxPanel = Math.max(320, Math.min(w - 28, 520));
+  // ✅ responsive panels : limite automatique sur mobile
+  const maxPanel = Math.max(320, Math.min(window.innerWidth - 28, 520));
   setVar("--leftW", `${clamp(state.ui.leftW, 320, maxPanel)}px`);
   setVar("--rightW", `${clamp(state.ui.rightW, 320, maxPanel)}px`);
 
@@ -221,8 +231,8 @@ function applyTheme(){
   setVar("--doodle", doodle);
   setVar("--doodleOpacity", (mode==="sombre") ? ".16" : ".22");
 
-  document.body.setAttribute("data-font", state.ui.font);
-  document.body.setAttribute("data-mode", state.ui.mode);
+  document.body?.setAttribute("data-font", state.ui.font);
+  document.body?.setAttribute("data-mode", state.ui.mode);
 
   const mt = $("modeToggle");
   const sc = $("seasonCycle");
@@ -231,16 +241,6 @@ function applyTheme(){
     mt.setAttribute("aria-pressed", state.ui.mode === "sombre" ? "true" : "false");
   }
   if(sc) sc.textContent = seasonLabel(state.ui.season);
-}
-
-/* ✅ raf-throttle : évite applyTheme 80 fois/sec sur mobile */
-let _rafResize = 0;
-function scheduleApplyTheme(){
-  if(_rafResize) return;
-  _rafResize = requestAnimationFrame(()=>{
-    _rafResize = 0;
-    applyTheme();
-  });
 }
 
 /* ---------- Panels ---------- */
@@ -262,44 +262,36 @@ function closePanels(){
   document.body.style.overflow = "";
 }
 
-/* ---------- Resizers (✅ Pointer Events) ---------- */
+/* ---------- Resizers ---------- */
 function initResizer(handleId, which){
   const h = $(handleId);
   if(!h) return;
+  let dragging=false, sx=0, sw=0;
 
-  let dragging = false;
-  let sx = 0, sw = 0;
-
-  const down = (x)=>{
-    dragging = true;
-    sx = x;
+  const down=(x)=>{
+    dragging=true; sx=x;
     sw = which==="left" ? state.ui.leftW : state.ui.rightW;
   };
-
-  const move = (x)=>{
+  const move=(x)=>{
     if(!dragging) return;
     const dx = x - sx;
     if(which==="left") state.ui.leftW = clamp(sw + dx, 320, 980);
     else state.ui.rightW = clamp(sw - dx, 320, 980);
     applyTheme();
   };
-
-  const up = ()=>{
+  const up=()=>{
     if(!dragging) return;
-    dragging = false;
+    dragging=false;
     saveState();
   };
 
-  // ✅ un seul chemin : souris/touch/stylus
-  h.addEventListener("pointerdown", (e)=>{
-    e.preventDefault();
-    h.setPointerCapture?.(e.pointerId);
-    down(e.clientX);
-  });
+  h.addEventListener("mousedown",(e)=>{ e.preventDefault(); down(e.clientX); });
+  window.addEventListener("mousemove",(e)=>move(e.clientX));
+  window.addEventListener("mouseup", up);
 
-  window.addEventListener("pointermove", (e)=>move(e.clientX));
-  window.addEventListener("pointerup", up);
-  window.addEventListener("pointercancel", up);
+  h.addEventListener("touchstart",(e)=>{ e.preventDefault(); down(e.touches[0].clientX); }, {passive:false});
+  window.addEventListener("touchmove",(e)=>move(e.touches[0].clientX), {passive:true});
+  window.addEventListener("touchend", up);
 }
 
 /* ---------- Tabs ---------- */
@@ -393,7 +385,7 @@ function ensureCurrentTask(){
   if(!cur || cur.done) state.currentTaskId = act[0].id;
 }
 
-/* ---------- Progress = reste% ---------- */
+/* ---------- Progress ---------- */
 function computeRemainingPct(){
   ensureBaseline();
   const base = state.baseline.totalTasks || 0;
@@ -413,7 +405,7 @@ function renderProgress(){
 
 /* ---------- Undo ---------- */
 function pushUndo(label){
-  state.undo.unshift({ label, at: Date.now(), payload: clone(state) });
+  state.undo.unshift({ label, at: Date.now(), payload: structuredClone(state) });
   state.undo = state.undo.slice(0, 25);
   saveState();
 }
@@ -432,27 +424,26 @@ function renderHub(){
   const done = doneTasks();
   const base = state.baseline.totalTasks || 0;
 
-  if($("statActive")) $("statActive").textContent = String(act.length);
-  if($("statDone")) $("statDone").textContent = String(done.length);
+  setText("statActive", String(act.length));
+  setText("statDone", String(done.length));
 
   const ml = $("missionLineLeft");
   if(ml) ml.textContent = `Tâches en cours (${done.length} finies · ${act.length}/${base || act.length || 0})`;
 
   const cur = getTask(state.currentTaskId);
   if(!cur){
-    $("taskTitle").textContent = "Aucune tâche sélectionnée";
-    $("metaCat").textContent = "—";
-    $("metaEt").textContent = "—";
+    setText("taskTitle", "Aucune tâche sélectionnée");
+    setText("metaCat","—");
+    setText("metaEt","—");
   }else{
-    $("taskTitle").textContent = cur.title;
-    $("metaCat").textContent = cur.cat || "Inbox";
-    $("metaEt").textContent = `${cur.etorionsLeft}/${cur.etorionsTotal}`;
+    setText("taskTitle", cur.title);
+    setText("metaCat", cur.cat || "Inbox");
+    setText("metaEt", `${cur.etorionsLeft}/${cur.etorionsTotal}`);
   }
 }
 function toggleTaskMeta(){
   const m = $("taskMetaDetails");
-  if(!m) return;
-  m.hidden = !m.hidden;
+  if(m) m.hidden = !m.hidden;
 }
 
 /* ---------- Actions ---------- */
@@ -463,6 +454,18 @@ function selectTask(id){
   saveState();
   renderHub();
   renderTasksPanel();
+}
+
+function completeTask(id){
+  const t = getTask(id);
+  if(!t || t.done) return;
+  pushUndo("complete");
+  t.done = true;
+  t.doneAt = nowISO();
+  ensureCurrentTask();
+  saveState();
+  renderAll();
+  status("GLORIEUX. Une menace de moins.");
 }
 
 function degommerOne(){
@@ -512,7 +515,6 @@ function spinRoulette(){
   if(!wheel) return status("Roulette introuvable (bug DOM).");
 
   spinning = true;
-
   const turns = 4 + Math.random()*3;
   const extraDeg = Math.random()*360;
   const start = performance.now();
@@ -569,6 +571,7 @@ function renderTasksPanel(){
   let list = state.tasks.slice();
   if(view==="active") list = list.filter(t=>!t.done);
   if(view==="done") list = list.filter(t=>t.done);
+  if(view==="all") list = list;
   if(cat && cat!=="Toutes") list = list.filter(t=>(t.cat||"Inbox")===cat);
 
   list.sort((a,b)=>{
@@ -614,6 +617,28 @@ function renderTasksPanel(){
       selBtn.textContent = (t.id===state.currentTaskId) ? "★" : "▶";
       selBtn.onclick = ()=>selectTask(t.id);
       btns.appendChild(selBtn);
+
+      const doneBtn = document.createElement("button");
+      doneBtn.className = "iconBtn";
+      doneBtn.title = "Terminer";
+      doneBtn.textContent = "✓";
+      doneBtn.onclick = ()=>completeTask(t.id);
+      btns.appendChild(doneBtn);
+    }else{
+      const restore = document.createElement("button");
+      restore.className = "iconBtn";
+      restore.title = "Restaurer";
+      restore.textContent = "↩";
+      restore.onclick = ()=>{
+        pushUndo("restore");
+        t.done = false;
+        t.doneAt = null;
+        ensureCurrentTask();
+        saveState();
+        renderAll();
+        status("Ressuscitée. Pratique. Suspect. Efficace.");
+      };
+      btns.appendChild(restore);
     }
 
     const delBtn = document.createElement("button");
@@ -637,7 +662,7 @@ function renderTasksPanel(){
   }
 }
 
-/* ---------- Kiffance (panel gauche) ---------- */
+/* ---------- Kiffance ---------- */
 function renderKiffance(){
   const root = $("kiffList");
   if(!root) return;
@@ -701,7 +726,7 @@ async function copyText(text){
   catch(_){ status("Impossible de copier (clipboard)."); }
 }
 
-/* ---------- Pomodoro (inline) ---------- */
+/* ---------- Pomodoro ---------- */
 let pomoTimer = null;
 let pomoRunning = false;
 let remainingMs = 0;
@@ -724,7 +749,7 @@ function tick(){
   remainingMs -= 250;
   if(remainingMs <= 0){
     remainingMs = 0;
-    if($("pomoTime")) $("pomoTime").textContent = "00:00";
+    setText("pomoTime","00:00");
     pausePomo();
 
     state.pomodoro.phase = (state.pomodoro.phase === "work") ? "break" : "work";
@@ -737,22 +762,24 @@ function tick(){
     if(state.pomodoro.autoStart === "auto") startPomo();
     return;
   }
-  if($("pomoTime")) $("pomoTime").textContent = fmtMMSS(remainingMs);
+  setText("pomoTime", fmtMMSS(remainingMs));
 }
 function startPomo(){
   if(pomoRunning) return;
   pomoRunning = true;
+  $("pomoTime")?.classList.add("running");
   if(!pomoTimer) pomoTimer = setInterval(tick, 250);
 }
 function pausePomo(){
   pomoRunning = false;
+  $("pomoTime")?.classList.remove("running");
 }
 function togglePomo(){
   if(pomoRunning) pausePomo();
   else startPomo();
 }
 
-/* ---------- Backdrop modales ---------- */
+/* ---------- Modals backdrop ---------- */
 function openModalBack(){
   const mb = $("modalBack");
   if(mb) mb.hidden = false;
@@ -770,9 +797,9 @@ function openPomoModal(){
   const m = $("pomoModal");
   if(m) m.hidden = false;
 
-  $("pomoMinutes").value = String(state.pomodoro.workMin);
-  $("breakMinutes").value = String(state.pomodoro.breakMin);
-  $("autoStartSel").value = state.pomodoro.autoStart;
+  setVal("pomoMinutes", String(state.pomodoro.workMin));
+  setVal("breakMinutes", String(state.pomodoro.breakMin));
+  setVal("autoStartSel", state.pomodoro.autoStart);
 }
 function closePomoModal(){
   const m = $("pomoModal");
@@ -780,15 +807,15 @@ function closePomoModal(){
   closeModalBackIfNone();
 }
 function applyPomoSettings(){
-  const w = clamp(parseInt($("pomoMinutes").value,10) || 25, 5, 90);
-  const b = clamp(parseInt($("breakMinutes").value,10) || 5, 1, 30);
-  const a = $("autoStartSel").value === "manual" ? "manual" : "auto";
+  const w = clamp(parseInt($("pomoMinutes")?.value,10) || 25, 5, 90);
+  const b = clamp(parseInt($("breakMinutes")?.value,10) || 5, 1, 30);
+  const a = ($("autoStartSel")?.value === "manual") ? "manual" : "auto";
 
   state.pomodoro.workMin = w;
   state.pomodoro.breakMin = b;
   state.pomodoro.autoStart = a;
 
-  if($("pomoQuick")) $("pomoQuick").value = String(w);
+  setVal("pomoQuick", String(w));
 
   saveState();
   resetPhase();
@@ -805,25 +832,25 @@ function hideAllOverlayPages(){
 }
 function openOverlay(kind){
   ensureNotes();
-
   if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
 
   hideAllOverlayPages();
   const page = $(`overlay-${kind}`);
   if(!page) return;
 
-  $("overlayTitle").textContent =
+  setText("overlayTitle",
     kind === "notes" ? "Notes & rappels" :
     kind === "typhonse" ? "Typhonse" :
-    kind === "kiffance" ? "Kiffance" : "Stats";
+    kind === "kiffance" ? "Kiffance" : "Stats"
+  );
 
   page.hidden = false;
   openModalBack();
   $("overlayModal").hidden = false;
 
   if(kind==="notes"){
-    $("notesArea").value = state.notes.text || "";
-    $("remindersArea").value = state.notes.reminders || "";
+    setVal("notesArea", state.notes.text || "");
+    setVal("remindersArea", state.notes.reminders || "");
   }
   if(kind==="typhonse") renderTyphonse();
   if(kind==="kiffance") renderKiffOverlay();
@@ -840,8 +867,8 @@ function scheduleNotesSave(){
   if(notesSaveTimer) clearTimeout(notesSaveTimer);
   notesSaveTimer = setTimeout(()=>{
     ensureNotes();
-    state.notes.text = $("notesArea").value || "";
-    state.notes.reminders = $("remindersArea").value || "";
+    state.notes.text = $("notesArea")?.value || "";
+    state.notes.reminders = $("remindersArea")?.value || "";
     saveState();
     status("Notes sauvegardées.", 1600);
   }, 350);
@@ -903,7 +930,7 @@ function renderTyphonse(){
 }
 function addTyphonse(){
   ensureNotes();
-  const v = ($("typhonseInput").value || "").trim();
+  const v = ($("typhonseInput")?.value || "").trim();
   if(!v) return;
   state.notes.typhonse.unshift({ id: uid(), text: v, done:false });
   $("typhonseInput").value = "";
@@ -965,7 +992,7 @@ function renderKiffOverlay(){
   });
 }
 function addKiffOverlay(){
-  const v = ($("kiffOverlayInput").value || "").trim();
+  const v = ($("kiffOverlayInput")?.value || "").trim();
   if(!v) return;
   state.kiffances.unshift(v);
   $("kiffOverlayInput").value = "";
@@ -978,91 +1005,100 @@ function renderStatsOverlay(){
   const done = doneTasks().length;
   const pct = computeRemainingPct();
 
-  $("statsActiveBig").textContent = String(act);
-  $("statsDoneBig").textContent = String(done);
-  $("statsPctBig").textContent = `${pct}%`;
+  setText("statsActiveBig", String(act));
+  setText("statsDoneBig", String(done));
+  setText("statsPctBig", `${pct}%`);
 
-  $("statsDump").value = JSON.stringify({
+  setVal("statsDump", JSON.stringify({
     active: act,
     done,
     remainingPct: pct,
     baseline: state.baseline?.totalTasks ?? 0,
     season: state.ui.season,
     mode: state.ui.mode
-  }, null, 2);
-}
-
-/* ---------- Topbar ---------- */
-function bindTopbar(){
-  $("modeToggle")?.addEventListener("click", ()=>{
-    state.ui.mode = (state.ui.mode === "clair") ? "sombre" : "clair";
-    saveState();
-    renderAll();
-  });
-
-  $("seasonCycle")?.addEventListener("click", ()=>{
-    const idx = Math.max(0, SEASONS.indexOf(state.ui.season));
-    state.ui.season = SEASONS[(idx + 1) % SEASONS.length];
-    saveState();
-    renderAll();
-  });
-
-  $("focusBtn")?.addEventListener("click", ()=>{
-    document.body.classList.toggle("focusMode");
-    $("focusBtn")?.classList.toggle("active", document.body.classList.contains("focusMode"));
-  });
-
-  $("countersBtn")?.addEventListener("click", ()=>{
-    document.body.classList.toggle("hideCounters");
-    $("countersBtn")?.classList.toggle("active", !document.body.classList.contains("hideCounters"));
-  });
+  }, null, 2));
 }
 
 /* ---------- Prefs ---------- */
 function syncPrefsUI(){
-  $("modeSel").value = state.ui.mode;
-  $("seasonSel").value = state.ui.season;
-  $("fontSel").value = state.ui.font;
-  $("uiScale").value = String(clamp(state.ui.baseSize,14,18));
-  $("progressStyleSel").value = state.ui.progressStyle;
-  $("pomoQuick").value = String(clamp(state.pomodoro.workMin, 5, 90));
+  setVal("modeSel", state.ui.mode);
+  setVal("seasonSel", state.ui.season);
+  setVal("fontSel", state.ui.font);
+  setVal("uiScale", String(clamp(state.ui.baseSize,14,18)));
+  setVal("progressStyleSel", state.ui.progressStyle);
+  setVal("pomoQuick", String(clamp(state.pomodoro.workMin, 5, 90)));
 }
 function applyPrefsFromUI(){
-  state.ui.mode = $("modeSel").value;
-  state.ui.season = $("seasonSel").value;
-  state.ui.font = $("fontSel").value;
-  state.ui.baseSize = parseInt($("uiScale").value, 10) || 16;
-  state.ui.progressStyle = $("progressStyleSel").value;
+  const modeSel = $("modeSel");
+  const seasonSel = $("seasonSel");
+  const fontSel = $("fontSel");
+  const uiScale = $("uiScale");
+  const progressStyleSel = $("progressStyleSel");
+  const pomoQuick = $("pomoQuick");
 
-  const quick = clamp(parseInt($("pomoQuick").value,10) || state.pomodoro.workMin, 5, 90);
-  state.pomodoro.workMin = quick;
+  if(modeSel) state.ui.mode = modeSel.value;
+  if(seasonSel) state.ui.season = seasonSel.value;
+  if(fontSel) state.ui.font = fontSel.value;
+  if(uiScale) state.ui.baseSize = parseInt(uiScale.value, 10) || 16;
+  if(progressStyleSel) state.ui.progressStyle = progressStyleSel.value;
+
+  if(pomoQuick){
+    const quick = clamp(parseInt(pomoQuick.value,10) || state.pomodoro.workMin, 5, 90);
+    state.pomodoro.workMin = quick;
+  }
 
   saveState();
   renderAll();
 }
 function bindPrefs(){
   ["modeSel","seasonSel","fontSel","progressStyleSel"].forEach(id=>{
-    $(id)?.addEventListener("change", applyPrefsFromUI);
+    on(id,"change", applyPrefsFromUI);
   });
-  $("uiScale")?.addEventListener("input", applyPrefsFromUI);
+  on("uiScale","input", applyPrefsFromUI);
 
-  $("prefsApply")?.addEventListener("click", ()=>{
+  on("prefsApply","click", ()=>{
     applyPrefsFromUI();
     status("Préférences appliquées.");
   });
 
-  $("prefsReset")?.addEventListener("click", ()=>{
-    state.ui = clone(defaultState.ui);
-    state.pomodoro = clone(defaultState.pomodoro);
+  on("prefsReset","click", ()=>{
+    state.ui = structuredClone(defaultState.ui);
+    state.pomodoro = structuredClone(defaultState.pomodoro);
     saveState();
     renderAll();
     status("Préférences reset.");
   });
 }
 
+/* ---------- Topbar ---------- */
+function bindTopbar(){
+  on("modeToggle","click", ()=>{
+    state.ui.mode = (state.ui.mode === "clair") ? "sombre" : "clair";
+    saveState();
+    renderAll();
+  });
+
+  on("seasonCycle","click", ()=>{
+    const idx = Math.max(0, SEASONS.indexOf(state.ui.season));
+    state.ui.season = SEASONS[(idx + 1) % SEASONS.length];
+    saveState();
+    renderAll();
+  });
+
+  on("focusBtn","click", ()=>{
+    document.body.classList.toggle("focusMode");
+    $("focusBtn")?.classList.toggle("active", document.body.classList.contains("focusMode"));
+  });
+
+  on("countersBtn","click", ()=>{
+    document.body.classList.toggle("hideCounters");
+    $("countersBtn")?.classList.toggle("active", !document.body.classList.contains("hideCounters"));
+  });
+}
+
 /* ---------- Inbox add ---------- */
 function inboxAdd(){
-  const text = $("inboxText").value || "";
+  const text = $("inboxText")?.value || "";
   const parsed = importFromInbox(text);
   if(parsed.length===0) return status("Rien à ajouter.");
 
@@ -1078,7 +1114,10 @@ function inboxAdd(){
   renderAll();
   status(`Ajout : ${parsed.length} tâche(s).`);
 }
-function inboxClear(){ $("inboxText").value = ""; status("Champ effacé."); }
+function inboxClear(){
+  if($("inboxText")) $("inboxText").value = "";
+  status("Champ effacé.");
+}
 
 /* ---------- Render all ---------- */
 function renderAll(){
@@ -1094,14 +1133,16 @@ function renderAll(){
 
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", ()=>{
-  if($("subtitle")) $("subtitle").textContent = pickSubline();
-  setInterval(()=>{ if($("subtitle")) $("subtitle").textContent = pickSubline(); }, 45000);
+  // punchline
+  setText("subtitle", pickSubline());
+  setInterval(()=>setText("subtitle", pickSubline()), 45000);
 
-  $("btnLeft")?.addEventListener("click", ()=>openPanel("left"));
-  $("btnRight")?.addEventListener("click", ()=>openPanel("right"));
-  $("leftClose")?.addEventListener("click", closePanels);
-  $("rightClose")?.addEventListener("click", closePanels);
-  $("panelBack")?.addEventListener("click", closePanels);
+  // panels
+  on("btnLeft","click", ()=>openPanel("left"));
+  on("btnRight","click", ()=>openPanel("right"));
+  on("leftClose","click", closePanels);
+  on("rightClose","click", closePanels);
+  on("panelBack","click", closePanels);
 
   initResizer("leftResizer","left");
   initResizer("rightResizer","right");
@@ -1110,28 +1151,33 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindTopbar();
   bindPrefs();
 
-  $("inboxAdd")?.addEventListener("click", inboxAdd);
-  $("inboxClear")?.addEventListener("click", inboxClear);
+  // inbox
+  on("inboxAdd","click", inboxAdd);
+  on("inboxClear","click", inboxClear);
 
-  $("rouletteBtn")?.addEventListener("click", spinRoulette);
-  $("bombBtn")?.addEventListener("click", degommerOne);
-  $("undoBtn")?.addEventListener("click", doUndo);
-  $("taskInfoBtn")?.addEventListener("click", toggleTaskMeta);
+  // actions
+  on("rouletteBtn","click", spinRoulette);
+  on("bombBtn","click", degommerOne);
+  on("undoBtn","click", doUndo);
+  on("taskInfoBtn","click", toggleTaskMeta);
 
-  $("catFilter")?.addEventListener("change", renderTasksPanel);
-  $("viewFilter")?.addEventListener("change", renderTasksPanel);
+  // filters
+  on("catFilter","change", renderTasksPanel);
+  on("viewFilter","change", renderTasksPanel);
 
-  $("exportBtn")?.addEventListener("click", ()=>copyText(JSON.stringify(state, null, 2)));
-  $("wipeBtn")?.addEventListener("click", ()=>{
+  // export
+  on("exportBtn","click", ()=>copyText(JSON.stringify(state, null, 2)));
+  on("wipeBtn","click", ()=>{
     if(!confirm("Reset total ? (tout effacer)")) return;
     localStorage.removeItem(LS_KEY);
-    state = clone(defaultState);
+    state = structuredClone(defaultState);
     saveState();
     renderAll();
     status("Reset complet. Le monde repart à zéro.");
   });
 
-  $("kiffAdd")?.addEventListener("click", ()=>{
+  // kiff panel gauche
+  on("kiffAdd","click", ()=>{
     const v = ($("kiffNew")?.value||"").trim();
     if(!v) return;
     pushUndo("kiffAdd");
@@ -1142,46 +1188,51 @@ document.addEventListener("DOMContentLoaded", ()=>{
     status("Kiffance ajoutée.");
   });
 
+  // pomodoro init
   if(!state.pomodoro.phase) state.pomodoro.phase = "work";
   resetPhase();
 
-  $("pomoTime")?.addEventListener("click", ()=>{
+  on("pomoTime","click", ()=>{
     if(remainingMs <= 0) resetPhase();
     togglePomo();
   });
-  $("pomoEdit")?.addEventListener("click", (e)=>{
+  on("pomoEdit","click", (e)=>{
     e.preventDefault();
     e.stopPropagation();
     openPomoModal();
   });
 
-  $("modalBack")?.addEventListener("click", ()=>{
+  // modal events
+  on("modalBack","click", ()=>{
     if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
     if($("overlayModal") && !$("overlayModal").hidden) closeOverlay();
     closeModalBackIfNone();
   });
-  $("modalClose")?.addEventListener("click", closePomoModal);
-  $("pomoApply")?.addEventListener("click", applyPomoSettings);
-  $("pomoReset")?.addEventListener("click", ()=>{
+  on("modalClose","click", closePomoModal);
+  on("pomoApply","click", applyPomoSettings);
+  on("pomoReset","click", ()=>{
     pausePomo();
     resetPhase();
     status("Timer reset.");
   });
 
-  $("overlayClose")?.addEventListener("click", closeOverlay);
-  $("openNotes")?.addEventListener("click", ()=>openOverlay("notes"));
-  $("openTyphonse")?.addEventListener("click", ()=>openOverlay("typhonse"));
-  $("openKiffance")?.addEventListener("click", ()=>openOverlay("kiffance"));
-  $("openStats")?.addEventListener("click", ()=>openOverlay("stats"));
+  // overlay central
+  on("overlayClose","click", closeOverlay);
+  on("openNotes","click", ()=>openOverlay("notes"));
+  on("openTyphonse","click", ()=>openOverlay("typhonse"));
+  on("openKiffance","click", ()=>openOverlay("kiffance"));
+  on("openStats","click", ()=>openOverlay("stats"));
 
-  $("notesArea")?.addEventListener("input", scheduleNotesSave);
-  $("remindersArea")?.addEventListener("input", scheduleNotesSave);
+  // notes autosave
+  on("notesArea","input", scheduleNotesSave);
+  on("remindersArea","input", scheduleNotesSave);
 
-  $("typhonseAdd")?.addEventListener("click", addTyphonse);
-  $("typhonseInput")?.addEventListener("keydown",(e)=>{
+  // typhonse
+  on("typhonseAdd","click", addTyphonse);
+  on("typhonseInput","keydown",(e)=>{
     if(e.key==="Enter"){ e.preventDefault(); addTyphonse(); }
   });
-  $("typhonseClearDone")?.addEventListener("click", ()=>{
+  on("typhonseClearDone","click", ()=>{
     ensureNotes();
     state.notes.typhonse = state.notes.typhonse.filter(x=>!x.done);
     saveState();
@@ -1189,28 +1240,26 @@ document.addEventListener("DOMContentLoaded", ()=>{
     status("Typhonse : cochés retirés.");
   });
 
-  $("kiffOverlayAdd")?.addEventListener("click", addKiffOverlay);
-  $("kiffOverlayInput")?.addEventListener("keydown",(e)=>{
+  // kiff overlay
+  on("kiffOverlayAdd","click", addKiffOverlay);
+  on("kiffOverlayInput","keydown",(e)=>{
     if(e.key==="Enter"){ e.preventDefault(); addKiffOverlay(); }
   });
-  $("kiffRoll")?.addEventListener("click", ()=>{
+  on("kiffRoll","click", ()=>{
     if(!state.kiffances || state.kiffances.length===0) return status("Aucune kiffance à tirer.");
     const k = state.kiffances[Math.floor(Math.random()*state.kiffances.length)];
     status("🎁 Kiffance : " + k);
   });
 
+  // ESC ferme modales
   window.addEventListener("keydown",(e)=>{
     if(e.key !== "Escape") return;
     if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
     if($("overlayModal") && !$("overlayModal").hidden) closeOverlay();
   });
 
-  /* ✅ responsive : resize + orientation + visualViewport (iOS) */
-  window.addEventListener("resize", scheduleApplyTheme, {passive:true});
-  window.addEventListener("orientationchange", scheduleApplyTheme, {passive:true});
-  window.visualViewport?.addEventListener("resize", scheduleApplyTheme, {passive:true});
-  window.visualViewport?.addEventListener("scroll", scheduleApplyTheme, {passive:true});
+  // responsive repaint
+  window.addEventListener("resize", ()=>applyTheme());
 
   renderAll();
 });
-```0
