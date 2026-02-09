@@ -1,10 +1,10 @@
 /* ===========================
-   ELIMINATOR — state.v5.js (fix)
-   - corrige SyntaxError (defaultState / notes / modals)
-   - prefs réellement appliquées
-   - pomodoro play/pause + modal réglages
-   - overlay central (notes/typhonse/kiffance/stats)
-   - roulette anim + tirage
+   ELIMINATOR — state.v5.js (fix + responsive/touch)
+   ✅ AJOUTS "idée responsive" :
+   - raf-throttle sur resize/orientationchange/visualViewport
+   - --vh (mobile safe viewport) injecté
+   - resizer en Pointer Events (1 seul code pour souris/touch/stylus)
+   - structuredClone fallback (si vieux navigateur)
 =========================== */
 
 const $ = (id)=>document.getElementById(id);
@@ -12,6 +12,12 @@ const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
 const clamp = (n,a,b)=>Math.max(a, Math.min(b,n));
 const uid = ()=>Math.random().toString(36).slice(2,10)+"_"+Date.now().toString(36);
 const nowISO = ()=>new Date().toISOString();
+
+/* ✅ structuredClone fallback */
+const clone = (obj)=>{
+  if(typeof structuredClone === "function") return structuredClone(obj);
+  return JSON.parse(JSON.stringify(obj));
+};
 
 const LS_KEY = "eliminator_step2_fix_v5";
 const SEASONS = ["printemps","ete","automne","hiver","noirblanc"];
@@ -101,40 +107,22 @@ const DOODLES = {
 };
 
 /* ---------- Thèmes ---------- */
-const THEMES = /* (identique à ton code) */ ({
-  printemps:{
-    clair:{ bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54", barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)", accent:"rgba(255,162,190,.14)", accent2:"rgba(124,207,168,.30)", panel:"rgba(255,255,255,.72)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)" },
-    sombre:{ bg:"#2A3A3A", fg:"#F6F2EA", muted:"#DAD2C6", barFill:"#8FE3BC", barEmpty:"rgba(143,227,188,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,170,200,.10)", accent2:"rgba(143,227,188,.20)", panel:"rgba(54,86,82,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(56,86,82,.40)", glass2:"rgba(72,110,104,.24)", decoA:"rgba(255,170,200,.08)", decoB:"rgba(255,235,180,.06)" }
-  },
-  ete:{
-    clair:{ bg:"#FFF6DF", fg:"#16120F", muted:"#6C5E52", barFill:"#F2B24B", barEmpty:"rgba(242,178,75,.16)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(90,190,200,.12)", accent2:"rgba(242,178,75,.28)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(242,178,75,.14)", decoB:"rgba(90,190,200,.10)" },
-    sombre:{ bg:"#263748", fg:"#F0FAFF", muted:"#D6E2EA", barFill:"#FFD07A", barEmpty:"rgba(255,208,122,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,208,122,.10)", accent2:"rgba(134,210,220,.18)", panel:"rgba(54,86,108,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,86,108,.38)", glass2:"rgba(72,110,136,.24)", decoA:"rgba(255,208,122,.08)", decoB:"rgba(134,210,220,.08)" }
-  },
-  automne:{
-    clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", barEmpty:"rgba(211,138,92,.18)", barEdge:"rgba(255,255,255,.85)", accent:"rgba(211,138,92,.18)", accent2:"rgba(211,138,92,.36)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(211,138,92,.12)", decoB:"rgba(255,210,160,.12)" },
-    sombre:{ bg:"#2E3A33", fg:"#FFF3E6", muted:"#E3D3C4", barFill:"#E0A77D", barEmpty:"rgba(224,167,125,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(224,167,125,.12)", accent2:"rgba(224,167,125,.22)", panel:"rgba(62,82,70,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(62,82,70,.38)", glass2:"rgba(74,98,84,.24)", decoA:"rgba(224,167,125,.10)", decoB:"rgba(255,245,210,.08)" }
-  },
-  hiver:{
-    clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", barEmpty:"rgba(120,160,200,.18)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(120,160,200,.16)", accent2:"rgba(120,160,200,.30)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(120,160,200,.12)", decoB:"rgba(220,240,255,.14)" },
-    sombre:{ bg:"#273244", fg:"#F0FBFF", muted:"#D0DFE5", barFill:"#9DB8D5", barEmpty:"rgba(157,184,213,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(157,184,213,.12)", accent2:"rgba(157,184,213,.22)", panel:"rgba(54,74,98,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,74,98,.38)", glass2:"rgba(66,92,120,.24)", decoA:"rgba(157,184,213,.10)", decoB:"rgba(242,253,255,.08)" }
-  },
-  noirblanc:{
-    clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#4A4A4A", barEmpty:"rgba(0,0,0,.08)", barEdge:"rgba(255,255,255,.82)", accent:"rgba(0,0,0,.06)", accent2:"rgba(0,0,0,.12)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(0,0,0,.05)", decoB:"rgba(0,0,0,.03)" },
-    sombre:{ bg:"#2B2F38", fg:"#F4F4F4", muted:"#D5D5D8", barFill:"#BEBEBE", barEmpty:"rgba(255,255,255,.10)", barEdge:"rgba(255,255,255,.18)", accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.14)", panel:"rgba(58,64,78,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(58,64,78,.40)", glass2:"rgba(72,80,98,.26)", decoA:"rgba(255,255,255,.06)", decoB:"rgba(255,255,255,.04)" }
-  }
+const THEMES = ({
+  printemps:{ clair:{ bg:"#F9F7EC", fg:"#15120F", muted:"#5E5A54", barFill:"#7CCFA8", barEmpty:"rgba(124,207,168,.16)", barEdge:"rgba(255,255,255,.86)", accent:"rgba(255,162,190,.14)", accent2:"rgba(124,207,168,.30)", panel:"rgba(255,255,255,.72)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(255,162,190,.14)", decoB:"rgba(255,220,140,.10)" },
+             sombre:{ bg:"#2A3A3A", fg:"#F6F2EA", muted:"#DAD2C6", barFill:"#8FE3BC", barEmpty:"rgba(143,227,188,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,170,200,.10)", accent2:"rgba(143,227,188,.20)", panel:"rgba(54,86,82,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(56,86,82,.40)", glass2:"rgba(72,110,104,.24)", decoA:"rgba(255,170,200,.08)", decoB:"rgba(255,235,180,.06)" } },
+  ete:{       clair:{ bg:"#FFF6DF", fg:"#16120F", muted:"#6C5E52", barFill:"#F2B24B", barEmpty:"rgba(242,178,75,.16)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(90,190,200,.12)", accent2:"rgba(242,178,75,.28)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.60)", glass2:"rgba(255,255,255,.42)", decoA:"rgba(242,178,75,.14)", decoB:"rgba(90,190,200,.10)" },
+             sombre:{ bg:"#263748", fg:"#F0FAFF", muted:"#D6E2EA", barFill:"#FFD07A", barEmpty:"rgba(255,208,122,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(255,208,122,.10)", accent2:"rgba(134,210,220,.18)", panel:"rgba(54,86,108,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,86,108,.38)", glass2:"rgba(72,110,136,.24)", decoA:"rgba(255,208,122,.08)", decoB:"rgba(134,210,220,.08)" } },
+  automne:{   clair:{ bg:"#FBF4E8", fg:"#14120F", muted:"#6A5D53", barFill:"#D38A5C", barEmpty:"rgba(211,138,92,.18)", barEdge:"rgba(255,255,255,.85)", accent:"rgba(211,138,92,.18)", accent2:"rgba(211,138,92,.36)", panel:"rgba(255,255,255,.70)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(211,138,92,.12)", decoB:"rgba(255,210,160,.12)" },
+             sombre:{ bg:"#2E3A33", fg:"#FFF3E6", muted:"#E3D3C4", barFill:"#E0A77D", barEmpty:"rgba(224,167,125,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(224,167,125,.12)", accent2:"rgba(224,167,125,.22)", panel:"rgba(62,82,70,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(62,82,70,.38)", glass2:"rgba(74,98,84,.24)", decoA:"rgba(224,167,125,.10)", decoB:"rgba(255,245,210,.08)" } },
+  hiver:{     clair:{ bg:"#F5F7FA", fg:"#141B22", muted:"#61707E", barFill:"#78A0C8", barEmpty:"rgba(120,160,200,.18)", barEdge:"rgba(255,255,255,.88)", accent:"rgba(120,160,200,.16)", accent2:"rgba(120,160,200,.30)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(120,160,200,.12)", decoB:"rgba(220,240,255,.14)" },
+             sombre:{ bg:"#273244", fg:"#F0FBFF", muted:"#D0DFE5", barFill:"#9DB8D5", barEmpty:"rgba(157,184,213,.12)", barEdge:"rgba(255,255,255,.20)", accent:"rgba(157,184,213,.12)", accent2:"rgba(157,184,213,.22)", panel:"rgba(54,74,98,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(54,74,98,.38)", glass2:"rgba(66,92,120,.24)", decoA:"rgba(157,184,213,.10)", decoB:"rgba(242,253,255,.08)" } },
+  noirblanc:{ clair:{ bg:"#F7F4EE", fg:"#121212", muted:"#595959", barFill:"#4A4A4A", barEmpty:"rgba(0,0,0,.08)", barEdge:"rgba(255,255,255,.82)", accent:"rgba(0,0,0,.06)", accent2:"rgba(0,0,0,.12)", panel:"rgba(255,255,255,.74)", line:"rgba(0,0,0,.10)", glass:"rgba(255,255,255,.58)", glass2:"rgba(255,255,255,.40)", decoA:"rgba(0,0,0,.05)", decoB:"rgba(0,0,0,.03)" },
+             sombre:{ bg:"#2B2F38", fg:"#F4F4F4", muted:"#D5D5D8", barFill:"#BEBEBE", barEmpty:"rgba(255,255,255,.10)", barEdge:"rgba(255,255,255,.18)", accent:"rgba(255,255,255,.08)", accent2:"rgba(255,255,255,.14)", panel:"rgba(58,64,78,.56)", line:"rgba(255,255,255,.14)", glass:"rgba(58,64,78,.40)", glass2:"rgba(72,80,98,.26)", decoA:"rgba(255,255,255,.06)", decoB:"rgba(255,255,255,.04)" } }
 });
 
 /* ---------- State ---------- */
 const defaultState = {
-  ui:{
-    mode:"clair",
-    season:"automne",
-    font:"yomogi",
-    baseSize:16,
-    leftW:360,
-    rightW:420,
-    progressStyle:"float"
-  },
+  ui:{ mode:"clair", season:"automne", font:"yomogi", baseSize:16, leftW:360, rightW:420, progressStyle:"float" },
   baseline:{ totalTasks: 0 },
   tasks:[],
   currentTaskId:null,
@@ -144,17 +132,8 @@ const defaultState = {
     "Range 10 objets comme un ninja du tri.",
     "Bois une gorgée d’eau : potion de clarté mentale."
   ],
-  pomodoro:{
-    workMin: 25,
-    breakMin: 5,
-    autoStart: "auto",
-    phase: "work"
-  },
-  notes:{
-    text:"",
-    reminders:"",
-    typhonse:[]
-  }
+  pomodoro:{ workMin: 25, breakMin: 5, autoStart: "auto", phase: "work" },
+  notes:{ text:"", reminders:"", typhonse:[] }
 };
 
 function deepAssign(t,s){
@@ -166,13 +145,13 @@ function deepAssign(t,s){
 function loadState(){
   try{
     const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return structuredClone(defaultState);
+    if(!raw) return clone(defaultState);
     const parsed = JSON.parse(raw);
-    const merged = structuredClone(defaultState);
+    const merged = clone(defaultState);
     deepAssign(merged, parsed);
     return merged;
   }catch(_){
-    return structuredClone(defaultState);
+    return clone(defaultState);
   }
 }
 let state = loadState();
@@ -206,27 +185,27 @@ function applyTheme(){
   setVar("--bg", t.bg);
   setVar("--fg", t.fg);
   setVar("--muted", t.muted);
-
   setVar("--barFill", t.barFill);
   setVar("--barEmpty", t.barEmpty);
   setVar("--barEdge", t.barEdge);
-
   setVar("--accent", t.accent);
   setVar("--accent2", t.accent2);
-
   setVar("--panelBg", t.panel);
   setVar("--line", t.line);
-
   setVar("--glass", t.glass);
   setVar("--glass2", t.glass2);
-
   setVar("--decoA", t.decoA);
   setVar("--decoB", t.decoB);
 
   setVar("--baseSize", `${clamp(state.ui.baseSize, 14, 18)}px`);
 
+  // ✅ viewport mobile fiable (barre d’adresse iOS etc.)
+  const vh = (window.visualViewport?.height || window.innerHeight) * 0.01;
+  setVar("--vh", `${vh}px`);
+
   // responsive panels : sur mobile on limite automatiquement
-  const maxPanel = Math.max(320, Math.min(window.innerWidth - 28, 520));
+  const w = window.visualViewport?.width || window.innerWidth;
+  const maxPanel = Math.max(320, Math.min(w - 28, 520));
   setVar("--leftW", `${clamp(state.ui.leftW, 320, maxPanel)}px`);
   setVar("--rightW", `${clamp(state.ui.rightW, 320, maxPanel)}px`);
 
@@ -245,7 +224,6 @@ function applyTheme(){
   document.body.setAttribute("data-font", state.ui.font);
   document.body.setAttribute("data-mode", state.ui.mode);
 
-  // topbar reflect
   const mt = $("modeToggle");
   const sc = $("seasonCycle");
   if(mt){
@@ -253,6 +231,16 @@ function applyTheme(){
     mt.setAttribute("aria-pressed", state.ui.mode === "sombre" ? "true" : "false");
   }
   if(sc) sc.textContent = seasonLabel(state.ui.season);
+}
+
+/* ✅ raf-throttle : évite applyTheme 80 fois/sec sur mobile */
+let _rafResize = 0;
+function scheduleApplyTheme(){
+  if(_rafResize) return;
+  _rafResize = requestAnimationFrame(()=>{
+    _rafResize = 0;
+    applyTheme();
+  });
 }
 
 /* ---------- Panels ---------- */
@@ -274,36 +262,44 @@ function closePanels(){
   document.body.style.overflow = "";
 }
 
-/* ---------- Resizers ---------- */
+/* ---------- Resizers (✅ Pointer Events) ---------- */
 function initResizer(handleId, which){
   const h = $(handleId);
   if(!h) return;
-  let dragging=false, sx=0, sw=0;
 
-  const down=(x)=>{
-    dragging=true; sx=x;
+  let dragging = false;
+  let sx = 0, sw = 0;
+
+  const down = (x)=>{
+    dragging = true;
+    sx = x;
     sw = which==="left" ? state.ui.leftW : state.ui.rightW;
   };
-  const move=(x)=>{
+
+  const move = (x)=>{
     if(!dragging) return;
     const dx = x - sx;
     if(which==="left") state.ui.leftW = clamp(sw + dx, 320, 980);
     else state.ui.rightW = clamp(sw - dx, 320, 980);
     applyTheme();
   };
-  const up=()=>{
+
+  const up = ()=>{
     if(!dragging) return;
-    dragging=false;
+    dragging = false;
     saveState();
   };
 
-  h.addEventListener("mousedown",(e)=>{ e.preventDefault(); down(e.clientX); });
-  window.addEventListener("mousemove",(e)=>move(e.clientX));
-  window.addEventListener("mouseup", up);
+  // ✅ un seul chemin : souris/touch/stylus
+  h.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    h.setPointerCapture?.(e.pointerId);
+    down(e.clientX);
+  });
 
-  h.addEventListener("touchstart",(e)=>{ e.preventDefault(); down(e.touches[0].clientX); }, {passive:false});
-  window.addEventListener("touchmove",(e)=>move(e.touches[0].clientX), {passive:true});
-  window.addEventListener("touchend", up);
+  window.addEventListener("pointermove", (e)=>move(e.clientX));
+  window.addEventListener("pointerup", up);
+  window.addEventListener("pointercancel", up);
 }
 
 /* ---------- Tabs ---------- */
@@ -417,7 +413,7 @@ function renderProgress(){
 
 /* ---------- Undo ---------- */
 function pushUndo(label){
-  state.undo.unshift({ label, at: Date.now(), payload: structuredClone(state) });
+  state.undo.unshift({ label, at: Date.now(), payload: clone(state) });
   state.undo = state.undo.slice(0, 25);
   saveState();
 }
@@ -810,7 +806,6 @@ function hideAllOverlayPages(){
 function openOverlay(kind){
   ensureNotes();
 
-  // ✅ évite double-modale superposée
   if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
 
   hideAllOverlayPages();
@@ -834,7 +829,6 @@ function openOverlay(kind){
   if(kind==="kiffance") renderKiffOverlay();
   if(kind==="stats") renderStatsOverlay();
 }
-
 function closeOverlay(){
   $("overlayModal").hidden = true;
   closeModalBackIfNone();
@@ -1058,8 +1052,8 @@ function bindPrefs(){
   });
 
   $("prefsReset")?.addEventListener("click", ()=>{
-    state.ui = structuredClone(defaultState.ui);
-    state.pomodoro = structuredClone(defaultState.pomodoro);
+    state.ui = clone(defaultState.ui);
+    state.pomodoro = clone(defaultState.pomodoro);
     saveState();
     renderAll();
     status("Préférences reset.");
@@ -1100,11 +1094,9 @@ function renderAll(){
 
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", ()=>{
-  // punchline
   if($("subtitle")) $("subtitle").textContent = pickSubline();
   setInterval(()=>{ if($("subtitle")) $("subtitle").textContent = pickSubline(); }, 45000);
 
-  // panels
   $("btnLeft")?.addEventListener("click", ()=>openPanel("left"));
   $("btnRight")?.addEventListener("click", ()=>openPanel("right"));
   $("leftClose")?.addEventListener("click", closePanels);
@@ -1118,32 +1110,27 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindTopbar();
   bindPrefs();
 
-  // inbox
   $("inboxAdd")?.addEventListener("click", inboxAdd);
   $("inboxClear")?.addEventListener("click", inboxClear);
 
-  // actions
   $("rouletteBtn")?.addEventListener("click", spinRoulette);
   $("bombBtn")?.addEventListener("click", degommerOne);
   $("undoBtn")?.addEventListener("click", doUndo);
   $("taskInfoBtn")?.addEventListener("click", toggleTaskMeta);
 
-  // filters
   $("catFilter")?.addEventListener("change", renderTasksPanel);
   $("viewFilter")?.addEventListener("change", renderTasksPanel);
 
-  // export
   $("exportBtn")?.addEventListener("click", ()=>copyText(JSON.stringify(state, null, 2)));
   $("wipeBtn")?.addEventListener("click", ()=>{
     if(!confirm("Reset total ? (tout effacer)")) return;
     localStorage.removeItem(LS_KEY);
-    state = structuredClone(defaultState);
+    state = clone(defaultState);
     saveState();
     renderAll();
     status("Reset complet. Le monde repart à zéro.");
   });
 
-  // kiff panel gauche
   $("kiffAdd")?.addEventListener("click", ()=>{
     const v = ($("kiffNew")?.value||"").trim();
     if(!v) return;
@@ -1155,7 +1142,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
     status("Kiffance ajoutée.");
   });
 
-  // pomodoro init
   if(!state.pomodoro.phase) state.pomodoro.phase = "work";
   resetPhase();
 
@@ -1169,7 +1155,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
     openPomoModal();
   });
 
-  // modal events
   $("modalBack")?.addEventListener("click", ()=>{
     if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
     if($("overlayModal") && !$("overlayModal").hidden) closeOverlay();
@@ -1183,18 +1168,15 @@ document.addEventListener("DOMContentLoaded", ()=>{
     status("Timer reset.");
   });
 
-  // overlay central
   $("overlayClose")?.addEventListener("click", closeOverlay);
   $("openNotes")?.addEventListener("click", ()=>openOverlay("notes"));
   $("openTyphonse")?.addEventListener("click", ()=>openOverlay("typhonse"));
   $("openKiffance")?.addEventListener("click", ()=>openOverlay("kiffance"));
   $("openStats")?.addEventListener("click", ()=>openOverlay("stats"));
 
-  // notes autosave
   $("notesArea")?.addEventListener("input", scheduleNotesSave);
   $("remindersArea")?.addEventListener("input", scheduleNotesSave);
 
-  // typhonse
   $("typhonseAdd")?.addEventListener("click", addTyphonse);
   $("typhonseInput")?.addEventListener("keydown",(e)=>{
     if(e.key==="Enter"){ e.preventDefault(); addTyphonse(); }
@@ -1207,7 +1189,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
     status("Typhonse : cochés retirés.");
   });
 
-  // kiff overlay
   $("kiffOverlayAdd")?.addEventListener("click", addKiffOverlay);
   $("kiffOverlayInput")?.addEventListener("keydown",(e)=>{
     if(e.key==="Enter"){ e.preventDefault(); addKiffOverlay(); }
@@ -1218,15 +1199,18 @@ document.addEventListener("DOMContentLoaded", ()=>{
     status("🎁 Kiffance : " + k);
   });
 
-  // ESC ferme modales
   window.addEventListener("keydown",(e)=>{
     if(e.key !== "Escape") return;
     if($("pomoModal") && !$("pomoModal").hidden) closePomoModal();
     if($("overlayModal") && !$("overlayModal").hidden) closeOverlay();
   });
 
-  // reflow responsive
-  window.addEventListener("resize", ()=>applyTheme());
+  /* ✅ responsive : resize + orientation + visualViewport (iOS) */
+  window.addEventListener("resize", scheduleApplyTheme, {passive:true});
+  window.addEventListener("orientationchange", scheduleApplyTheme, {passive:true});
+  window.visualViewport?.addEventListener("resize", scheduleApplyTheme, {passive:true});
+  window.visualViewport?.addEventListener("scroll", scheduleApplyTheme, {passive:true});
 
   renderAll();
 });
+```0
